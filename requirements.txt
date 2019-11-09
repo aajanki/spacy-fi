@@ -1,1 +1,2 @@
 spacy>=2.2
+gensim>=3.8
