@@ -12,8 +12,8 @@ rm -rf data/fi-experimental/*
 spacy init-model fi data/fi-experimental \
       --model-name fi_experimental_web_md \
       --jsonl-loc data/lexdata.jsonl \
-      --vectors-loc data/word2vec/finnish_4B_parsebank_skgram.txt.gz \
-      --prune-vectors 100000
+      --vectors-loc data/word2vec/finnish_parsebank_small.txt.gz \
+      --prune-vectors 40000
 
 python spacy_fi.py debug-data fi \
        data/spacy/fi_tdt-ud-train.json \
