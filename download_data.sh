@@ -7,6 +7,22 @@ mkdir -p data
 echo "Downloading UD_Finnish-TDT"
 git clone --branch r2.4 --single-branch --depth 1 https://github.com/UniversalDependencies/UD_Finnish-TDT data/UD_Finnish-TDT
 
+echo "Downloading finer-data"
+mkdir -p data/finer-data-preprocessed
+git clone https://github.com/mpsilfve/finer-data.git data/finer-data
+python tools/select_ner_columns.py \
+       data/finer-data/data/digitoday.2014.train.csv \
+       data/finer-data-preprocessed/digitoday.2014.train.csv
+python tools/select_ner_columns.py \
+       data/finer-data/data/digitoday.2014.dev.csv \
+       data/finer-data-preprocessed/digitoday.2014.dev.csv
+python tools/select_ner_columns.py \
+       data/finer-data/data/digitoday.2015.test.csv \
+       data/finer-data-preprocessed/digitoday.2015.test.csv
+python tools/select_ner_columns.py \
+       data/finer-data/data/wikipedia.test.csv \
+       data/finer-data-preprocessed/wikipedia.test.csv
+
 echo "Downloading word vectors"
 mkdir -p data/word2vec
 wget --directory-prefix data/word2vec http://dl.turkunlp.org/finnish-embeddings/finnish_4B_parsebank_skgram.bin
