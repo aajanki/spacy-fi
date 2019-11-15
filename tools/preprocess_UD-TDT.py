@@ -4,7 +4,7 @@ for line in sys.stdin:
     if line == '\n' or line.startswith('#'):
         sys.stdout.write(line)
     else:
-        columns = line.split('\t')
+        columns = line.rstrip('\n').split('\t')
         upos = columns[3]
         xpos = columns[4]
 
@@ -19,4 +19,7 @@ for line in sys.stdin:
         elif upos == 'PROPN':
             columns[4] = 'Propn'
 
+        columns[9] = 'O'
+
         sys.stdout.write('\t'.join(columns))
+        sys.stdout.write('\n')

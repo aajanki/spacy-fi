@@ -1,0 +1,18 @@
+1	Suomalaiset	suomalainen	ADJ	A	_	2	amod	2:amod	O
+2	siirtolaiset	siirtolainen	NOUN	N	_	3	nsubj	3:nsubj	O
+3	perustivat	perustaa	VERB	V	_	0	root	0:root	O
+4	Kalevan	Kaleva	PROPN	Propn	_	3	nmod:poss	3:nmod:poss	B-LOC
+5	vuonna	vuosi	NOUN	N	_	3	obl	3:obl	O
+6	1900	1900	NUM	Num	_	5	nummod	5:nummod	O
+7	.	.	PUNCT	Punct	_	3	punct	3:punct	O
+
+1	Räikkönen	Räikkönen	PROPN	Propn	_	2	nsubj	_	B-PER
+2	aloitti	aloittaa	VERB	V	_	0	root	_	O
+3	Formula	Formula	PROPN	Propn	_	6	compound:nn	_	O
+4	1	1	NUM	Num	_	3	nummod	_	O
+5	-uransa	ura	NOUN	N	_	2	obj	_	O
+6	Sauberilla	Sauber	PROPN	Propn	_	2	obl	_	B-ORG
+7	vuonna	vuosi	NOUN	N	_	2	obl	_	O
+8	2001	2001	NUM	Num	_	7	nummod	_	O
+9	.	.	PUNCT	Punct	_	2	punct	_	O
+
