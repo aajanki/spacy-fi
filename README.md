@@ -12,6 +12,12 @@ pip install -r requirements.txt
 ./download_data.sh
 ```
 
+## Train the model
+
+```
+./train.sh
+```
+
 ## License
 
 The source code and all other material in this repository is licensed
