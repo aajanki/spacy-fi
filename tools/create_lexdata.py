@@ -2,41 +2,53 @@
 
 import gzip
 import math
+import plac
 import sys
 import srsly
+from itertools import islice
+from pathlib import Path
 from preshed.counter import PreshCounter
 from tqdm import tqdm
 
 
-def main():
-    infile, outfile = sys.argv[1:3]
-    probs, oov_prob = read_freqs(infile)
+@plac.annotations(
+    input_path=('Path to the input vocabulary file', 'positional', None, Path),
+    output_path=('Path to the output file', 'positional', None, Path),
+    token_limit=('Maximum number of tokens to include in the output', 'option', 'n', int)
+)
+def main(
+    input_path,
+    output_path,
+    token_limit=1000000
+):
+    probs, oov_prob = read_freqs(input_path, token_limit)
     header = {'lang': 'fi', 'settings': {'oov_prob': oov_prob}}
     lex = [{'orth': orth, 'prob': p} for orth, p in probs.items()]
     data = [header] + lex
-    srsly.write_jsonl(outfile, data)
+    srsly.write_jsonl(output_path, data)
 
 
-def read_freqs(freq_loc, min_freq=100, max_length=100):
+def read_freqs(freq_loc, token_limit, max_length=100):
     counts = PreshCounter()
     total = 0
     n = 0
     with gzip.open(freq_loc, 'rt', encoding='utf-8') as f:
         for i, line in enumerate(f):
+            n = i + 1
             freq, token = line.strip().split(' ', 1)
             freq = int(freq)
-            counts.inc(i + 1, freq)
+            counts.inc(n, freq)
             total += freq
-            n += 1
     counts.smooth()
     log_total = math.log(total)
 
     probs = {}
     with gzip.open(freq_loc, 'rt', encoding='utf-8') as f:
-        for line in tqdm(f, total=n):
+        num_lines = min(n, token_limit)
+        for line in tqdm(islice(f, num_lines), total=num_lines):
             freq, token = line.strip().split(' ', 1)
             freq = int(freq)
-            if freq >= min_freq and len(token) < max_length:
+            if len(token) < max_length:
                 smooth_count = counts.smoother(freq)
                 probs[token] = math.log(smooth_count) - log_total
 
@@ -45,4 +57,4 @@ def read_freqs(freq_loc, min_freq=100, max_length=100):
 
 
 if __name__ == '__main__':
-    main()
+    plac.call(main)

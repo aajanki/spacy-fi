@@ -37,6 +37,8 @@ python spacy_fi.py debug-data fi \
        data/spacy/digitoday.2014.dev.json \
        --pipeline ner
 
+python tools/create_lexdata.py -n 400000 data/frequencies/finnish_vocab.txt.gz data/lexdata.jsonl
+
 ## Training ##
 
 rm -rf data/fi-experimental/*
