@@ -1,5 +1,6 @@
 import json
 import re
+import string
 import sys
 import plac
 from collections import OrderedDict
@@ -15,11 +16,13 @@ pure_num_re = re.compile(r'^-?=q+(:p+)$')
 )
 def main(rulefile):
     v = libvoikko.Voikko('fi')
+    strip_punct = ''.join(x for x in string.punctuation if x != '-')
 
     rules = load_rules(rulefile)
 
     lines = (line.strip().split(' ') for line in sys.stdin)
     word_counts = ((x[1], int(x[0])) for x in lines)
+    word_counts = ((x[0].strip(strip_punct), x[1]) for x in word_counts)
     frequent_words = (w[0] for w in word_counts if w[1] >= 10)
     words_with_lemmas = voikko_lemmas(frequent_words, v)
 
@@ -33,11 +36,12 @@ def lemma_exceptions(words_with_lemmas, rules):
         for rule in rules:
             if word.endswith(rule[0]):
                 form = word[:-len(rule[0])] + rule[1]
-                if form.lower() in lemmas:
+                lemma_lower = [lemma.lower() for lemma in lemmas]
+                if form.lower() in lemma_lower:
                     found_match = True
                     break
 
-        if not found_match and word.lower() != lemmas[0]:
+        if not found_match and word.lower() != lemmas[0].lower():
             yield (word, lemmas[0])
 
 
@@ -50,7 +54,7 @@ def voikko_lemmas(words, v):
     for word in words:
         analyses = (x for x in v.analyze(word) if x.get('BASEFORM'))
         analyses = (x for x in analyses if not is_pure_num(x))
-        lemmas = [x.get('BASEFORM').lower() for x in analyses]
+        lemmas = [x.get('BASEFORM') for x in analyses]
         if lemmas:
             yield (word, lemmas)
 
