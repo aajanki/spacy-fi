@@ -15,6 +15,7 @@ pip install -r requirements.txt
 ## Train the model
 
 ```
+./prepare_lemmas.sh
 ./train.sh
 ```
 
