@@ -3,6 +3,10 @@ from spacy.language import Language
 from spacy.symbols import POS, PUNCT, SYM, ADJ, CCONJ, SCONJ, NUM, DET, ADV
 from spacy.symbols import ADP, X, VERB, NOUN, PROPN, PART, INTJ, SPACE, PRON
 
+# Punctuation stolen from Danish
+from spacy.lang.da.punctuation import TOKENIZER_INFIXES, TOKENIZER_SUFFIXES
+
+
 TAG_MAP = {
     'Adv': {POS: ADV},
     'Pron': {POS: PRON},
@@ -23,6 +27,8 @@ TAG_MAP = {
 
 class FinnishExDefaults(FinnishDefaults):
     tag_map = TAG_MAP
+    infixes = TOKENIZER_INFIXES
+    suffixes = TOKENIZER_SUFFIXES
     resources = [
         ('lemma_lookup', 'data/lemma/fi_lemma_lookup.json'),
     ]
