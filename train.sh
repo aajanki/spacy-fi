@@ -37,9 +37,9 @@ python spacy_fi.py debug-data fi \
        data/spacy/digitoday.2014.dev.json \
        --pipeline ner
 
-python tools/create_lexdata.py -n 400000 data/frequencies/finnish_vocab.txt.gz data/lexdata.jsonl
-
 ## Training ##
+
+python tools/create_lexdata.py -n 400000 data/frequencies/finnish_vocab.txt.gz data/lexdata.jsonl
 
 rm -rf data/fi-experimental/*
 python spacy_fi.py init-model fi data/fi-experimental \
@@ -76,3 +76,8 @@ python tools/mergemodels.py models/taggerparser/model-best models/ner/model-best
 
 python spacy_fi.py evaluate models/final data/spacy/fi_tdt-ud-dev.json
 python spacy_fi.py evaluate models/final data/spacy/digitoday.2014.dev.json
+
+## Package the model ##
+
+mkdir -p models/python-package
+spacy package models/final models/python-package --create-meta --force
