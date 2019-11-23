@@ -42,7 +42,7 @@ python tools/create_lexdata.py -n 400000 data/frequencies/finnish_vocab.txt.gz d
 ## Training ##
 
 rm -rf data/fi-experimental/*
-spacy init-model fi data/fi-experimental \
+python spacy_fi.py init-model fi data/fi-experimental \
       --model-name experimental_web_md \
       --jsonl-loc data/lexdata.jsonl \
       --vectors-loc data/word2vec/finnish_parsebank_small.txt.gz \
@@ -67,6 +67,7 @@ python spacy_fi.py train fi models/ner \
        --pipeline ner \
        --vectors data/fi-experimental \
        --n-iter 30
+rm -rf models/ner/model{?,??} models/ner/model-final
 
 # Merge models
 python tools/mergemodels.py models/taggerparser/model-best models/ner/model-best models/final
