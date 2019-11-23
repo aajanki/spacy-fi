@@ -12,27 +12,27 @@ def main():
     v = libvoikko.Voikko('fi')
     strip_punct = ''.join(x for x in string.punctuation if x != '-')
 
-    words = (line.strip().split(' ', 1)[1] for line in sys.stdin)
-    words = (x.strip(strip_punct) for x in words)
-    lemmas = voikko_lemmas(words, v)
+    lines = (line.strip().split(' ', 1) for line in sys.stdin)
+    word_counts = [(x[1], int(x[0])) for x in lines]
+    words = (x[0].strip(strip_punct) for x in word_counts)
+    lemmas = voikko_lemmas(words, dict(word_counts), v)
     lemmas = OrderedDict(sorted(lemmas))
     json.dump(lemmas, fp=sys.stdout, indent=2, ensure_ascii=False)
 
 
-def voikko_lemmas(words, v):
+def voikko_lemmas(words, freqs, v):
     for word in words:
-        analyses = (
-            x for x in v.analyze(word)
+        analyses = [
+            x.get('BASEFORM') for x in v.analyze(word)
             if x.get('BASEFORM') and not is_pure_num(x)
-        )
+        ]
+        analyses = sorted(analyses, key=lambda w: freqs.get(w, 0), reverse=True)
 
-        try:
-            lemma = next(analyses).get('BASEFORM')
-        except StopIteration:
-            continue
+        if analyses:
+            lemma = analyses[0]
 
-        if lemma and word.lower() != lemma.lower():
-            yield (word, lemma)
+            if lemma and word.lower() != lemma.lower():
+                yield (word, lemma)
 
 
 def is_pure_num(analysis):
