@@ -10,6 +10,7 @@ from pathlib import Path
 from voikko import libvoikko
 
 pure_num_re = re.compile(r'^-?=q+(:p+)$')
+parenthesis_re = re.compile(r'\((.+?)\)')
 
 
 @plac.annotations(
@@ -20,11 +21,11 @@ def main(min_freq=10000, output=Path('data/lemma')):
     v = libvoikko.Voikko('fi')
 
     wordclasses = [
-        (['nimisana'], 'noun'),
-        (['teonsana', 'kieltosana'], 'verb'),
-        (['laatusana', 'nimisana_laatusana'], 'adj'),
-        #(['asemosana'], 'pron'),
-        #('seikkasana', 'adv'),
+        ('noun', is_noun, get_baseform),
+        ('verb', is_verb, get_wordbase),
+        ('adj', is_adj, get_baseform),
+        #('pron', is_pron, get_baseform),
+        #('adv', is_adv, get_baseform),
     ]
 
     lemmarules = {
@@ -41,8 +42,9 @@ def main(min_freq=10000, output=Path('data/lemma')):
     word_counts = [(x[1], int(x[0])) for x in lines]
     word_counts_dict = dict(word_counts)
 
-    for (voikkoclasses, spacyclass) in wordclasses:
-        words_with_lemmas = list(voikko_lemmas(word_counts, voikkoclasses, word_counts_dict, v))
+    for (spacyclass, voikko_filter, get_lemma) in wordclasses:
+        words_with_lemmas = list(
+            voikko_lemmas(word_counts, voikko_filter, get_lemma, word_counts_dict, v))
         motifs = find_motifs(words_with_lemmas)
 
         most_common_motifs = [
@@ -74,19 +76,16 @@ def main(min_freq=10000, output=Path('data/lemma')):
         json.dump(lemmaexceptions, fp=fp, indent=2, ensure_ascii=False)
 
 
-def voikko_lemmas(words, wordclasses, freqs, v):
+def voikko_lemmas(words, word_class_filter, baseform, freqs, v):
     for (word, f) in words:
-        analyses = [
-            x.get('BASEFORM') for x in v.analyze(word)
-            if (x.get('CLASS') in wordclasses and
-                x.get('BASEFORM') and
-                not is_pure_num(x))
+        lemmas = [
+            baseform(x) for x in v.analyze(word)
+            if (word_class_filter(x) and not is_pure_num(x))
         ]
-        analyses = sorted(analyses, key=lambda w: freqs.get(w, 0), reverse=True)
+        lemmas = sorted(lemmas, key=lambda w: freqs.get(w, 0), reverse=True)
 
-        if analyses:
-            lemma = analyses[0]
-            yield (word, lemma, f)
+        if lemmas:
+            yield (word, lemmas[0], f)
 
 
 def is_pure_num(analysis):
@@ -150,6 +149,48 @@ def find_exceptions(words_with_lemmas, rules):
         observed_lemma = lemmatizer.lemmatize(word, {}, {}, rules)[0]
         if observed_lemma.lower() != expected_lemma.lower():
             yield (word.lower(), [expected_lemma.lower()])
+
+
+def is_noun(analysis):
+    return analysis.get('CLASS') == 'nimisana'
+
+
+def is_verb(analysis):
+    plain = analysis.get('CLASS') in ['teonsana', 'kieltosana']
+    # liittotempukset: "on haistanut", "oli nähnyt"
+    tempus = (
+        analysis.get('CLASS') == 'laatusana' and
+        analysis.get('PARTICIPLE') in ['past_active', 'past_passive']
+    )
+    return plain or tempus
+
+
+def is_adj(analysis):
+    return (
+        analysis.get('CLASS') in ['laatusana', 'nimisana_laatusana'] and
+        analysis.get('PARTICIPLE') != 'past_active'
+    )
+
+
+def is_pron(analysis):
+    return analysis.get('CLASS') == 'asemosana'
+
+
+def is_adv(analysis):
+    return analysis.get('CLASS') == 'seikkasana'
+
+
+def get_baseform(analysis):
+    return analysis.get('BASEFORM')
+
+
+def get_wordbase(analysis):
+    wordbases = analysis.get('WORDBASES', '')
+    m = parenthesis_re.search(wordbases)
+    if m:
+        return m.group(1)
+    else:
+        return analysis.get('BASEFORM')
 
 
 if __name__ == '__main__':
