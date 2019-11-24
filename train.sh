@@ -55,8 +55,7 @@ python spacy_fi.py train fi models/taggerparser \
        data/spacy/fi_tdt-ud-dev.json \
        --pipeline tagger,parser \
        --vectors data/fi-experimental \
-       --n-iter 50 \
-       --n-early-stopping 4
+       --n-iter 30
 rm -rf models/taggerparser/model{?,??} models/taggerparser/model-final
 
 # NER model

@@ -30,7 +30,9 @@ class FinnishExDefaults(FinnishDefaults):
     infixes = TOKENIZER_INFIXES
     suffixes = TOKENIZER_SUFFIXES
     resources = [
-        ('lemma_lookup', 'data/lemma/fi_lemma_lookup.json'),
+        #('lemma_lookup', 'data/lemma/fi_lemma_lookup.json'),
+        ('lemma_rules', 'data/lemma/fi_lemma_rules.json'),
+        ('lemma_exc', 'data/lemma/fi_lemma_exc.json'),
     ]
 
 
