@@ -60,7 +60,7 @@ def main(min_freq=10000, output=Path('data/lemma')):
 
         rules = [
             m['rule'] for m in precision_motifs
-            if m['precision'] > 0.1
+            if m['precision'] > 0.98
         ]
         rules = sorted(rules, key=lambda r: len(r[0]), reverse=True)
         lemmarules[spacyclass] = rules
@@ -122,7 +122,7 @@ def estimate_precision(motifs, words):
             if word.endswith(old):
                 match[rule] = match.get(rule, 0) + 1
                 form = word[:-len(old)] + new
-                if form == lemma:
+                if form.lower() == lemma.lower():
                     success[rule] = success.get(rule, 0) + 1
 
     res = []
@@ -162,7 +162,8 @@ def is_verb(analysis):
         analysis.get('CLASS') == 'laatusana' and
         analysis.get('PARTICIPLE') in ['past_active', 'past_passive']
     )
-    return plain or tempus
+    start_with_hyphen = analysis.get('BASEFORM', '').startswith('-')
+    return (plain or tempus) and not start_with_hyphen
 
 
 def is_adj(analysis):
@@ -188,7 +189,7 @@ def get_wordbase(analysis):
     wordbases = analysis.get('WORDBASES', '')
     m = parenthesis_re.search(wordbases)
     if m:
-        return m.group(1)
+        return m.group(1).replace('=', '')
     else:
         return analysis.get('BASEFORM')
 
