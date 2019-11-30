@@ -25,7 +25,7 @@ def main(min_freq=10000, output=Path('data/lemma')):
         ('verb', is_verb, get_wordbase),
         ('adj', is_adj, get_baseform),
         #('pron', is_pron, get_baseform),
-        #('adv', is_adv, get_baseform),
+        ('adv', is_adv, get_baseform),
     ]
 
     lemmarules = {
@@ -60,7 +60,7 @@ def main(min_freq=10000, output=Path('data/lemma')):
 
         rules = [
             m['rule'] for m in precision_motifs
-            if m['precision'] > 0.98
+            if m['precision'] > 0.80
         ]
         rules = sorted(rules, key=lambda r: len(r[0]), reverse=True)
         lemmarules[spacyclass] = rules

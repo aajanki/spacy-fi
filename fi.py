@@ -1,6 +1,8 @@
+from lemmatizer import FinnishLemmatizer
 from morph_rules import MORPH_RULES
 from spacy.lang.fi import FinnishDefaults
 from spacy.language import Language
+from spacy.lookups import Lookups
 from spacy.symbols import POS, PUNCT, SYM, ADJ, CCONJ, SCONJ, NUM, DET, ADV
 from spacy.symbols import ADP, X, VERB, NOUN, PROPN, PART, INTJ, SPACE, PRON
 
@@ -32,10 +34,15 @@ class FinnishExDefaults(FinnishDefaults):
     suffixes = TOKENIZER_SUFFIXES
     morph_rules = MORPH_RULES
     resources = [
-        #('lemma_lookup', 'data/lemma/fi_lemma_lookup.json'),
         ('lemma_rules', 'data/lemma/fi_lemma_rules.json'),
         ('lemma_exc', 'data/lemma/fi_lemma_exc.json'),
     ]
+
+    @classmethod
+    def create_lemmatizer(cls, nlp=None, lookups=None):
+        if lookups is None:
+            lookups = cls.create_lookups(nlp=nlp)
+        return FinnishLemmatizer(lookups)
 
 
 class FinnishEx(Language):
