@@ -1,3 +1,4 @@
+from morph_rules import MORPH_RULES
 from spacy.lang.fi import FinnishDefaults
 from spacy.language import Language
 from spacy.symbols import POS, PUNCT, SYM, ADJ, CCONJ, SCONJ, NUM, DET, ADV
@@ -29,6 +30,7 @@ class FinnishExDefaults(FinnishDefaults):
     tag_map = TAG_MAP
     infixes = TOKENIZER_INFIXES
     suffixes = TOKENIZER_SUFFIXES
+    morph_rules = MORPH_RULES
     resources = [
         #('lemma_lookup', 'data/lemma/fi_lemma_lookup.json'),
         ('lemma_rules', 'data/lemma/fi_lemma_rules.json'),
