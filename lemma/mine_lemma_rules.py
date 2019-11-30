@@ -26,6 +26,7 @@ def main(min_freq=10000, output=Path('data/lemma')):
         ('adj', is_adj, get_baseform),
         #('pron', is_pron, get_baseform),
         ('adv', is_adv, get_baseform),
+        ('num', is_num, get_baseform),
     ]
 
     lemmarules = {
@@ -179,6 +180,15 @@ def is_pron(analysis):
 
 def is_adv(analysis):
     return analysis.get('CLASS') == 'seikkasana'
+
+
+def is_num(analysis):
+    """Analysis is a numeral word (not a digit)"""
+    base = analysis.get('BASEFORM', '')
+    return (analysis.get('CLASS') == 'lukusana' and
+            not any(x.isdigit() for x in base) and
+            not ':' in base and
+            not base.startswith('-'))
 
 
 def get_baseform(analysis):

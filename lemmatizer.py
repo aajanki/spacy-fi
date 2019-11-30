@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from collections import OrderedDict
 
-from spacy.symbols import NOUN, VERB, ADJ, PUNCT, PROPN, ADV
+from spacy.symbols import NOUN, VERB, ADJ, PUNCT, PROPN, ADV, NUM
 from spacy.errors import Errors
 from spacy.lookups import Lookups
 
@@ -50,6 +50,8 @@ class FinnishLemmatizer(object):
             univ_pos = "adv"
         elif univ_pos in (PUNCT, "PUNCT", "punct"):
             univ_pos = "punct"
+        elif univ_pos in (NUM, "NUM", "num"):
+            univ_pos = "num"
         elif univ_pos in (PROPN, "PROPN"):
             return [string]
         else:
