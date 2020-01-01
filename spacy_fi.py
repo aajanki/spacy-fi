@@ -3,7 +3,7 @@
 import sys
 import plac
 from spacy import cli, util
-from fi import FinnishEx
+from fi.fi import FinnishEx
 
 
 if __name__ == '__main__':

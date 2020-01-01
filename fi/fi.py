@@ -1,5 +1,5 @@
-from lemmatizer import FinnishLemmatizer
-from morph_rules import MORPH_RULES
+from .lemmatizer import FinnishLemmatizer
+from .morph_rules import MORPH_RULES
 from spacy.lang.fi import FinnishDefaults
 from spacy.language import Language
 from spacy.lookups import Lookups

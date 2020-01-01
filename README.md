@@ -9,15 +9,15 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-./download_data.sh
+tools/download_data.sh
 ```
 
 ## Train the model
 
 ```
-./prepare_lemmas.sh
-./train.sh
-./package_model.sh
+tools/prepare_lemmas.sh
+tools/train.sh
+tools/package_model.sh
 ```
 
 ## License
