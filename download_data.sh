@@ -26,8 +26,3 @@ echo "Preparing lexical data"
 python tools/create_lexdata.py \
        data/frequencies/finnish_vocab.txt.gz \
        data/lexdata.jsonl
-
-echo "Preparing lemma lookups"
-python tools/create_lemma_lookup.py \
-       data/frequencies/finnish_vocab.txt.gz \
-       data/fi_lemma_lookup.json

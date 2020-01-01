@@ -34,8 +34,7 @@ class FinnishExDefaults(FinnishDefaults):
     suffixes = TOKENIZER_SUFFIXES
     morph_rules = MORPH_RULES
     resources = [
-        ('lemma_rules', 'data/lemma/fi_lemma_rules.json'),
-        ('lemma_exc', 'data/lemma/fi_lemma_exc.json'),
+        ('lemma_exc', 'lookups/fi_lemma_exc.json'),
     ]
 
     @classmethod

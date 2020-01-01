@@ -1,35 +1,38 @@
 # coding: utf8
 from __future__ import unicode_literals
 
+import json
+import re
 from collections import OrderedDict
+from itertools import chain
 
-from spacy.symbols import NOUN, VERB, ADJ, PUNCT, PROPN, ADV, NUM
-from spacy.errors import Errors
+from spacy.lemmatizer import Lemmatizer
 from spacy.lookups import Lookups
+from spacy.symbols import NOUN, VERB, ADJ, PUNCT, PROPN, ADV, NUM
+from voikko import libvoikko
 
 
-class FinnishLemmatizer(object):
-    """
-    The Lemmatizer supports simple part-of-speech-sensitive suffix rules and
-    lookup tables.
-
-    DOCS: https://spacy.io/api/lemmatizer
-    """
-
-    @classmethod
-    def load(cls, *args, **kwargs):
-        raise NotImplementedError(Errors.E172)
+class FinnishLemmatizer(Lemmatizer):
+    compound_re = re.compile(r"\+(\w+)(?:\(\+?[\w=]+\))?")
+    minen_re = re.compile(r"\b(\w+)\[Tn4\]mi")
+    sti_re = re.compile(r"\b(\w+)\[Ssti\]sti")
+    ny_re = re.compile(r"\[X\]\[\w+\]\[Ny\](\w+)")
+    voikko_pos_to_upos = {
+        "nimisana": "noun",
+        "teonsana": "verb",
+        "laatusana": "adj",
+        "nimisana_laatusana": "adj",
+        "seikkasana": "adv",
+        "lukusana": "num",
+        "nimi": "propn",
+        "etunimi": "propn",
+        "sukunimi": "propn",
+        "paikannimi": "propn",
+    }
 
     def __init__(self, lookups, *args, **kwargs):
-        """Initialize a Lemmatizer.
-
-        lookups (Lookups): The lookups object containing the (optional) tables
-            "lemma_rules", "lemma_index", "lemma_exc" and "lemma_lookup".
-        RETURNS (Lemmatizer): The newly constructed object.
-        """
-        if args or kwargs or not isinstance(lookups, Lookups):
-            raise ValueError(Errors.E173)
-        self.lookups = lookups
+        super(FinnishLemmatizer, self).__init__(lookups, *args, **kwargs)
+        self.voikko = libvoikko.Voikko("fi")
 
     def __call__(self, string, univ_pos, morphology=None):
         """Lemmatize a string.
@@ -48,130 +51,160 @@ class FinnishLemmatizer(object):
             univ_pos = "adj"
         elif univ_pos in (ADV, "ADV", "adv"):
             univ_pos = "adv"
-        elif univ_pos in (PUNCT, "PUNCT", "punct"):
-            univ_pos = "punct"
         elif univ_pos in (NUM, "NUM", "num"):
             univ_pos = "num"
-        elif univ_pos in (PROPN, "PROPN"):
+        elif univ_pos in (PROPN, "PROPN", "propn"):
+            univ_pos = "propn"
+        elif univ_pos in (PUNCT, "PUNCT", "punct"):
             return [string]
         else:
             return [string.lower()]
-        # See Issue #435 for example of where this logic is requied.
-        if self.is_base_form(univ_pos, morphology):
-            return [string.lower()]
+
+        index_table = self.lookups.get_table("lemma_index", {})
         exc_table = self.lookups.get_table("lemma_exc", {})
         rules_table = self.lookups.get_table("lemma_rules", {})
         lemmas = self.lemmatize(
             string,
+            index_table.get(univ_pos, {}),
             exc_table.get(univ_pos, {}),
-            rules_table.get(univ_pos, []),
+            rules_table.get(univ_pos, {}),
+            univ_pos,
         )
         return lemmas
 
-    def is_base_form(self, univ_pos, morphology=None):
-        """
-        Check whether we're dealing with an uninflected paradigm, so we can
-        avoid lemmatization entirely.
+    def lemmatize(self, string, index, exceptions, rules, univ_pos):
+        # lemmatize only the last part of hyphenated words: VGA-kaapelissa
+        parts = string.rsplit("-", 1)
+        lemma = self.lemmatize_compound(parts[-1], index, exceptions, rules, univ_pos)
 
-        univ_pos (unicode / int): The token's universal part-of-speech tag.
-        morphology (dict): The token's morphological features following the
-            Universal Dependencies scheme.
-        """
-        if morphology is None:
-            morphology = {}
-        if univ_pos == "noun" and morphology.get("Number") == "sing":
-            return True
-        elif univ_pos == "verb" and morphology.get("VerbForm") == "inf":
-            return True
-        # This maps 'VBP' to base form -- probably just need 'IS_BASE'
-        # morphology
-        elif univ_pos == "verb" and (
-            morphology.get("VerbForm") == "fin"
-            and morphology.get("Tense") == "pres"
-            and morphology.get("Number") is None
-        ):
-            return True
-        elif univ_pos == "adj" and morphology.get("Degree") == "pos":
-            return True
-        elif morphology.get("VerbForm") == "inf":
-            return True
-        elif morphology.get("VerbForm") == "none":
-            return True
-        elif morphology.get("VerbForm") == "inf":
-            return True
-        elif morphology.get("Degree") == "pos":
-            return True
+        if len(parts) == 1:
+            return lemma
         else:
-            return False
+            return [parts[0] + "-" + lemma[0]]
 
-    def noun(self, string, morphology=None):
-        return self(string, "noun", morphology)
-
-    def verb(self, string, morphology=None):
-        return self(string, "verb", morphology)
-
-    def adj(self, string, morphology=None):
-        return self(string, "adj", morphology)
-
-    def adv(self, string, morphology=None):
-        return self(string, "adv", morphology)
-
-    def det(self, string, morphology=None):
-        return self(string, "det", morphology)
-
-    def pron(self, string, morphology=None):
-        return self(string, "pron", morphology)
-
-    def adp(self, string, morphology=None):
-        return self(string, "adp", morphology)
-
-    def num(self, string, morphology=None):
-        return self(string, "num", morphology)
-
-    def punct(self, string, morphology=None):
-        return self(string, "punct", morphology)
-
-    def lookup(self, string, orth=None):
-        """Look up a lemma in the table, if available. If no lemma is found,
-        the original string is returned.
-
-        string (unicode): The original string.
-        orth (int): Optional hash of the string to look up. If not set, the
-            string will be used and hashed.
-        RETURNS (unicode): The lemma if the string was found, otherwise the
-            original string.
-        """
-        lookup_table = self.lookups.get_table("lemma_lookup", {})
-        key = orth if orth is not None else string
-        if key in lookup_table:
-            return lookup_table[key]
-        return string
-
-    def lemmatize(self, string, exceptions, rules):
+    def lemmatize_compound(self, string, index, exceptions, rules, univ_pos):
         orig = string
-        string = string.lower()
-        forms = []
         oov_forms = []
-        for old, new in rules:
-            if string.endswith(old):
-                form = string[: len(string) - len(old)] + new
-                if not form:
-                    pass
-                elif not form.isalpha():
-                    forms.append(form)
-                else:
-                    oov_forms.append(form)
-        # Remove duplicates but preserve the ordering of applied "rules"
+        forms = []
+
+        analyses = self.voikko.analyze(string)
+        base_and_pos = list(chain.from_iterable([
+            self._baseform_and_pos(x, string) for x in analyses
+        ]))
+        matching_pos = [x for x in base_and_pos if x[1] == univ_pos]
+        if univ_pos == "adv" and analyses:
+            oov_forms.append(self._normalize_adv(analyses[0], orig.lower()))
+        elif matching_pos:
+            forms.extend(x[0] for x in matching_pos)
+        elif analyses:
+            oov_forms.extend(x[0] for x in base_and_pos)
+
         forms = list(OrderedDict.fromkeys(forms))
+
         # Put exceptions at the front of the list, so they get priority.
         # This is a dodgy heuristic -- but it's the best we can do until we get
         # frequencies on this. We can at least prune out problematic exceptions,
         # if they shadow more frequent analyses.
-        for form in exceptions.get(string, []):
-            if form not in forms:
-                forms.insert(0, form)
+        for exc in exceptions.get(orig.lower(), []):
+            if exc not in forms:
+                forms.insert(0, exc)
         if not forms:
             forms.extend(oov_forms)
         if not forms:
             forms.append(orig)
         return forms
+
+    def _baseform_and_pos(self, analysis, orig):
+        baseform = analysis.get("BASEFORM")
+        voikko_class = analysis.get("CLASS")
+
+        if (voikko_class == "teonsana" and
+            analysis.get("MOOD") == "MINEN-infinitive"
+        ):
+            # MINEN infinitive
+            form = self._fst_form(analysis, self.minen_re, "minen")
+            if form:
+                return [(form, "noun")]
+            else:
+                return [(baseform, "verb")]
+
+        elif (voikko_class == "laatusana" and
+              analysis.get("PARTICIPLE") in ["past_active",
+                                             "past_passive",
+                                             "present_active",
+                                             "present_passive"]
+        ):
+            # VA, NUT and TU participles
+            return [
+                (self._first_wordbase(analysis), "verb"),
+                (baseform, "adj")
+            ]
+
+        elif (voikko_class == "nimisana" and
+              analysis.get("PARTICIPLE") == "agent"
+        ):
+            # agent participle
+            return [(self._first_wordbase(analysis), "verb")]
+
+        elif (voikko_class in ["laatusana", "lukusana"] and
+              analysis.get("SIJAMUOTO") == "kerrontosti"
+        ):
+            form = self._fst_form(analysis, self.sti_re, "sti")
+            if form:
+                return [(form, "adv")]
+            else:
+                return [(baseform, self.voikko_pos_to_upos[voikko_class])]
+
+        elif voikko_class == "seikkasana" and orig.endswith("itse"):
+            return [(orig, "adv")]
+
+        elif voikko_class in self.voikko_pos_to_upos:
+            return [(baseform, self.voikko_pos_to_upos[voikko_class])]
+
+        else:
+            return [(baseform, None)]
+
+    def _fst_form(self, analysis, stem_re, suffix):
+        fstoutput = analysis.get("FSTOUTPUT")
+        ny_match = self.ny_re.search(fstoutput)
+        if ny_match:
+            return ny_match.group(1)
+
+        fst_match = stem_re.search(fstoutput)
+        if not fst_match:
+            return None
+
+        stem = fst_match.group(1)
+        compounds = self.compound_re.findall(analysis.get("WORDBASES"))
+        if len(compounds) > 1:
+            return "".join(compounds[:-1]) + stem + suffix
+        else:
+            return stem + suffix
+
+    def _first_wordbase(self, analysis):
+        m = re.search(r"\((\w+)\)", analysis.get("WORDBASES"))
+        if m:
+            return m.group(1)
+        else:
+            return analysis.get("BASEFORM")
+
+    def _normalize_adv(self, analysis, word):
+        focus = analysis.get("FOCUS")
+        kysymysliite = analysis.get("KYSYMYSLIITE")
+
+        if focus and kysymysliite:
+            k = 2
+        elif focus or kysymysliite:
+            k = 1
+        else:
+            k = 0
+        for _ in range(k):
+            if focus and word.endswith(focus):
+                word = word[:-len(focus)]
+            elif kysymysliite and (word.endswith("ko") or word.endswith("kö")):
+                word = word[:-2]
+
+        if analysis.get("POSSESSIVE") and not analysis.get("SIJAMUOTO"):
+            return analysis.get("BASEFORM")
+        else:
+            return word

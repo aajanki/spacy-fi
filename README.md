@@ -17,6 +17,7 @@ pip install -r requirements.txt
 ```
 ./prepare_lemmas.sh
 ./train.sh
+./package_model.sh
 ```
 
 ## License

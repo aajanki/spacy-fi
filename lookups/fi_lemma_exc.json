@@ -1,0 +1,21 @@
+{
+    "adv": {
+	"ainakin": ["ainakin"],
+	"ainakaan": ["ainakaan"],
+	"alkuunkin": ["alkuunkin"],
+	"alkuunkaan": ["alkuunkaan"],
+	"kaikin": ["kaikin"],
+	"läheskään": ["läheskään"],
+	"milloinkin": ["milloinkin"],
+	"milloinkaan": ["milloinkaan"],
+	"ollenkaan": ["ollenkaan"],
+	"tietenkin": ["tietenkin"],
+	"tietenkään": ["tietenkään"],
+	"varmaankin": ["varmaankin"],
+	"varmaankaan": ["varmaankaan"],
+	"varsinkin": ["varsinkin"],
+	"varsinkaan": ["varsinkaan"],
+	"vieläkin": ["vieläkin"],
+	"vieläkään": ["vieläkään"]
+    }
+}
