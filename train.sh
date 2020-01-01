@@ -7,8 +7,12 @@ mkdir -p models
 mkdir -p data/UD_Finnish-TDT-preprocessed
 mkdir -p data/finer-data-preprocessed
 
-## Convert data to the SpaCy format ##
+echo "Preparing lexical data"
+python tools/create_lexdata.py \
+       data/frequencies/finnish_vocab.txt.gz \
+       data/lexdata.jsonl
 
+echo "Convert data to the SpaCy format"
 for f in train dev test
 do
     python tools/preprocess_UD-TDT.py \

@@ -21,8 +21,3 @@ zcat data/word2vec/finnish_4B_parsebank_skgram.txt.gz | head -n 400001 | gzip \
 echo "Downloading frequency data"
 mkdir -p data/frequencies
 wget --directory-prefix data/frequencies http://bionlp-www.utu.fi/.jmnybl/finnish_vocab.txt.gz
-
-echo "Preparing lexical data"
-python tools/create_lexdata.py \
-       data/frequencies/finnish_vocab.txt.gz \
-       data/lexdata.jsonl
