@@ -15,7 +15,6 @@ tools/download_data.sh
 ## Train the model
 
 ```
-tools/prepare_lemmas.sh
 tools/train.sh
 tools/package_model.sh models/taggerparser/model-best  # package only the POS tagger
 ```
@@ -41,7 +40,7 @@ nlp = spacy.load('fi_experimental_web_md')
 
 All the content in this repository is available under the [GNU General Public License, version 3 or any later version](LICENSE). The generated Python package (which includes libvoikko) is also licensed as GPL v3.
 
-Source code and other files under fi, lemma and tools directories is additionally available under the [MIT license](LICENSE.MIT).
+Source code and other files under fi and tools directories is additionally available under the [MIT license](LICENSE.MIT).
 
 The data sets downloaded by download_data.sh script are licensed as follows:
 * [UD_Finnish-TDT](https://github.com/UniversalDependencies/UD_Finnish-TDT): Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
