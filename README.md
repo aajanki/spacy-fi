@@ -26,6 +26,17 @@ Alternatively, to build a model with combined POS tagger and NER capabilities, r
 tools/package_model.sh models/merged
 ```
 
+## Usage
+
+```
+import spacy
+import spacy.util
+from fi_experimental_web_md import FinnishEx
+
+spacy.util.set_lang_class('fi', FinnishEx)
+nlp = spacy.load('fi_experimental_web_md')
+```
+
 ## License
 
 All the content in this repository is available under the [GNU General Public License, version 3 or any later version](LICENSE). The generated Python package (which includes libvoikko) is also licensed as GPL v3.

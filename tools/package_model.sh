@@ -18,18 +18,6 @@ cp fi/fi.py fi/morph_rules.py fi/lemmatizer.py models/python-package/"$PACKAGE_D
 cp -r fi/lookups/ models/python-package/"$PACKAGE_DIR/$MODEL_NAME"/
 
 
-echo "Adding FinnishEx preload to __init__.py"
-cat - >> models/python-package/"$PACKAGE_DIR/$MODEL_NAME"/__init__.py <<EOF
-
-
-
-import spacy.util
-from .fi import FinnishEx
-
-spacy.util.set_lang_class('fi', FinnishEx)
-EOF
-
-
 echo "Updating requirements in meta.json"
 jq '.requirements = ["voikko>=0.5"]' \
    < models/python-package/"$PACKAGE_DIR"/meta.json \
