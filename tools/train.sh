@@ -72,10 +72,10 @@ python spacy_fi.py train fi models/ner \
        --n-iter 30
 rm -rf models/ner/model{?,??} models/ner/model-final
 
-# Merge models
-python tools/mergemodels.py models/taggerparser/model-best models/ner/model-best models/final
+# Merge POS tagger and NER models
+python tools/mergemodels.py models/taggerparser/model-best models/ner/model-best models/merged
 
 ## Evaluate ##
 
-python spacy_fi.py evaluate models/final data/spacy/fi_tdt-ud-dev.json
-python spacy_fi.py evaluate models/final data/spacy/digitoday.2014.dev.json
+python spacy_fi.py evaluate models/merged data/spacy/fi_tdt-ud-dev.json
+python spacy_fi.py evaluate models/merged data/spacy/digitoday.2014.dev.json

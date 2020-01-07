@@ -2,7 +2,7 @@
 
 set -eu
 
-TRAINED_MODEL=models/final
+TRAINED_MODEL=$1
 
 rm -rf models/python-package/*
 mkdir -p models/python-package
@@ -18,7 +18,7 @@ cp fi/fi.py fi/morph_rules.py fi/lemmatizer.py models/python-package/"$PACKAGE_D
 cp -r fi/lookups/ models/python-package/"$PACKAGE_DIR/$MODEL_NAME"/
 
 
-echo "Editing __init__.py"
+echo "Adding FinnishEx preload to __init__.py"
 cat - >> models/python-package/"$PACKAGE_DIR/$MODEL_NAME"/__init__.py <<EOF
 
 
