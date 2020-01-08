@@ -17,6 +17,15 @@ mkdir -p models/python-package/"$PACKAGE_DIR/$MODEL_NAME"
 cp fi/fi.py fi/morph_rules.py fi/lemmatizer.py models/python-package/"$PACKAGE_DIR/$MODEL_NAME"/
 cp -r fi/lookups/ models/python-package/"$PACKAGE_DIR/$MODEL_NAME"/
 
+echo "Adding import to __init__.py"
+cat - >> models/python-package/"$PACKAGE_DIR/$MODEL_NAME"/__init__.py <<EOF
+
+
+
+from .fi import FinnishEx, FinnishExDefaults
+from .lemmatizer import FinnishLemmatizer
+EOF
+
 
 echo "Updating requirements in meta.json"
 jq '.requirements = ["voikko>=0.5"]' \
@@ -28,6 +37,7 @@ mv /tmp/fi_exp_meta.json models/python-package/"$PACKAGE_DIR"/meta.json
 echo "Building the package"
 cp python_packaging/setup.py models/python-package/"$PACKAGE_DIR"
 
-cd models/python-package/"$PACKAGE_DIR"
-python setup.py sdist
-cd -
+(
+    cd models/python-package/"$PACKAGE_DIR";
+    python setup.py sdist bdist_wheel
+)

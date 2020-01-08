@@ -1,6 +1,34 @@
 # Experimental Finnish language model for SpaCy
 
-## Setup
+Finnish language model for [SpaCy](https://spacy.io/). The model contains POS tagger, dependency parser, word vectors, token frequencies, lemmatizer (libvoikko). See below for notes about NER.
+
+## Install the Finnish language model
+
+Install [the libvoikko native library with Finnish morphology data files](https://voikko.puimula.org/python.html).
+
+```
+pip install fi_experimental_web_md
+```
+
+## Usage
+
+```python
+import spacy
+import spacy.util
+from fi_experimental_web_md import FinnishEx
+
+spacy.util.set_lang_class('fi', FinnishEx)
+
+nlp = spacy.load('fi_experimental_web_md')
+
+doc = nlp('Hän ajoi punaisella autolla.')
+for t in doc:
+    print(f'{t.lemma_}\t{t.pos_}')
+```
+
+## Updating the model
+
+### Development environment setup
 
 Install [the libvoikko native library with Finnish morphology data files](https://voikko.puimula.org/python.html).
 
@@ -12,35 +40,31 @@ pip install -r requirements.txt
 tools/download_data.sh
 ```
 
-## Train the model
+### Training the model
 
 ```
 tools/train.sh
-tools/package_model.sh models/taggerparser/model-best  # package only the POS tagger
 ```
 
-Alternatively, to build a model with combined POS tagger and NER capabilities, run the following. Note that this package can't be distributed because of incompatible source data licenses.
+### Build a Python package
+
+Package just the POS tagger and dependency parser (this is the model published on PyPI):
+
+```
+tools/package_model.sh models/taggerparser/model-best
+```
+
+Alternatively, to build a model with combined tagger, parser and NER capabilities, run the following. Note that this package can't be distributed because of incompatible source data licenses.
 
 ```
 tools/package_model.sh models/merged
-```
-
-## Usage
-
-```
-import spacy
-import spacy.util
-from fi_experimental_web_md import FinnishEx
-
-spacy.util.set_lang_class('fi', FinnishEx)
-nlp = spacy.load('fi_experimental_web_md')
 ```
 
 ## License
 
 All the content in this repository is available under the [GNU General Public License, version 3 or any later version](LICENSE). The generated Python package (which includes libvoikko) is also licensed as GPL v3.
 
-Source code and other files under fi and tools directories is additionally available under the [MIT license](LICENSE.MIT).
+Source code and other files under fi and tools directories are additionally available under the [MIT license](LICENSE.MIT).
 
 The data sets downloaded by download_data.sh script are licensed as follows:
 * [UD_Finnish-TDT](https://github.com/UniversalDependencies/UD_Finnish-TDT): Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
