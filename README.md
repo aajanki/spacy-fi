@@ -1,6 +1,6 @@
 # Experimental Finnish language model for SpaCy
 
-Finnish language model for [SpaCy](https://spacy.io/). The model contains POS tagger, dependency parser, word vectors, token frequencies, lemmatizer (libvoikko). See below for notes about NER.
+Finnish language model for [SpaCy](https://spacy.io/). The model contains POS tagger, dependency parser, word vectors, token frequencies and a lemmatizer (libvoikko). See below for notes about NER.
 
 ## Install the Finnish language model
 
@@ -51,19 +51,29 @@ Package just the POS tagger and dependency parser (this is the model published o
 tools/package_model.sh models/taggerparser/model-best
 ```
 
-Alternatively, to build a model with combined tagger, parser and NER capabilities, run the following. Note that this package can't be distributed because of incompatible source data licenses.
+Alternatively, to build a model with combined tagger, parser and NER capabilities, run the following:
 
 ```
 tools/package_model.sh models/merged
 ```
 
+Notes about the NER model:
+* The model is trained on a very specific domain (technology news) and its out-of-domain generalization is quite poor.
+* Distributing the NER model might not be possible because the training data license (CC BY-ND-NC) is incompatible with the lemmatizer license (GPL).
+
 ## License
 
-All the content in this repository is available under the [GNU General Public License, version 3 or any later version](LICENSE). The generated Python package (which includes libvoikko) is also licensed as GPL v3.
+All the content in this repository is available under the [GNU General Public License, version 3 or any later version](LICENSE). 
 
 Source code and other files under fi and tools directories are additionally available under the [MIT license](LICENSE.MIT).
 
-The data sets downloaded by download_data.sh script are licensed as follows:
+### License for the trained models (Python packages)
+
+The trained models in https://github.com/aajanki/spacy-fi/releases are distributed under GPL v3.
+
+### License for the training data
+
+The data sets downloaded by the tools/download_data.sh script are licensed as follows:
 * [UD_Finnish-TDT](https://github.com/UniversalDependencies/UD_Finnish-TDT): Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
 * Word vectors and frequencies at [Finnish Internet Parsebank](https://turkunlp.org/finnish_nlp.html#parsebank): CC BY-SA
 * [finer-data](https://github.com/mpsilfve/finer-data): The Digitoday material is licensed under CC Attribution-NoDerivs-NonCommercial (CC BY-ND-NC 1.0) and the Wikipedia material is licensed under Attribution-ShareAlike (CC BY-SA 3.0)
