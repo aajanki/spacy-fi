@@ -7,17 +7,13 @@ Finnish language model for [SpaCy](https://spacy.io/). The model contains POS ta
 Install [the libvoikko native library with Finnish morphology data files](https://voikko.puimula.org/python.html).
 
 ```
-pip install fi_experimental_web_md
+pip install models/python-package/fi_experimental_web_md-0.0.1/dist/fi_experimental_web_md-0.0.1-py3-none-any.whl
 ```
 
 ## Usage
 
 ```python
 import spacy
-import spacy.util
-from fi_experimental_web_md import FinnishEx
-
-spacy.util.set_lang_class('fi', FinnishEx)
 
 nlp = spacy.load('fi_experimental_web_md')
 
