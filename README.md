@@ -4,10 +4,11 @@ Finnish language model for [SpaCy](https://spacy.io/). The model contains POS ta
 
 ## Install the Finnish language model
 
-Install [the libvoikko native library with Finnish morphology data files](https://voikko.puimula.org/python.html).
+First, install [the libvoikko native library with Finnish morphology data files](https://voikko.puimula.org/python.html).
 
+Next, install the model by running:
 ```
-pip install models/python-package/fi_experimental_web_md-0.0.1/dist/fi_experimental_web_md-0.0.1-py3-none-any.whl
+pip install https://github.com/aajanki/spacy-fi/releases/download/v0.1.0/fi_experimental_web_md-0.1.0-py3-none-any.whl
 ```
 
 ## Usage
@@ -24,7 +25,7 @@ for t in doc:
 
 ## Updating the model
 
-### Development environment setup
+### Setup a development environment
 
 Install [the libvoikko native library with Finnish morphology data files](https://voikko.puimula.org/python.html).
 
@@ -36,7 +37,7 @@ pip install -r requirements.txt
 tools/download_data.sh
 ```
 
-### Training the model
+### Train the model
 
 ```
 tools/train.sh
@@ -44,7 +45,7 @@ tools/train.sh
 
 ### Build a Python package
 
-Package just the POS tagger and dependency parser (this is the model published on PyPI):
+Package just the POS tagger and dependency parser (this is the model published on GitHub):
 
 ```
 tools/package_model.sh models/taggerparser/model-best
