@@ -55,11 +55,14 @@ prs_lemmas = ["minä", "minä", "sinä", "sinä", "hän", "minä", "sinä", "hä
 
 
 # Demonstrative pronouns, http://scripta.kotus.fi/visk/sisallys.php?p=101
+#
+# The essive case of "se" ("sinä") is skipped to avoid conflict with
+# the second person singular pronoun.
 dem_pron = {
     "Nom": ["se", "ne", "tämä", "nämä", "tuo", "nuo"],
     "Gen": ["sen", "niiden", "tämän", "näiden", "tuon", "noiden"],
     "Par": ["sitä", "niitä", "tätä", "näitä", "tuota", "noita"],
-    "Ess": ["sinä", "niinä", "tänä", "näinä", "tuona", "noina"],
+    "Ess": [None, "niinä", "tänä", "näinä", "tuona", "noina"],
     "Tra": ["siksi", "niiksi", "täksi", "näiksi", "tuoksi", "noiksi"],
     "Ine": ["siinä", "niissä", "tässä", "näissä", "tuossa", "noissa"],
     "Ela": ["siitä", "niistä", "tästä", "näistä", "tuosta", "noista"],
@@ -74,12 +77,13 @@ dem_lemmas = ["se", "se", "tämä", "tämä", "tuo", "tuo"]
 
 
 # Relative pronouns, http://scripta.kotus.fi/visk/sisallys.php?p=102
+#
+# The essive case of "mikä" ("minä") is skipped to avoid conflict with
+# the first person singular pronoun.
 rel_pron = {
     "Nom": ["joka", "jotka", "mikä", "mitkä"],
     "Gen": ["jonka", "joiden", "minkä", None],
     "Par": ["jota", "joita", "mitä", None],
-    # Essive case of "mikä" is "minä". It's skipped because it would
-    # conflict with the singular first-person pronoun
     "Ess": ["jona", "joina", None, None],
     "Tra": ["joksi", "joiksi", "miksi", None],
     "Ine": ["jossa", "joissa", "missä", None],
