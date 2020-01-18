@@ -43,6 +43,12 @@ tools/download_data.sh
 tools/train.sh
 ```
 
+### Tests
+
+```
+tools/tests.sh
+```
+
 ### Build a Python package
 
 Package just the POS tagger and dependency parser (this is the model published on GitHub):
