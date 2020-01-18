@@ -8,7 +8,7 @@ from itertools import chain
 
 from spacy.lemmatizer import Lemmatizer
 from spacy.lookups import Lookups
-from spacy.symbols import NOUN, VERB, ADJ, PUNCT, PROPN, ADV, NUM
+from spacy.symbols import NOUN, VERB, ADJ, PUNCT, PROPN, ADV, NUM, PRON
 from voikko import libvoikko
 
 
@@ -28,6 +28,19 @@ class FinnishLemmatizer(Lemmatizer):
         "etunimi": "propn",
         "sukunimi": "propn",
         "paikannimi": "propn",
+        "asemosana": "pron",
+    }
+
+    # Use singular pronoun as lemmas (similar to in universal
+    # dependencies)
+    pron_baseform_exceptions = {
+        'me': 'minä',
+        'te': 'sinä',
+        'he': 'hän',
+        'nämä': 'tämä',
+        'nuo': 'tuo',
+        'ne': 'se',
+        'ken': 'kuka',
     }
 
     def __init__(self, lookups, *args, **kwargs):
@@ -55,6 +68,8 @@ class FinnishLemmatizer(Lemmatizer):
             univ_pos = "num"
         elif univ_pos in (PROPN, "PROPN", "propn"):
             univ_pos = "propn"
+        elif univ_pos in (PRON, "PRON", "pron"):
+            univ_pos = "pron"
         elif univ_pos in (PUNCT, "PUNCT", "punct"):
             return [string]
         else:
@@ -157,6 +172,10 @@ class FinnishLemmatizer(Lemmatizer):
 
         elif voikko_class == "seikkasana" and orig.endswith("itse"):
             return [(orig, "adv")]
+
+        elif voikko_class == "asemosana":
+            lemma = self.pron_baseform_exceptions.get(baseform, baseform)
+            return [(lemma, self.voikko_pos_to_upos[voikko_class])]
 
         elif voikko_class in self.voikko_pos_to_upos:
             return [(baseform, self.voikko_pos_to_upos[voikko_class])]

@@ -340,14 +340,24 @@ testcases = {
         ('miljoonalle', ['miljoona']),
     ],
 
-    # 'pron': [
-    #     ('sen', ['se']),
-    #     ('siitä', ['se']),
-    #     ('niiden', ['se']),
-    #     ('hänet', ['hän']),
-    #     ('jonkin', ['jonkin']),
-    #     ('teitä', ['sinä']),
-    # ],
+    'pron': [
+        ('sen', ['se']),
+        ('siitä', ['se']),
+        ('niiden', ['se']),
+        ('hänet', ['hän']),
+        ('jonkin', ['jokin']),
+        ('teitä', ['sinä']),
+        ('hänenkin', ['hän']),
+        ('teitäkään', ['sinä']),
+        ('minun', ['minä']),
+        ('meitä', ['minä']),
+        ('häneltä', ['hän']),
+        ('häneltäkään', ['hän']),
+        ('kehen', ['kuka']),
+        ('multa', ['minä']),
+        ('sut', ['sinä']),
+        ('sulle', ['sinä']),
+    ],
 }
 
 

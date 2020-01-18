@@ -1,5 +1,4 @@
 from .lemmatizer import FinnishLemmatizer
-from .morph_rules import MORPH_RULES
 from spacy.lang.fi import FinnishDefaults
 from spacy.language import Language
 from spacy.lookups import Lookups
@@ -32,7 +31,6 @@ class FinnishExDefaults(FinnishDefaults):
     tag_map = TAG_MAP
     infixes = TOKENIZER_INFIXES
     suffixes = TOKENIZER_SUFFIXES
-    morph_rules = MORPH_RULES
     resources = [
         ('lemma_exc', 'lookups/fi_lemma_exc.json'),
     ]

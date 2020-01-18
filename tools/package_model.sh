@@ -14,7 +14,7 @@ MODEL_NAME=`echo $PACKAGE_DIR | sed 's/-[0-9.]\+$//'`
 
 echo "Copying the lemmatizer sources to the package directory"
 mkdir -p models/python-package/"$PACKAGE_DIR/$MODEL_NAME"
-cp fi/fi.py fi/morph_rules.py fi/lemmatizer.py models/python-package/"$PACKAGE_DIR/$MODEL_NAME"/
+cp fi/fi.py fi/lemmatizer.py models/python-package/"$PACKAGE_DIR/$MODEL_NAME"/
 cp -r fi/lookups/ models/python-package/"$PACKAGE_DIR/$MODEL_NAME"/
 
 echo "Adding import to __init__.py"
