@@ -136,7 +136,7 @@ class FinnishLemmatizer(Lemmatizer):
         ):
             # VA, NUT and TU participles
             return [
-                (self._first_wordbase(analysis), "verb"),
+                (self._wordbase(analysis), "verb"),
                 (baseform, "adj")
             ]
 
@@ -144,7 +144,7 @@ class FinnishLemmatizer(Lemmatizer):
               analysis.get("PARTICIPLE") == "agent"
         ):
             # agent participle
-            return [(self._first_wordbase(analysis), "verb")]
+            return [(self._wordbase(analysis), "verb")]
 
         elif (voikko_class in ["laatusana", "lukusana"] and
               analysis.get("SIJAMUOTO") == "kerrontosti"
@@ -181,12 +181,24 @@ class FinnishLemmatizer(Lemmatizer):
         else:
             return stem + suffix
 
-    def _first_wordbase(self, analysis):
-        m = re.search(r"\((\w+)\)", analysis.get("WORDBASES"))
-        if m:
-            return m.group(1)
-        else:
-            return analysis.get("BASEFORM")
+    def _wordbase(self, analysis):
+        wordbases = analysis.get("WORDBASES")
+        num_bases = max(analysis.get("STRUCTURE", "").count("="), 1)
+
+        forms = []
+        for base in re.finditer(r"\+([^+]+)", wordbases):
+            full_form = base.group(1)
+            parentheses_match = re.search(r"\((.+)\)", full_form)
+            if parentheses_match:
+                form = parentheses_match.group(1)
+            else:
+                form = full_form
+
+            forms.extend(form.split("="))
+            if len(forms) >= num_bases:
+                break
+
+        return ''.join(forms)
 
     def _normalize_adv(self, analysis, word):
         focus = analysis.get("FOCUS")
