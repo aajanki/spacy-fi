@@ -185,17 +185,24 @@ class FinnishLemmatizer(Lemmatizer):
         wordbases = analysis.get("WORDBASES")
         num_bases = max(analysis.get("STRUCTURE", "").count("="), 1)
 
+        i = 0
         forms = []
         for base in re.finditer(r"\+([^+]+)", wordbases):
             full_form = base.group(1)
-            parentheses_match = re.search(r"\((.+)\)", full_form)
+            parentheses_match = re.search(r"(.+)\((.+)\)", full_form)
             if parentheses_match:
-                form = parentheses_match.group(1)
+                if i < num_bases - 1:
+                    form = parentheses_match.group(1)
+                else:
+                    form = parentheses_match.group(2)
             else:
                 form = full_form
 
-            forms.extend(form.split("="))
-            if len(forms) >= num_bases:
+            split = form.split("=")
+            forms.extend(split)
+            i += len(split)
+
+            if i >= num_bases:
                 break
 
         return ''.join(forms)
