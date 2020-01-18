@@ -210,7 +210,8 @@ class FinnishLemmatizer(Lemmatizer):
             full_form = base.group(1)
             parentheses_match = re.search(r"(.+)\((.+)\)", full_form)
             if parentheses_match:
-                if i < num_bases - 1:
+                k = parentheses_match.group(2).count("=") + 1
+                if i < num_bases - k:
                     form = parentheses_match.group(1)
                 else:
                     form = parentheses_match.group(2)
