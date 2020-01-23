@@ -18,6 +18,8 @@ for line in sys.stdin:
             columns[4] = 'SC'
         elif upos == 'PROPN':
             columns[4] = 'Propn'
+        elif upos == 'AUX':
+            columns[4] = 'Aux'
 
         columns[9] = 'O'
 
