@@ -8,7 +8,7 @@ from itertools import chain
 
 from spacy.lemmatizer import Lemmatizer
 from spacy.lookups import Lookups
-from spacy.symbols import NOUN, VERB, ADJ, PUNCT, PROPN, ADV, NUM, PRON
+from spacy.symbols import NOUN, VERB, ADJ, PUNCT, PROPN, ADV, NUM, PRON, AUX
 from voikko import libvoikko
 
 
@@ -58,7 +58,7 @@ class FinnishLemmatizer(Lemmatizer):
         """
         if univ_pos in (NOUN, "NOUN", "noun"):
             univ_pos = "noun"
-        elif univ_pos in (VERB, "VERB", "verb"):
+        elif univ_pos in (VERB, "VERB", "verb", AUX, "AUX", "aux"):
             univ_pos = "verb"
         elif univ_pos in (ADJ, "ADJ", "adj"):
             univ_pos = "adj"
