@@ -1,12 +1,10 @@
 from .lemmatizer import FinnishLemmatizer
+from .punctuation import TOKENIZER_INFIXES, TOKENIZER_SUFFIXES
 from spacy.lang.fi import FinnishDefaults
 from spacy.language import Language
 from spacy.lookups import Lookups
 from spacy.symbols import POS, PUNCT, SYM, ADJ, CCONJ, SCONJ, NUM, DET, ADV
 from spacy.symbols import ADP, X, VERB, NOUN, PROPN, PART, INTJ, SPACE, PRON, AUX
-
-# Punctuation stolen from Danish
-from spacy.lang.da.punctuation import TOKENIZER_INFIXES, TOKENIZER_SUFFIXES
 
 
 TAG_MAP = {
