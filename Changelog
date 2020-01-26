@@ -1,0 +1,10 @@
+Version 0.2.0, 2020-01-26
+
+* Tagging auxiliary verbs as AUX (previously VERB) following the UD convention
+* Fixed bugs in lemmatization of compounds words: ilmakuivata, esiopetus, etc
+* Improved lemmatization of pronouns, especially clitics: sinäkin, mekään, etc
+* Using the same Finnish tokenizer rules as the spaCy master branch
+
+Version 0.1.0, 2020-01-11
+
+Initial release
