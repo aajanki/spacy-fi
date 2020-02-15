@@ -14,8 +14,7 @@ MODEL_NAME=`echo $PACKAGE_DIR | sed 's/-[0-9.]\+$//'`
 
 echo "Copying the lemmatizer sources to the package directory"
 mkdir -p models/python-package/"$PACKAGE_DIR/$MODEL_NAME"
-cp fi/fi.py fi/lemmatizer.py fi/punctuation.py models/python-package/"$PACKAGE_DIR/$MODEL_NAME"/
-cp -r fi/lookups/ models/python-package/"$PACKAGE_DIR/$MODEL_NAME"/
+cp -r fi/[^_]*.py fi/lookups/ models/python-package/"$PACKAGE_DIR/$MODEL_NAME"/
 
 echo "Adding import to __init__.py"
 cat - >> models/python-package/"$PACKAGE_DIR/$MODEL_NAME"/__init__.py <<EOF

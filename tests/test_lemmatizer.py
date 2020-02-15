@@ -121,7 +121,14 @@ testcases = {
         # av5
         ('vuoan', ['vuoka']),
         # av6
-        ('säikeen', ['säie'])
+        ('säikeen', ['säie']),
+
+        # abbreviations
+        ('EU:ssa', ['EU']),
+        ('STT:n', ['STT']),
+        ('ry:ksi', ['ry']),
+        ('YK:lle', ['YK']),
+        ('4g:lle', ['4g']),
     ],
 
     'verb': [
@@ -338,6 +345,8 @@ testcases = {
         ('sadalle', ['sata']),
         ('tuhannelle', ['tuhat']),
         ('miljoonalle', ['miljoona']),
+        ('4:s', ['4']),
+        ('6:teen', ['6']),
     ],
 
     'pron': [

@@ -1,10 +1,13 @@
 from .lemmatizer import FinnishLemmatizer
 from .punctuation import TOKENIZER_INFIXES, TOKENIZER_SUFFIXES
+from .tokenizer_exceptions import TOKENIZER_EXCEPTIONS
 from spacy.lang.fi import FinnishDefaults
+from spacy.lang.tokenizer_exceptions import BASE_EXCEPTIONS
 from spacy.language import Language
 from spacy.lookups import Lookups
 from spacy.symbols import POS, PUNCT, SYM, ADJ, CCONJ, SCONJ, NUM, DET, ADV
 from spacy.symbols import ADP, X, VERB, NOUN, PROPN, PART, INTJ, SPACE, PRON, AUX
+from spacy.util import update_exc
 
 
 TAG_MAP = {
@@ -30,6 +33,7 @@ class FinnishExDefaults(FinnishDefaults):
     tag_map = TAG_MAP
     infixes = TOKENIZER_INFIXES
     suffixes = TOKENIZER_SUFFIXES
+    tokenizer_exceptions = update_exc(BASE_EXCEPTIONS, TOKENIZER_EXCEPTIONS)
     resources = [
         ('lemma_exc', 'lookups/fi_lemma_exc.json'),
     ]

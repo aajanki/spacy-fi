@@ -88,8 +88,12 @@ class FinnishLemmatizer(Lemmatizer):
         return lemmas
 
     def lemmatize(self, string, index, exceptions, rules, univ_pos):
-        # lemmatize only the last part of hyphenated words: VGA-kaapelissa
+        # base of an inflected abbreviations: BBC:n, EU:ssa
+        string = string.rsplit(":", 1)[0]
+        
+        # Lemmatize only the last part of hyphenated words: VGA-kaapelissa
         parts = string.rsplit("-", 1)
+        
         lemma = self.lemmatize_compound(parts[-1], index, exceptions, rules, univ_pos)
 
         if len(parts) == 1:
