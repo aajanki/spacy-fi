@@ -49,6 +49,21 @@ tools/train.sh
 tools/tests.sh
 ```
 
+Loading the trained model locally without packaging it as a module:
+
+```python
+import spacy
+from fi.fi import FinnishEx
+
+spacy.util.set_lang_class('fi', FinnishEx)
+
+nlp = spacy.load('models/merged')
+
+doc = nlp('Hän ajoi punaisella autolla.')
+for t in doc:
+    print(f'{t.lemma_}\t{t.pos_}')
+```	
+
 ### Build a Python package
 
 Package just the POS tagger and dependency parser (this is the model published on GitHub):
