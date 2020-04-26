@@ -31,15 +31,17 @@ done
 
 echo "Validating tagger and parser training and dev data"
 python spacy_fi.py debug-data fi \
-       data/spacy/fi_tdt-ud-train.json \
-       data/spacy/fi_tdt-ud-dev.json \
-       --pipeline tagger,parser
+    data/spacy/fi_tdt-ud-train.json \
+    data/spacy/fi_tdt-ud-dev.json \
+    --pipeline tagger,parser \
+    --tag-map-path fi/tag_map.json
 
 echo "Validating NER training and dev data"
 python spacy_fi.py debug-data fi \
-       data/spacy/digitoday.2014.train.json \
-       data/spacy/digitoday.2014.dev.json \
-       --pipeline ner
+    data/spacy/digitoday.2014.train.json \
+    data/spacy/digitoday.2014.dev.json \
+    --pipeline ner \
+    --tag-map-path fi/tag_map.json
 
 ## Training ##
 
@@ -47,29 +49,31 @@ python tools/create_lexdata.py -n 400000 data/frequencies/finnish_vocab.txt.gz d
 
 rm -rf data/fi-experimental/*
 python spacy_fi.py init-model fi data/fi-experimental \
-      --model-name experimental_web_md \
-      --jsonl-loc data/lexdata.jsonl \
-      --vectors-loc data/word2vec/finnish_parsebank_small.txt.gz \
-      --prune-vectors 40000
+    --model-name experimental_web_md \
+    --jsonl-loc data/lexdata.jsonl \
+    --vectors-loc data/word2vec/finnish_parsebank_small.txt.gz \
+    --prune-vectors 40000
 
 # tagger and parser model
 rm -rf models/taggerparser/*
 python spacy_fi.py train fi models/taggerparser \
-       data/spacy/fi_tdt-ud-train.json \
-       data/spacy/fi_tdt-ud-dev.json \
-       --pipeline tagger,parser \
-       --vectors data/fi-experimental \
-       --n-iter 60
+    data/spacy/fi_tdt-ud-train.json \
+    data/spacy/fi_tdt-ud-dev.json \
+    --tag-map-path fi/tag_map.json \
+    --pipeline tagger,parser \
+    --vectors data/fi-experimental \
+    --n-iter 60
 rm -rf models/taggerparser/model{?,??} models/taggerparser/model-final
 
 # NER model
 rm -rf models/ner/*
 python spacy_fi.py train fi models/ner \
-       data/spacy/digitoday.2014.train.json \
-       data/spacy/digitoday.2014.dev.json \
-       --pipeline ner \
-       --vectors data/fi-experimental \
-       --n-iter 30
+    data/spacy/digitoday.2014.train.json \
+    data/spacy/digitoday.2014.dev.json \
+    --tag-map-path fi/tag_map.json \
+    --pipeline ner \
+    --vectors data/fi-experimental \
+    --n-iter 30
 rm -rf models/ner/model{?,??} models/ner/model-final
 
 # Merge POS tagger and NER models

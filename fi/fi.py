@@ -1,31 +1,9 @@
 from .lemmatizer import FinnishLemmatizer
 from spacy.lang.fi import FinnishDefaults
 from spacy.language import Language
-from spacy.symbols import POS, PUNCT, SYM, ADJ, CCONJ, SCONJ, NUM, DET, ADV
-from spacy.symbols import ADP, X, VERB, NOUN, PROPN, PART, INTJ, SPACE, PRON, AUX
-
-
-TAG_MAP = {
-    'Adv': {POS: ADV},
-    'Pron': {POS: PRON},
-    'Propn': {POS: PROPN},
-    'V': {POS: VERB},
-    'Aux': {POS: AUX},
-    'Punct': {POS: PUNCT},
-    'N': {POS: NOUN},
-    'A': {POS: ADJ},
-    'Num': {POS: NUM},
-    'C': {POS: CCONJ},
-    'SC': {POS: SCONJ},
-    'Adp': {POS: ADP},
-    'Symb': {POS: SYM},
-    'Interj': {POS: INTJ},
-    'Foreign': {POS: X},
-}
 
 
 class FinnishExDefaults(FinnishDefaults):
-    tag_map = TAG_MAP
     resources = [
         ('lemma_exc', 'lookups/fi_lemma_exc.json'),
     ]
