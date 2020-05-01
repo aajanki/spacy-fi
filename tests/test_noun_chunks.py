@@ -32,6 +32,20 @@ FI_NP_TEST_EXAMPLES = [
         [3, 1, -2, 0, 1, -2, -1],
         ['Leijona raidallisine tassuineen', 'Porin kaupungin'],
     ),
+    (
+        'Lounaalla nautittiin salaattia, maukasta kanaa ja raikasta vettä',
+        ['NOUN', 'VERB', 'NOUN', 'PUNCT', 'ADJ', 'NOUN', 'CCONJ', 'ADJ', 'NOUN'],
+        ['obl', 'ROOT', 'obj', 'punct', 'amod', 'conj', 'cc', 'amod', 'conj'],
+        [1, 0, -1, 2, 1, -3, 2, 1, -6],
+        ['Lounaalla', 'salaattia', 'maukasta kanaa', 'raikasta vettä'],
+    ),
+    (
+        'Isä souti veneellä, jonka hän oli vuokrannut',
+        ['NOUN', 'VERB', 'NOUN', 'PUNCT', 'PRON', 'PRON', 'AUX', 'VERB'],
+        ['nsubj', 'ROOT', 'obl', 'punct', 'obj', 'nsubj', 'aux', 'acl:relcl'],
+        [1, 0, -1, 4, 3, 2, 1, -5],
+        ['Isä', 'veneellä'],
+    ),
 ]
 
 

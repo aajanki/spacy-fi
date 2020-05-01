@@ -18,14 +18,15 @@ def noun_chunks(obj):
         "appos",
         "ROOT",
     ]
-    labels_right = [
+    labels_internal = [
+        "amod",
         "nmod",
         "nmod:poss",
     ]
 
     doc = obj.doc  # Ensure works on both Doc and Span.
     np_deps = [doc.vocab.strings[label] for label in labels]
-    np_deps_right = [doc.vocab.strings[label] for label in labels_right]
+    np_internal_deps = [doc.vocab.strings[label] for label in labels_internal]
     conj = doc.vocab.strings.add("conj")
     np_label = doc.vocab.strings.add("NP")
 
@@ -33,14 +34,41 @@ def noun_chunks(obj):
     for i, word in enumerate(obj):
         if i < rbracket:
             continue
-        if word.pos in (NOUN, PROPN, PRON) and word.dep in np_deps:
-            rbracket = word.i + 1
-            # try to extend the span to the right
-            # to capture close apposition/possessive nominal constructions
-            for rdep in doc[word.i].rights:
-                if rdep.pos in (NOUN, PROPN) and rdep.dep in np_deps_right:
-                    rbracket = rdep.i + 1
+
+        if word.pos in (NOUN, PROPN) and word.dep in np_deps:
+            rbracket = extend_np_right(word, np_internal_deps)
             yield word.left_edge.i, rbracket, np_label
+        elif word.dep == conj and word.head.i < word.i:
+            head = word.head
+            while head.dep == conj and head.head.i < head.i:
+                head = head.head
+
+            # If the head is an NP, and we're coordinated to it, we're an NP
+            if head.pos in (NOUN, PROPN) and head.dep in np_deps:
+                left_i = shrink_np_left(word, np_internal_deps)
+                rbracket = extend_np_right(word, np_internal_deps)
+                yield left_i, rbracket, np_label
+
+
+def shrink_np_left(word, valid_deps):
+    # Skip punctuation and coordinating conjuction on the left side of
+    # the word's subtree
+    left = word.left_edge
+    while left.dep not in valid_deps and left.i < word.i:
+        left = left.nbor()
+
+    return left.i
+
+
+def extend_np_right(word, valid_deps):
+    # try to extend the span to the right
+    # to capture close apposition/possessive nominal constructions
+    right_i = word.i + 1
+    for rdep in word.rights:
+        if rdep.pos == NOUN and rdep.dep in valid_deps:
+            right_i = rdep.i + 1
+
+    return right_i
 
 
 SYNTAX_ITERATORS = {"noun_chunks": noun_chunks}
