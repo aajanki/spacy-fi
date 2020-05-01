@@ -46,7 +46,7 @@ tools/train.sh
 ### Tests
 
 ```
-tools/tests.sh
+python -m pytest tests
 ```
 
 Loading the trained model locally without packaging it as a module:
