@@ -1,7 +1,7 @@
 # coding: utf8
 from __future__ import unicode_literals
 
-from spacy.symbols import NOUN, PROPN, PRON
+from spacy.symbols import NOUN, PROPN, conj
 
 
 def noun_chunks(obj):
@@ -16,19 +16,24 @@ def noun_chunks(obj):
         "nmod",
         #"nmod:poss",
         "appos",
-        "ROOT",
     ]
     labels_internal = [
         "amod",
         "nmod",
         "nmod:poss",
+        "nummod",
+    ]
+    labels_cop = [
+        "cop",
+        "nsubj:cop",
     ]
 
     doc = obj.doc  # Ensure works on both Doc and Span.
     np_deps = [doc.vocab.strings[label] for label in labels]
     np_internal_deps = [doc.vocab.strings[label] for label in labels_internal]
-    conj = doc.vocab.strings.add("conj")
+    cop_deps = [doc.vocab.strings[label] for label in labels_cop]
     np_label = doc.vocab.strings.add("NP")
+    root = doc.vocab.strings.add("ROOT")
 
     rbracket = 0
     for i, word in enumerate(obj):
@@ -38,6 +43,13 @@ def noun_chunks(obj):
         if word.pos in (NOUN, PROPN) and word.dep in np_deps:
             rbracket = extend_np_right(word, np_internal_deps)
             yield word.left_edge.i, rbracket, np_label
+        elif word.pos in (NOUN, PROPN) and word.dep == root:
+            left_i = word.left_edge.i
+            for child in word.children:
+                if child.dep in cop_deps:
+                    left_i = child.right_edge.i + 1
+            rbracket = word.right_edge.i + 1
+            yield left_i, rbracket, np_label
         elif word.dep == conj and word.head.i < word.i:
             head = word.head
             while head.dep == conj and head.head.i < head.i:

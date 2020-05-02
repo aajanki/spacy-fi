@@ -65,7 +65,7 @@ FI_NP_TEST_EXAMPLES = [
         ['ADJ', 'CCONJ', 'PRON', 'VERB', 'NOUN', 'AUX', 'ADV', 'NOUN'],
         ['amod', 'cc', 'obl', 'acl', 'nsubj:cop', 'cop', 'advmod', 'ROOT'],
         [4, 2, 1, 1, 3, 2, 1, 0],
-        ['Julkisoikeudelliset tai niihin rinnastettavat saatavat', 'ulosottokelpoisia'],
+        ['Julkisoikeudelliset tai niihin rinnastettavat saatavat', 'suoraan ulosottokelpoisia'],
     ),
     (
         'Se oli ala-arvoista käytöstä kaikilta oppilailta, myös valvojaoppilailta',
