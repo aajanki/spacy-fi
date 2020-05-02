@@ -12,11 +12,11 @@ fi_tokenizer = FinnishEx.Defaults.create_tokenizer()
 
 FI_NP_TEST_EXAMPLES = [
     (
-        'Iloinen tyttö potkaisee punaista palloa',
-        ['ADJ', 'NOUN', 'VERB', 'ADJ', 'NOUN'],
-        ['amod', 'nsubj', 'ROOT', 'amod', 'obj'],
+        'Kaksi tyttöä potkii punaista palloa',
+        ['NUM', 'NOUN', 'VERB', 'ADJ', 'NOUN'],
+        ['nummod', 'nsubj', 'ROOT', 'amod', 'obj'],
         [1, 1, 0, 1, -2],
-        ['Iloinen tyttö', 'punaista palloa'],
+        ['Kaksi tyttöä', 'punaista palloa'],
     ),
     (
         'Erittäin vaarallinen leijona karkasi kiertävän sirkuksen eläintenkesyttäjältä',
@@ -38,6 +38,41 @@ FI_NP_TEST_EXAMPLES = [
         ['obl', 'ROOT', 'obj', 'punct', 'amod', 'conj', 'cc', 'amod', 'conj'],
         [1, 0, -1, 2, 1, -3, 2, 1, -6],
         ['Lounaalla', 'salaattia', 'maukasta kanaa', 'raikasta vettä'],
+    ),
+    (
+        'Minua houkuttaa maalle muuttaminen talven jälkeen',
+        ['PRON', 'VERB', 'NOUN', 'NOUN', 'NOUN', 'ADP'],
+        ['obj', 'ROOT', 'nmod', 'nsubj', 'nmod', 'case'],
+        [1, 0, 1, -2, -1, -1],
+        ['maalle muuttaminen talven jälkeen'],
+    ),
+    (
+        'Päivän kohokohta oli vierailu museossa kummilasten kanssa',
+        ['NOUN', 'NOUN', 'AUX', 'NOUN', 'NOUN', 'NOUN', 'ADP'],
+        ['nmod:poss', 'nsubj:cop', 'cop', 'ROOT', 'nmod', 'nmod', 'case'],
+        [1, 2, 1, 0, -1, -1, -1],
+        ['Päivän kohokohta', 'vierailu museossa kummilasten kanssa'],
+    ),
+    (
+        'Yrittäjät maksoivat tuomioistuimen määräämät korvaukset',
+        ['NOUN', 'VERB', 'NOUN', 'VERB', 'NOUN'],
+        ['nsubj', 'ROOT', 'nsubj', 'acl', 'obj'],
+        [1, 0, 1, 1, -3],
+        ['Yrittäjät', 'tuomioistuimen määräämät korvaukset'],
+    ),
+    (
+        'Julkisoikeudelliset tai niihin rinnastettavat saatavat ovat suoraan ulosottokelpoisia',
+        ['ADJ', 'CCONJ', 'PRON', 'VERB', 'NOUN', 'AUX', 'ADV', 'NOUN'],
+        ['amod', 'cc', 'obl', 'acl', 'nsubj:cop', 'cop', 'advmod', 'ROOT'],
+        [4, 2, 1, 1, 3, 2, 1, 0],
+        ['Julkisoikeudelliset tai niihin rinnastettavat saatavat', 'ulosottokelpoisia'],
+    ),
+    (
+        'Se oli ala-arvoista käytöstä kaikilta oppilailta, myös valvojaoppilailta',
+        ['PRON', 'AUX', 'ADJ', 'NOUN', 'PRON', 'NOUN', 'PUNCT', 'ADV', 'NOUN'],
+        ['nsubj:cop', 'cop', 'amod', 'ROOT', 'det', 'nmod', 'punct', 'advmod', 'appos'],
+        [3, 2, 1, 0, 1, -2, 2, 1, -3],
+        ['ala-arvoista käytöstä', 'kaikilta oppilailta', 'valvojaoppilailta'],
     ),
     (
         'Isä souti veneellä, jonka hän oli vuokrannut',
