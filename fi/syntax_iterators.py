@@ -7,6 +7,8 @@ from spacy.symbols import NOUN, PROPN, conj
 def noun_chunks(obj):
     """
     Detect base noun phrases from a dependency parse. Works on both Doc and Span.
+
+    Reference: http://scripta.kotus.fi/visk/sisallys.php?p=562
     """
     labels = [
         "nsubj",
@@ -22,6 +24,7 @@ def noun_chunks(obj):
         "nmod",
         "nmod:poss",
         "nummod",
+        "case",
     ]
     labels_cop = [
         "cop",
@@ -49,14 +52,14 @@ def noun_chunks(obj):
             not has_noun_parent_non_copula(word, deps_root_or_nsubjcop)
             and word.dep in np_deps
         ):
-            rbracket = extend_np_right(word, np_internal_deps)
+            rbracket = shrink_np_right(word, np_internal_deps)
             yield word.left_edge.i, rbracket, np_label
         elif word.pos in (NOUN, PROPN) and word.dep == root:
             left_i = word.left_edge.i
             for child in word.children:
                 if child.dep in cop_deps:
                     left_i = child.right_edge.i + 1
-            rbracket = word.right_edge.i + 1
+            rbracket = shrink_np_right(word, np_internal_deps)
             yield left_i, rbracket, np_label
         elif word.dep == conj and word.head.i < word.i:
             head = word.head
@@ -66,7 +69,7 @@ def noun_chunks(obj):
             # If the head is an NP, and we're coordinated to it, we're an NP
             if head.pos in (NOUN, PROPN) and head.dep in np_deps:
                 left_i = shrink_np_left(word, np_internal_deps)
-                rbracket = extend_np_right(word, np_internal_deps)
+                rbracket = shrink_np_right(word, np_internal_deps)
                 yield left_i, rbracket, np_label
 
 
@@ -93,15 +96,12 @@ def shrink_np_left(word, valid_deps):
     return left.i
 
 
-def extend_np_right(word, valid_deps):
-    # try to extend the span to the right
-    # to capture close apposition/possessive nominal constructions
-    right_i = word.i + 1
-    for rdep in word.rights:
-        if rdep.pos == NOUN and rdep.dep in valid_deps:
-            right_i = rdep.i + 1
+def shrink_np_right(word, valid_deps):
+    for t in word.rights:
+        if t.dep not in valid_deps:
+            return t.left_edge.i
 
-    return right_i
+    return word.right_edge.i + 1
 
 
 SYNTAX_ITERATORS = {"noun_chunks": noun_chunks}

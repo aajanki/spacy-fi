@@ -30,7 +30,7 @@ FI_NP_TEST_EXAMPLES = [
         ['NOUN', 'ADJ', 'NOUN', 'VERB', 'PROPN', 'NOUN', 'ADP'],
         ['nsubj', 'amod', 'nmod', 'ROOT', 'nmod:poss', 'obl', 'case'],
         [3, 1, -2, 0, 1, -2, -1],
-        ['Leijona raidallisine tassuineen', 'Porin kaupungin'],
+        ['Leijona raidallisine tassuineen', 'Porin kaupungin lähellä'],
     ),
     (
         'Lounaalla nautittiin salaattia, maukasta kanaa ja raikasta vettä',
@@ -72,7 +72,7 @@ FI_NP_TEST_EXAMPLES = [
         ['PRON', 'AUX', 'ADJ', 'NOUN', 'PRON', 'NOUN', 'PUNCT', 'ADV', 'NOUN'],
         ['nsubj:cop', 'cop', 'amod', 'ROOT', 'det', 'nmod', 'punct', 'advmod', 'appos'],
         [3, 2, 1, 0, 1, -2, 2, 1, -3],
-        ['ala-arvoista käytöstä', 'kaikilta oppilailta', 'valvojaoppilailta'],
+        ['ala-arvoista käytöstä kaikilta oppilailta', 'myös valvojaoppilailta'],
     ),
     (
         'Isä souti veneellä, jonka hän oli vuokrannut',
