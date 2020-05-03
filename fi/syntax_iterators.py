@@ -27,11 +27,16 @@ def noun_chunks(obj):
         "cop",
         "nsubj:cop",
     ]
+    labels_root_or_nsubjcop = [
+        "ROOT",
+        "nsubj:cop",
+    ]
 
     doc = obj.doc  # Ensure works on both Doc and Span.
     np_deps = [doc.vocab.strings[label] for label in labels]
     np_internal_deps = [doc.vocab.strings[label] for label in labels_internal]
     cop_deps = [doc.vocab.strings[label] for label in labels_cop]
+    deps_root_or_nsubjcop = [doc.vocab.strings[label] for label in labels_root_or_nsubjcop]
     np_label = doc.vocab.strings.add("NP")
     root = doc.vocab.strings.add("ROOT")
 
@@ -40,7 +45,10 @@ def noun_chunks(obj):
         if i < rbracket:
             continue
 
-        if word.pos in (NOUN, PROPN) and word.dep in np_deps:
+        if (word.pos in (NOUN, PROPN) and
+            not has_noun_parent_non_copula(word, deps_root_or_nsubjcop)
+            and word.dep in np_deps
+        ):
             rbracket = extend_np_right(word, np_internal_deps)
             yield word.left_edge.i, rbracket, np_label
         elif word.pos in (NOUN, PROPN) and word.dep == root:
@@ -60,6 +68,19 @@ def noun_chunks(obj):
                 left_i = shrink_np_left(word, np_internal_deps)
                 rbracket = extend_np_right(word, np_internal_deps)
                 yield left_i, rbracket, np_label
+
+
+def has_noun_parent_non_copula(word, invalid_dep):
+    # For example in "Päivän kohokohta oli vierailu museossa", returns
+    # True for "päivän" (has a parent noun "kohokohta") and False for
+    # "kohokohta" (the parent noun "vierailu" is nsubj:cop).
+    t = word
+    while t.dep not in invalid_dep:
+        t = t.head
+        if t.pos in (NOUN, PROPN):
+            return True
+
+    return False
 
 
 def shrink_np_left(word, valid_deps):
