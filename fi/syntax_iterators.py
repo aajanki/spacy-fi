@@ -16,11 +16,11 @@ def noun_chunks(obj):
         "obj",
         "obl",
         "nmod",
-        #"nmod:poss",
         "appos",
     ]
     labels_internal = [
         "amod",
+        "advmod",
         "nmod",
         "nmod:poss",
         "nummod",
@@ -52,8 +52,9 @@ def noun_chunks(obj):
             not has_noun_parent_non_copula(word, deps_root_or_nsubjcop)
             and word.dep in np_deps
         ):
+            left_i = shrink_np_left(word, np_internal_deps)
             rbracket = shrink_np_right(word, np_internal_deps)
-            yield word.left_edge.i, rbracket, np_label
+            yield left_i, rbracket, np_label
         elif word.pos in (NOUN, PROPN) and word.dep == root:
             left_i = word.left_edge.i
             for child in word.children:
@@ -89,11 +90,11 @@ def has_noun_parent_non_copula(word, invalid_dep):
 def shrink_np_left(word, valid_deps):
     # Skip punctuation and coordinating conjuction on the left side of
     # the word's subtree
-    left = word.left_edge
-    while left.dep not in valid_deps and left.i < word.i:
-        left = left.nbor()
+    for t in word.lefts:
+        if t.dep in valid_deps:
+            return t.left_edge.i
 
-    return left.i
+    return word.left_edge.i
 
 
 def shrink_np_right(word, valid_deps):
