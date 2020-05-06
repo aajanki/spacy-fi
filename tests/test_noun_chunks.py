@@ -81,6 +81,20 @@ FI_NP_TEST_EXAMPLES = [
         [1, 0, -1, 4, 3, 2, 1, -5],
         ['Isä', 'veneellä'],
     ),
+    (
+        'Kirja, jonka poimin hyllystä, kertoo norsuista',
+        ['NOUN', 'PUNCT', 'PRON', 'VERB', 'NOUN', 'PUNCT', 'VERB', 'NOUN'],
+        ['nsubj', 'punct', 'obj', 'acl:relcl', 'obl', 'punct', 'ROOT', 'obl'],
+        [6, 2, 1, -3, -1, 1, 0, -1],
+        ['Kirja', 'hyllystä', 'norsuista'],
+    ),
+    (
+        'Huomenna on päivä, jota olemme odottaneet',
+        ['NOUN', 'AUX', 'NOUN', 'PUNCT', 'PRON', 'AUX', 'VERB'],
+        ['ROOT', 'cop', 'nsubj:cop', 'punct', 'obj', 'aux', 'acl:relcl'],
+        [0, -1, -2, 3, 2, 1, -4],
+        ['Huomenna', 'päivä'],
+    ),
 ]
 
 

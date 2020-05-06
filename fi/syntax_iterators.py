@@ -57,7 +57,7 @@ def noun_chunks(obj):
             yield left_i, rbracket, np_label
         elif word.pos in (NOUN, PROPN) and word.dep == root:
             left_i = word.left_edge.i
-            for child in word.children:
+            for child in word.lefts:
                 if child.dep in cop_deps:
                     left_i = child.right_edge.i + 1
             rbracket = shrink_np_right(word, np_internal_deps)
