@@ -1,7 +1,7 @@
 # coding: utf8
 from __future__ import unicode_literals
 
-from spacy.symbols import NOUN, PROPN, conj
+from spacy.symbols import NOUN, PROPN
 
 
 def noun_chunks(obj):
@@ -10,99 +10,65 @@ def noun_chunks(obj):
 
     Reference: http://scripta.kotus.fi/visk/sisallys.php?p=562
     """
+
     labels = [
-        "nsubj",
-        "nsubj:cop",
-        "obj",
-        "obl",
-        "nmod",
-        "appos",
-    ]
-    labels_internal = [
-        "amod",
+        "acl",
         "advmod",
+        "amod",
+        "case",
+        "det",
         "nmod",
         "nmod:poss",
         "nummod",
-        "case",
-    ]
-    labels_cop = [
-        "cop",
-        "nsubj:cop",
-    ]
-    labels_root_or_nsubjcop = [
-        "ROOT",
-        "nsubj:cop",
     ]
 
     doc = obj.doc  # Ensure works on both Doc and Span.
     np_deps = [doc.vocab.strings[label] for label in labels]
-    np_internal_deps = [doc.vocab.strings[label] for label in labels_internal]
-    cop_deps = [doc.vocab.strings[label] for label in labels_cop]
-    deps_root_or_nsubjcop = [doc.vocab.strings[label] for label in labels_root_or_nsubjcop]
     np_label = doc.vocab.strings.add("NP")
+
+    def extract_nps(word):
+        if word.pos in (NOUN, PROPN):
+            left_i = word.i
+            for t in word.lefts:
+                if t.dep not in np_deps:
+                    yield from extract_nps(t)
+                else:
+                    left_i = t.left_edge.i
+                    break
+
+            right_i = word.i
+            if word.i < len(word.doc) - 1:
+                t = word.nbor()
+                while t.i <= word.right_edge.i and t.dep in np_deps:
+                    right_i = t.i
+
+                    if t.i >= len(word.doc) - 1:
+                        break
+                    
+                    t = t.nbor()
+
+            yield left_i, right_i + 1, np_label
+
+            for i in range(right_i + 1, word.right_edge.i + 1):
+                if word.doc[i].head.i <= right_i:
+                    yield from extract_nps(word.doc[i])
+
+        else:
+            for t in word.children:
+                yield from extract_nps(t)
+
+
+    root = find_root(doc)
+    yield from extract_nps(root)
+
+
+def find_root(doc):
     root = doc.vocab.strings.add("ROOT")
+    for word in doc:
+        if word.dep == root:
+            return word
 
-    rbracket = 0
-    for i, word in enumerate(obj):
-        if i < rbracket:
-            continue
-
-        if (word.pos in (NOUN, PROPN) and
-            not has_noun_parent_non_copula(word, deps_root_or_nsubjcop)
-            and word.dep in np_deps
-        ):
-            left_i = shrink_np_left(word, np_internal_deps)
-            rbracket = shrink_np_right(word, np_internal_deps)
-            yield left_i, rbracket, np_label
-        elif word.pos in (NOUN, PROPN) and word.dep == root:
-            left_i = word.left_edge.i
-            for child in word.lefts:
-                if child.dep in cop_deps:
-                    left_i = child.right_edge.i + 1
-            rbracket = shrink_np_right(word, np_internal_deps)
-            yield left_i, rbracket, np_label
-        elif word.dep == conj and word.head.i < word.i:
-            head = word.head
-            while head.dep == conj and head.head.i < head.i:
-                head = head.head
-
-            # If the head is an NP, and we're coordinated to it, we're an NP
-            if head.pos in (NOUN, PROPN) and head.dep in np_deps:
-                left_i = shrink_np_left(word, np_internal_deps)
-                rbracket = shrink_np_right(word, np_internal_deps)
-                yield left_i, rbracket, np_label
-
-
-def has_noun_parent_non_copula(word, invalid_dep):
-    # For example in "Päivän kohokohta oli vierailu museossa", returns
-    # True for "päivän" (has a parent noun "kohokohta") and False for
-    # "kohokohta" (the parent noun "vierailu" is nsubj:cop).
-    t = word
-    while t.dep not in invalid_dep:
-        t = t.head
-        if t.pos in (NOUN, PROPN):
-            return True
-
-    return False
-
-
-def shrink_np_left(word, valid_deps):
-    # Skip punctuation and coordinating conjuction on the left side of
-    # the word's subtree
-    for t in word.lefts:
-        if t.dep in valid_deps:
-            return t.left_edge.i
-
-    return word.left_edge.i
-
-
-def shrink_np_right(word, valid_deps):
-    for t in word.rights:
-        if t.dep not in valid_deps:
-            return t.left_edge.i
-
-    return word.right_edge.i + 1
+    assert False, 'No root node!'
 
 
 SYNTAX_ITERATORS = {"noun_chunks": noun_chunks}
