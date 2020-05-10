@@ -124,6 +124,20 @@ FI_NP_TEST_EXAMPLES = [
         [1, 1, 0, 1, -2],
         ['Loput vihjeet', 'herra Möttöseltä'],
     ),
+    (
+        'mahdollisuus tukea muita päivystysyksiköitä',
+        ['NOUN', 'VERB', 'PRON', 'NOUN'],
+        ['ROOT', 'acl', 'det', 'obj'],
+        [0, -1, 1, -2],
+        ['mahdollisuus tukea muita päivystysyksiköitä'],
+    ),
+    (
+        'sairaanhoitopiirit harjoittavat leikkaustoimintaa alueellaan useammassa sairaalassa',
+        ['NOUN', 'VERB', 'NOUN', 'NOUN', 'ADJ', 'NOUN'],
+        ['nsubj', 'ROOT', 'obj', 'obl', 'amod', 'obl'],
+        [1, 0, -1, -1, 1, -3],
+        ['sairaanhoitopiirit', 'leikkaustoimintaa alueellaan useammassa sairaalassa'],
+    ),
 ]
 
 

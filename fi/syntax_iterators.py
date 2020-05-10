@@ -25,6 +25,8 @@ def noun_chunks(obj):
         "nmod:gsubj",
         "nmod:poss",
         "nummod",
+        "obj",
+        "obl",
     ]
 
     doc = obj.doc  # Ensure works on both Doc and Span.
