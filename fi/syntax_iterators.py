@@ -22,6 +22,7 @@ def noun_chunks(obj):
         "flat:name",
         "nmod",
         "nmod:gobj",
+        "nmod:gsubj",
         "nmod:poss",
         "nummod",
     ]

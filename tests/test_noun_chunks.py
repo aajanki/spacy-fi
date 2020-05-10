@@ -104,6 +104,13 @@ FI_NP_TEST_EXAMPLES = [
 
     ),
     (
+        'Kaupalliset palvelut jätetään yksityisten palveluntarjoajien tarjottavaksi',
+        ['ADJ', 'NOUN', 'VERB', 'ADJ', 'NOUN', 'NOUN'],
+        ['amod', 'obj', 'ROOT', 'amod', 'nmod:gsubj', 'obl'],
+        [1, 1, 0, 1, 1, -3],
+        ['Kaupalliset palvelut', 'yksityisten palveluntarjoajien tarjottavaksi'],
+    ),
+    (
         'New York tunnetaan kaupunkina, joka ei koskaan nuku',
         ['PROPN', 'PROPN', 'VERB', 'NOUN', 'PUNCT', 'PRON', 'AUX', 'ADV', 'VERB'],
         ['obj', 'flat:name', 'ROOT', 'obl', 'punct', 'nsubj', 'aux', 'advmod', 'acl:relcl'],
