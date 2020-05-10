@@ -16,8 +16,12 @@ def noun_chunks(obj):
         "advmod",
         "amod",
         "case",
+        "compound",
+        "compound:nn",
         "det",
+        "flat:name",
         "nmod",
+        "nmod:gobj",
         "nmod:poss",
         "nummod",
     ]

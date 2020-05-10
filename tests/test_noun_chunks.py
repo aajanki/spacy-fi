@@ -95,6 +95,28 @@ FI_NP_TEST_EXAMPLES = [
         [0, -1, -2, 3, 2, 1, -4],
         ['Huomenna', 'päivä'],
     ),
+    (
+        'Liikkuvuuden lisääminen on yksi korkeakoulutuksen keskeisistä kehittämiskohteista',
+        ['NOUN', 'NOUN', 'AUX', 'NUM', 'NOUN', 'ADJ', 'NOUN'],
+        ['nmod:gobj', 'nsubj:cop', 'cop', 'ROOT', 'nmod:poss', 'amod', 'nmod'],
+        [1, 2, 1, 0, 2, 1, -3],
+        ['Liikkuvuuden lisääminen', 'korkeakoulutuksen keskeisistä kehittämiskohteista'],
+
+    ),
+    (
+        'New York tunnetaan kaupunkina, joka ei koskaan nuku',
+        ['PROPN', 'PROPN', 'VERB', 'NOUN', 'PUNCT', 'PRON', 'AUX', 'ADV', 'VERB'],
+        ['obj', 'flat:name', 'ROOT', 'obl', 'punct', 'nsubj', 'aux', 'advmod', 'acl:relcl'],
+        [2, -1, 0, -1, 4, 3, 2, 1, -5],
+        ['New York', 'kaupunkina'],
+    ),
+    (
+        'Loput vihjeet saat herra Möttöseltä',
+        ['NOUN', 'NOUN', 'VERB', 'NOUN', 'PROPN'],
+        ['compound:nn', 'obj', 'ROOT', 'compound:nn', 'obj'],
+        [1, 1, 0, 1, -2],
+        ['Loput vihjeet', 'herra Möttöseltä'],
+    ),
 ]
 
 
