@@ -141,6 +141,19 @@ FI_NP_TEST_EXAMPLES = [
 ]
 
 
+FI_NP_TEST_EXAMPLES_MULTI_SENTENCE = [
+    (
+        'Ilmassa on kevättä. Rännit tippuvat ja katuojat juoksevat',
+        ['NOUN', 'AUX', 'NOUN', 'PUNCT', 'NOUN', 'VERB', 'CCONJ', 'NOUN', 'VERB'],
+        ['ROOT', 'cop', 'nsubj:cop', 'punct', 'nsubj', 'ROOT', 'cc', 'nsubj', 'conj'],
+        [0, -1, -2, -3, 1, 0, 2, 1, -3],
+        [
+            ['Ilmassa', 'kevättä'],
+            ['Rännit', 'katuojat']
+        ],
+    ),
+]
+
 @pytest.mark.parametrize(
     "text,pos,deps,heads,expected_noun_chunks", FI_NP_TEST_EXAMPLES
 )
@@ -151,3 +164,16 @@ def test_fi_noun_chunks(text, pos, deps, heads, expected_noun_chunks):
     assert len(noun_chunks) == len(expected_noun_chunks)
     for i, np in enumerate(noun_chunks):
         assert np.text == expected_noun_chunks[i]
+
+
+@pytest.mark.parametrize(
+    "text,pos,deps,heads,expected_noun_chunks", FI_NP_TEST_EXAMPLES_MULTI_SENTENCE
+)
+def test_fi_noun_chunks_multiple_sentences(text, pos, deps, heads, expected_noun_chunks):
+    doc = get_doc_from_text(text, fi_tokenizer, pos=pos, heads=heads, deps=deps)
+
+    for s, expected in zip(doc.sents, expected_noun_chunks):
+        noun_chunks = list(s.noun_chunks)
+        assert len(noun_chunks) == len(expected)
+        for i, np in enumerate(noun_chunks):
+            assert np.text == expected[i]
