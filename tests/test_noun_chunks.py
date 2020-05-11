@@ -65,14 +65,14 @@ FI_NP_TEST_EXAMPLES = [
         ['ADJ', 'CCONJ', 'PRON', 'VERB', 'NOUN', 'AUX', 'ADV', 'NOUN'],
         ['amod', 'cc', 'obl', 'acl', 'nsubj:cop', 'cop', 'advmod', 'ROOT'],
         [4, 2, 1, 1, 3, 2, 1, 0],
-        ['Julkisoikeudelliset tai niihin rinnastettavat saatavat', 'suoraan ulosottokelpoisia'],
+        ['Julkisoikeudelliset tai niihin rinnastettavat saatavat', 'ulosottokelpoisia'],
     ),
     (
         'Se oli ala-arvoista käytöstä kaikilta oppilailta, myös valvojaoppilailta',
         ['PRON', 'AUX', 'ADJ', 'NOUN', 'PRON', 'NOUN', 'PUNCT', 'ADV', 'NOUN'],
         ['nsubj:cop', 'cop', 'amod', 'ROOT', 'det', 'nmod', 'punct', 'advmod', 'appos'],
         [3, 2, 1, 0, 1, -2, 2, 1, -3],
-        ['ala-arvoista käytöstä kaikilta oppilailta', 'myös valvojaoppilailta'],
+        ['ala-arvoista käytöstä kaikilta oppilailta', 'valvojaoppilailta'],
     ),
     (
         'Isä souti veneellä, jonka hän oli vuokrannut',

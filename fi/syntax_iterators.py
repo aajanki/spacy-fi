@@ -13,7 +13,6 @@ def noun_chunks(obj):
 
     labels = [
         "acl",
-        "advmod",
         "amod",
         "case",
         "compound",
