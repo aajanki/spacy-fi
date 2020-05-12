@@ -56,7 +56,7 @@ def noun_chunks(obj):
             yield left_i, right_i + 1, np_label
 
             for i in range(right_i + 1, word.right_edge.i + 1):
-                candidate_word = word.nbor(i - word.i)
+                candidate_word = word.doc[i]
                 if candidate_word.head.i <= right_i:
                     yield from extract_nps(candidate_word)
 
