@@ -72,7 +72,7 @@ FI_NP_TEST_EXAMPLES = [
         ['PRON', 'AUX', 'ADJ', 'NOUN', 'PRON', 'NOUN', 'PUNCT', 'ADV', 'NOUN'],
         ['nsubj:cop', 'cop', 'amod', 'ROOT', 'det', 'nmod', 'punct', 'advmod', 'appos'],
         [3, 2, 1, 0, 1, -2, 2, 1, -3],
-        ['ala-arvoista käytöstä kaikilta oppilailta', 'valvojaoppilailta'],
+        ['ala-arvoista käytöstä kaikilta oppilailta , myös valvojaoppilailta'],
     ),
     (
         'Isä souti veneellä, jonka hän oli vuokrannut',
