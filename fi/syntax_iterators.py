@@ -1,7 +1,7 @@
 # coding: utf8
 from __future__ import unicode_literals
 
-from spacy.symbols import NOUN, PROPN
+from spacy.symbols import NOUN, PROPN, PUNCT, appos
 
 
 def noun_chunks(obj):
@@ -14,6 +14,7 @@ def noun_chunks(obj):
     labels = [
         "acl",
         "amod",
+        "appos",
         "case",
         "compound",
         "compound:nn",
@@ -45,8 +46,9 @@ def noun_chunks(obj):
             right_i = word.i
             if word.i < len(word.doc) - 1:
                 t = word.nbor()
-                while t.i <= word.right_edge.i and t.dep in np_deps:
-                    right_i = t.i
+                while t.i <= word.right_edge.i and (t.dep in np_deps or appos_punct(t)):
+                    if t.head.i < t.i:
+                        right_i = t.i
 
                     if t.i >= len(word.doc) - 1:
                         break
@@ -76,6 +78,11 @@ def find_root(doc):
             return word
 
     assert False, 'No root node!'
+
+
+def appos_punct(word):
+    """Return true if this is a punct with appos as head."""
+    return word.pos == PUNCT and word.head.dep == appos
 
 
 SYNTAX_ITERATORS = {"noun_chunks": noun_chunks}

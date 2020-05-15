@@ -138,6 +138,13 @@ FI_NP_TEST_EXAMPLES = [
         [1, 0, -1, -1, 1, -3],
         ['sairaanhoitopiirit', 'leikkaustoimintaa alueellaan useammassa sairaalassa'],
     ),
+    (
+        'Terveyden ja hyvinvoinnin laitos (THL) johtaa hanketta',
+        ['NOUN', 'CCONJ', 'NOUN', 'NOUN', 'PUNCT', 'PROPN', 'PUNCT', 'VERB', 'NOUN'],
+        ['nmod:poss', 'cc', 'conj', 'nsubj', 'punct', 'appos', 'punct', 'ROOT', 'obj'],
+        [3, 1, -2, 4, 1, -2, -1, 0, -1],
+        ['Terveyden ja hyvinvoinnin laitos ( THL )', 'hanketta'],
+    ),
 ]
 
 
@@ -153,6 +160,7 @@ FI_NP_TEST_EXAMPLES_MULTI_SENTENCE = [
         ],
     ),
 ]
+
 
 @pytest.mark.parametrize(
     "text,pos,deps,heads,expected_noun_chunks", FI_NP_TEST_EXAMPLES
