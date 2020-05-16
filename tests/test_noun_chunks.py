@@ -139,6 +139,13 @@ FI_NP_TEST_EXAMPLES = [
         ['sairaanhoitopiirit', 'leikkaustoimintaa alueellaan useammassa sairaalassa'],
     ),
     (
+        'Lain mukaan varhaiskasvatus on suunnitelmallista toimintaa',
+        ['NOUN', 'ADP', 'NOUN', 'AUX', 'ADJ', 'NOUN'],
+        ['obl', 'case', 'nsubj:cop', 'cop', 'amod', 'ROOT'],
+        [5, -1, 3, 2, 1, 0],
+        ['Lain mukaan', 'varhaiskasvatus', 'suunnitelmallista toimintaa'],
+    ),
+    (
         'Terveyden ja hyvinvoinnin laitos (THL) johtaa hanketta',
         ['NOUN', 'CCONJ', 'NOUN', 'NOUN', 'PUNCT', 'PROPN', 'PUNCT', 'VERB', 'NOUN'],
         ['nmod:poss', 'cc', 'conj', 'nsubj', 'punct', 'appos', 'punct', 'ROOT', 'obj'],

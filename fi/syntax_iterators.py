@@ -36,12 +36,15 @@ def noun_chunks(obj):
     def extract_nps(word):
         if word.pos in (NOUN, PROPN):
             left_i = word.i
-            for t in word.lefts:
-                if t.dep not in np_deps:
-                    yield from extract_nps(t)
-                else:
+            for t in reversed(list(word.lefts)):
+                if t.dep in np_deps:
                     left_i = t.left_edge.i
+                else:
                     break
+
+            for t in word.lefts:
+                if t.i < left_i:
+                    yield from extract_nps(t)
 
             right_i = word.i
             for t in word.rights:
