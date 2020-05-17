@@ -1,6 +1,6 @@
 # Experimental Finnish language model for SpaCy
 
-Finnish language model for [SpaCy](https://spacy.io/). The model contains POS tagger, dependency parser, word vectors, token frequencies and a lemmatizer (libvoikko). See below for notes about NER.
+Finnish language model for [SpaCy](https://spacy.io/). The model contains POS tagger, dependency parser, word vectors, noun phrase extraction, token frequencies and a lemmatizer (libvoikko). See below for notes about NER.
 
 ## Install the Finnish language model
 
@@ -8,7 +8,7 @@ First, install [the libvoikko native library with Finnish morphology data files]
 
 Next, install the model by running:
 ```
-pip install https://github.com/aajanki/spacy-fi/releases/download/v0.2.0/fi_experimental_web_md-0.2.0-py3-none-any.whl
+pip install https://github.com/aajanki/spacy-fi/releases/download/v0.3.0/fi_experimental_web_md-0.3.0-py3-none-any.whl
 ```
 
 ## Usage
@@ -29,7 +29,7 @@ for t in doc:
 
 Install [the libvoikko native library with Finnish morphology data files](https://voikko.puimula.org/python.html).
 
-```
+```sh
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -39,7 +39,7 @@ tools/download_data.sh
 
 ### Train the model
 
-```
+```sh
 tools/train.sh
 ```
 
@@ -62,25 +62,16 @@ nlp = spacy.load('models/merged')
 doc = nlp('Hän ajoi punaisella autolla.')
 for t in doc:
     print(f'{t.lemma_}\t{t.pos_}')
-```	
-
-### Build a Python package
-
-Package just the POS tagger and dependency parser (this is the model published on GitHub):
-
-```
-tools/package_model.sh models/taggerparser/model-best
 ```
 
-Alternatively, to build a model with combined tagger, parser and NER capabilities, run the following:
+### Notes about the NER model
 
-```
-tools/package_model.sh models/merged
-```
-
-Notes about the NER model:
 * The model is trained on a very specific domain (technology news) and its out-of-domain generalization is quite poor.
 * Distributing the NER model might not be possible because the training data license (CC BY-ND-NC) is incompatible with the lemmatizer license (GPL).
+
+### Packaging and publishing
+
+See [packaging.md].
 
 ## License
 

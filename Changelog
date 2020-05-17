@@ -1,3 +1,9 @@
+Version 0.3.0, 2020-05-17
+
+* Extract noun phrases
+* Lemmatize conjugated abbreviations: EU:ssa => EU
+* Requires SpaCy 2.2.4 or later
+
 Version 0.2.0, 2020-01-26
 
 * Tagging auxiliary verbs as AUX (previously VERB) following the UD convention
