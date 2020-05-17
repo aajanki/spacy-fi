@@ -71,7 +71,7 @@ for t in doc:
 
 ### Packaging and publishing
 
-See [packaging.md].
+See [packaging.md](packaging.md).
 
 ## License
 

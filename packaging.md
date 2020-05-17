@@ -32,8 +32,8 @@ git push --tags
 ```
 
 Create a new release at
-[https://github.com/aajanki/spacy-fi/releases]. Upload
-models/python-package/fi_experimental_web_md-*/dist/*.whl to the
+[https://github.com/aajanki/spacy-fi/releases](https://github.com/aajanki/spacy-fi/releases). Upload
+models/python-package/fi_experimental_web_md-\*/dist/\*.whl to the
 release.
 
 Update the pip install link on the [README](README.md).
