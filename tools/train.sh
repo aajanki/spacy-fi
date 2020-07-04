@@ -3,14 +3,9 @@
 set -eu
 
 mkdir -p data/spacy
-mkdir -p models
 mkdir -p data/UD_Finnish-TDT-preprocessed
 mkdir -p data/finer-data-preprocessed
-
-echo "Preparing lexical data"
-python tools/create_lexdata.py \
-       data/frequencies/finnish_vocab.txt.gz \
-       data/lexdata.jsonl
+mkdir -p models
 
 echo "Convert data to the SpaCy format"
 for f in train dev test
@@ -45,18 +40,25 @@ python spacy_fi.py debug-data fi \
 
 ## Training ##
 
-python tools/create_lexdata.py -n 400000 data/frequencies/finnish_vocab.txt.gz data/lexdata.jsonl
+echo "Preparing lexical data"
+mkdir -p data/lexeme
+rm -rf data/lexeme/*
+python tools/create_lexdata.py -n 500000 \
+       data/frequencies/finnish_vocab.txt.gz \
+       data/lexeme/fi_lexeme_settings.json \
+       data/lexeme/fi_lexeme_prob.json
 
+echo "Training"
 rm -rf data/fi-experimental/*
 python spacy_fi.py init-model fi data/fi-experimental \
     --model-name experimental_web_md \
-    --jsonl-loc data/lexdata.jsonl \
-    --vectors-loc data/word2vec/finnish_parsebank_small.txt.gz \
-    --prune-vectors 40000
+    --vectors-loc data/word2vec/finnish_500k_parsebank.txt.gz \
+    --prune-vectors 20000
 
 # tagger and parser model
 rm -rf models/taggerparser/*
-python spacy_fi.py train fi models/taggerparser \
+python -W ignore:"[W033]" spacy_fi.py train fi \
+    models/taggerparser \
     data/spacy/fi_tdt-ud-train.json \
     data/spacy/fi_tdt-ud-dev.json \
     --tag-map-path fi/tag_map.json \
@@ -67,7 +69,8 @@ rm -rf models/taggerparser/model{?,??} models/taggerparser/model-final
 
 # NER model
 rm -rf models/ner/*
-python spacy_fi.py train fi models/ner \
+python -W ignore:"[W033]" spacy_fi.py train fi \
+    models/ner \
     data/spacy/digitoday.2014.train.json \
     data/spacy/digitoday.2014.dev.json \
     --tag-map-path fi/tag_map.json \

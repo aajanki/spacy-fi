@@ -13,19 +13,20 @@ from tqdm import tqdm
 
 @plac.annotations(
     input_path=('Path to the input vocabulary file', 'positional', None, Path),
-    output_path=('Path to the output file', 'positional', None, Path),
+    settings_path=('Output path for the lexeme settings file', 'positional', None, Path),
+    prob_path=('Output path to the prob data file', 'positional', None, Path),
     token_limit=('Maximum number of tokens to include in the output', 'option', 'n', int)
 )
 def main(
     input_path,
-    output_path,
+    settings_path,
+    prob_path,
     token_limit=1000000
 ):
     probs, oov_prob = read_freqs(input_path, token_limit)
-    header = {'lang': 'fi', 'settings': {'oov_prob': oov_prob}}
-    lex = [{'orth': orth, 'prob': p} for orth, p in probs.items()]
-    data = [header] + lex
-    srsly.write_jsonl(output_path, data)
+    settings = {"oov_prob": oov_prob}
+    srsly.write_json(settings_path, settings)
+    srsly.write_json(prob_path, probs)
 
 
 def read_freqs(freq_loc, token_limit, max_length=100):

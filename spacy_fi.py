@@ -6,7 +6,15 @@ from spacy import cli, util
 from fi.fi import FinnishEx
 
 
+def lexeme_lookups():
+    return {
+        'lexeme_prob': 'data/lexeme/fi_lexeme_prob.json',
+        'lexeme_settings': 'data/lexeme/fi_lexeme_settings.json',
+    }
+
+
 if __name__ == '__main__':
+    util.registry.lookups.register('fi_extra', func=lexeme_lookups())
     util.set_lang_class('fi', FinnishEx)
 
     command_name = sys.argv[1].replace('-', '_')
