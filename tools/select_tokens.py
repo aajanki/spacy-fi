@@ -79,11 +79,11 @@ def is_valid_token(tokenizer, word):
              # special case for hyphenated words
              re.match(r'^[A-ZÅÄÖ0-9]+-[A-ZÅÄÖ0-9]+$', word, re.IGNORECASE)) and
             ('/' not in word or re.match(r'^[0-9]+/[0-9]+(/[0-9]+)?$', word)) and
-            (not any(x in word for x in '\u200b\\~')) and
+            (not any(x in word for x in '\u0080\u0094\u0096\u0097\u200b\\~|')) and
+            not re.match(r'^@\d+$', word) and
             not (word.startswith('.') and len(word) <= 3 and re.search(r'\d', word)) and
-            # looks like email
+            # looks like an email adress
             not re.match(r'^[a-z0-9.]+@[a-z0-9.]+\.[a-z]+$', word, re.IGNORECASE))
-
 
 
 if __name__ == '__main__':
