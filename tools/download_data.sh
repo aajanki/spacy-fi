@@ -13,10 +13,6 @@ git clone https://github.com/mpsilfve/finer-data.git data/finer-data
 echo "Downloading word vectors"
 mkdir -p data/word2vec
 wget --directory-prefix data/word2vec http://dl.turkunlp.org/finnish-embeddings/finnish_4B_parsebank_skgram.bin
-python tools/word2vec_bin2txt.py data/word2vec/finnish_4B_parsebank_skgram.bin \
-       data/word2vec/finnish_4B_parsebank_skgram.txt.gz
-zcat data/word2vec/finnish_4B_parsebank_skgram.txt.gz | head -n 500001 | gzip \
-        > data/word2vec/finnish_500k_parsebank.txt.gz
 
 echo "Downloading frequency data"
 mkdir -p data/frequencies

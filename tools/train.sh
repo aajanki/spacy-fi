@@ -41,10 +41,16 @@ python spacy_fi.py debug-data fi \
 ## Training ##
 
 echo "Preparing lexical data"
+python tools/select_tokens.py -n 500000 \
+       data/frequencies/finnish_vocab.txt.gz \
+       data/word2vec/finnish_4B_parsebank_skgram.bin \
+       data/frequencies/finnish_vocab_500k.txt.gz \
+       data/word2vec/finnish_500k_parsebank.txt.gz
+
 mkdir -p data/lexeme
 rm -rf data/lexeme/*
 python tools/create_lexdata.py -n 500000 \
-       data/frequencies/finnish_vocab.txt.gz \
+       data/frequencies/finnish_vocab_500k.txt.gz \
        data/lexeme/fi_lexeme_settings.json \
        data/lexeme/fi_lexeme_prob.json
 
