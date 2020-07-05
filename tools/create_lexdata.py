@@ -8,32 +8,31 @@ import srsly
 from itertools import islice
 from pathlib import Path
 from preshed.counter import PreshCounter
-from tqdm import tqdm
 
 
 @plac.annotations(
-    input_path=('Path to the input vocabulary file', 'positional', None, Path),
+    full_vocabulary_path=('Path to the full vocabulary', 'positional', None, Path),
+    input_vocabulary_path=('Path to the input vocabulary', 'positional', None, Path),
     settings_path=('Output path for the lexeme settings file', 'positional', None, Path),
     prob_path=('Output path to the prob data file', 'positional', None, Path),
-    token_limit=('Maximum number of tokens to include in the output', 'option', 'n', int)
 )
 def main(
-    input_path,
+    full_vocabulary_path,
+    input_vocabulary_path,
     settings_path,
-    prob_path,
-    token_limit=1000000
+    prob_path
 ):
-    probs, oov_prob = read_freqs(input_path, token_limit)
+    probs, oov_prob = read_freqs(full_vocabulary_path, input_vocabulary_path)
     settings = {"oov_prob": oov_prob}
     srsly.write_json(settings_path, settings)
     srsly.write_json(prob_path, probs)
 
 
-def read_freqs(freq_loc, token_limit, max_length=100):
+def read_freqs(full_loc, freq_loc):
     counts = PreshCounter()
     total = 0
     n = 0
-    with gzip.open(freq_loc, 'rt', encoding='utf-8') as f:
+    with gzip.open(full_loc, 'rt', encoding='utf-8') as f:
         for i, line in enumerate(f):
             n = i + 1
             freq, token = line.strip().split(' ', 1)
@@ -44,16 +43,16 @@ def read_freqs(freq_loc, token_limit, max_length=100):
     log_total = math.log(total)
 
     probs = {}
+    last_freq = 0
     with gzip.open(freq_loc, 'rt', encoding='utf-8') as f:
-        num_lines = min(n, token_limit)
-        for line in tqdm(islice(f, num_lines), total=num_lines):
+        for line in f:
             freq, token = line.strip().split(' ', 1)
             freq = int(freq)
-            if len(token) < max_length:
-                smooth_count = counts.smoother(freq)
-                probs[token] = math.log(smooth_count) - log_total
+            last_freq = freq
+            smooth_count = counts.smoother(freq)
+            probs[token] = math.log(smooth_count) - log_total
 
-    oov_prob = math.log(counts.smoother(0)) - log_total
+    oov_prob = math.log(counts.smoother(last_freq/2)) - log_total
     return probs, oov_prob
 
 

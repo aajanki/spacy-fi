@@ -49,7 +49,8 @@ python tools/select_tokens.py -n 500000 \
 
 mkdir -p data/lexeme
 rm -rf data/lexeme/*
-python tools/create_lexdata.py -n 500000 \
+python tools/create_lexdata.py \
+       data/frequencies/finnish_vocab.txt.gz \
        data/frequencies/finnish_vocab_500k.txt.gz \
        data/lexeme/fi_lexeme_settings.json \
        data/lexeme/fi_lexeme_prob.json

@@ -28,7 +28,7 @@ def select_tokens(freqs_loc, num_tokens):
     tokenizer = get_lang_class("xx").Defaults.create_tokenizer()
     selected_tokens = []
     t = tqdm(total=num_tokens)
-    freqs = (x.strip().split(' ', 1) for x in gzip.open(freqs_loc, 'rt').readlines())
+    freqs = (x.strip().split(' ', 1) for x in gzip.open(freqs_loc, 'rt', encoding='utf-8').readlines())
     for freq, token in freqs:
         if is_valid_token(tokenizer, token):
             selected_tokens.append((freq, token))
@@ -43,7 +43,7 @@ def select_tokens(freqs_loc, num_tokens):
 
 
 def save_frequencies(freqs_output_loc, freqs):
-    with gzip.open(freqs_output_loc, 'wt') as f:
+    with gzip.open(freqs_output_loc, 'wt', encoding='utf-8') as f:
         for freq, token in freqs:
             f.write(f'{freq:>8} {token}\n')
 
