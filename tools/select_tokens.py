@@ -74,12 +74,13 @@ def select_vectors(vectors_loc, selected_tokens):
 
 def is_valid_token(tokenizer, word):
     tokens = tokenizer(word)
-    return ((len(word) > 1 or word in '.,:;?!()[]{}/\\"\'&%#<>|-_$€£@') and len(word) < 40 and
+    return ((len(word) > 1 or word.isdigit() or word in '.,:;?!()[]{}/\\"\'&%#<>|-_+=$€£@~*^') and len(word) < 40 and
             (len(tokens) == 1 or
              # special case for hyphenated words
              re.match(r'^[A-ZÅÄÖ0-9]+-[A-ZÅÄÖ0-9]+$', word, re.IGNORECASE)) and
             ('/' not in word or re.match(r'^[0-9]+/[0-9]+(/[0-9]+)?$', word)) and
-            (not any(x in word for x in '\u0080\u0094\u0096\u0097\u200b\\~|')) and
+            (not any(x in word for x in '\u0080\u0094\u0096\u0097\u200b\\~|=') or
+             word in ['|', '~', '\\', '=']) and
             not re.match(r'^@\d+$', word) and
             not (word.startswith('.') and len(word) <= 3 and re.search(r'\d', word)) and
             # looks like an email adress
