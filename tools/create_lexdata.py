@@ -7,7 +7,6 @@ import sys
 import srsly
 from itertools import islice
 from pathlib import Path
-from preshed.counter import PreshCounter
 
 
 @plac.annotations(
@@ -29,7 +28,6 @@ def main(
 
 
 def read_freqs(full_loc, freq_loc):
-    counts = PreshCounter()
     total = 0
     n = 0
     with gzip.open(full_loc, 'rt', encoding='utf-8') as f:
@@ -37,22 +35,22 @@ def read_freqs(full_loc, freq_loc):
             n = i + 1
             freq, token = line.strip().split(' ', 1)
             freq = int(freq)
-            counts.inc(n, freq)
             total += freq
-    counts.smooth()
     log_total = math.log(total)
 
     probs = {}
-    last_freq = 0
+    remaining_freq = total
     with gzip.open(freq_loc, 'rt', encoding='utf-8') as f:
         for line in f:
             freq, token = line.strip().split(' ', 1)
             freq = int(freq)
-            last_freq = freq
-            smooth_count = counts.smoother(freq)
-            probs[token] = math.log(smooth_count) - log_total
+            probs[token] = math.log(freq) - log_total
+            remaining_freq -= freq
 
-    oov_prob = math.log(counts.smoother(last_freq/2)) - log_total
+    # Our OOV estimate is the remaining probability mass distributed evenly on
+    # the excluded word types.
+    oov_prob = math.log(remaining_freq) - log_total - math.log(n - len(probs))
+
     return probs, oov_prob
 
 
