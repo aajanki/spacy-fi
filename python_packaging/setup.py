@@ -73,6 +73,13 @@ def setup_package():
         package_data={model_name: data_files([model_dir, lookups_dir])},
         install_requires=list_requirements(meta),
         zip_safe=False,
+        classifiers=[
+            'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+            'Natural Language :: Finnish',
+            'Operating System :: OS Independent',
+            'Programming Language :: Python :: 3',
+            'Topic :: Text Processing',
+        ],
     )
 
 

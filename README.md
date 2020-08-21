@@ -81,7 +81,7 @@ Source code and other files under fi and tools directories are additionally avai
 
 ### License for the trained models (Python packages)
 
-The trained models in https://github.com/aajanki/spacy-fi/releases are distributed under GPL v3.
+The trained models in https://github.com/aajanki/spacy-fi/releases are distributed under GPL v3 or any later version.
 
 ### License for the training data
 
