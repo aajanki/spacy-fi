@@ -8,6 +8,13 @@ from os import path, walk
 from shutil import copy
 from setuptools import setup
 
+long_description = \
+"""Finnish language model for SpaCy.
+
+The model contains POS tagger, dependency parser, word vectors, noun
+phrase extraction, token frequencies and a lemmatizer.
+"""
+
 
 def load_meta(fp):
     with io.open(fp, encoding='utf8') as f:
@@ -56,6 +63,7 @@ def setup_package():
     setup(
         name=model_name,
         description=meta['description'],
+        long_description=long_description,
         author=meta['author'],
         author_email=meta['email'],
         url=meta['url'],
