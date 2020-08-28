@@ -19,17 +19,7 @@ mkdir -p models/python-package/"$PACKAGE_DIR/$MODEL_NAME"
 cp -r fi/[^_]*.py fi/lookups/ models/python-package/"$PACKAGE_DIR/$MODEL_NAME"/
 
 echo "Adding import to __init__.py"
-cat - >> models/python-package/"$PACKAGE_DIR/$MODEL_NAME"/__init__.py <<EOF
-
-
-
-from spacy.util import set_lang_class
-from .fi import FinnishEx, FinnishExDefaults
-from .lemmatizer import FinnishLemmatizer
-
-set_lang_class('fi', FinnishEx)
-EOF
-
+cat python_packaging/init_extra.py >> models/python-package/"$PACKAGE_DIR/$MODEL_NAME"/__init__.py
 
 echo "Updating requirements in meta.json"
 jq '.requirements = ["voikko>=0.5"]' \
