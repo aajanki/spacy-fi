@@ -9,8 +9,10 @@ mkdir -p models/python-package
 spacy package "$TRAINED_MODEL" models/python-package --create-meta --force
 
 PACKAGE_DIR=`ls models/python-package`
-MODEL_NAME=`echo $PACKAGE_DIR | sed 's/-[0-9.]\+$//'`
+ORIG_MODEL_NAME=`echo $PACKAGE_DIR | sed 's/-[0-9.]\+$//'`
+MODEL_NAME="spacy_$ORIG_MODEL_NAME"
 
+mv "models/python-package/$PACKAGE_DIR/$ORIG_MODEL_NAME" "models/python-package/$PACKAGE_DIR/$MODEL_NAME"
 
 echo "Copying the lemmatizer sources to the package directory"
 mkdir -p models/python-package/"$PACKAGE_DIR/$MODEL_NAME"

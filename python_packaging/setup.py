@@ -53,11 +53,11 @@ def setup_package():
     root = path.abspath(path.dirname(__file__))
     meta_path = path.join(root, 'meta.json')
     meta = load_meta(meta_path)
-    model_name = str(meta['lang'] + '_' + meta['name'])
-    model_dir = path.join(model_name, model_name + '-' + meta['version'])
+    model_name = 'spacy_{}_{}'.format(meta['lang'], meta['name'])
+    model_dir = path.join(model_name, '{}_{}-{}'.format(meta['lang'], meta['name'], meta['version']))
     lookups_dir = path.join(model_name, 'lookups')
 
-    copy(meta_path, path.join(model_name))
+    copy(meta_path, model_name)
     copy(meta_path, model_dir)
 
     setup(

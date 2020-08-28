@@ -8,7 +8,7 @@ First, install [the libvoikko native library with Finnish morphology data files]
 
 Next, install the model by running:
 ```
-pip install https://github.com/aajanki/spacy-fi/releases/download/v0.4.0/fi_experimental_web_md-0.4.0-py3-none-any.whl
+pip install spacy_fi_experimental_web_md
 ```
 
 ## Usage
