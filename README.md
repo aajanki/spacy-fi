@@ -16,7 +16,7 @@ pip install spacy_fi_experimental_web_md
 ```python
 import spacy
 
-nlp = spacy.load('fi_experimental_web_md')
+nlp = spacy.load('spacy_fi_experimental_web_md')
 
 doc = nlp('Hän ajoi punaisella autolla.')
 for t in doc:
