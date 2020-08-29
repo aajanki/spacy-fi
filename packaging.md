@@ -8,7 +8,7 @@ Remember to change the version below!
 tools/package_model.sh models/taggerparser/model-best <<EOF
 fi
 experimental_web_md
-0.3.0
+0.4.1
 
 Finnish language model: POS tagger, dependency parser, lemmatizer
 Antti Ajanki
@@ -27,13 +27,8 @@ tools/package_model.sh models/merged
 ## Publishing
 
 ```sh
-git tag v0.3.0
+git tag v0.4.1
 git push --tags
+
+twine upload models/python-package/fi_experimental_web_md-0.4.1/dist/*
 ```
-
-Create a new release at
-[https://github.com/aajanki/spacy-fi/releases](https://github.com/aajanki/spacy-fi/releases). Upload
-models/python-package/fi_experimental_web_md-\*/dist/\*.whl to the
-release.
-
-Update the pip install link on the [README](README.md).
