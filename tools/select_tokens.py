@@ -1,20 +1,18 @@
 import gzip
 import re
-import plac
+import typer
 from pathlib import Path
-from spacy.util import get_lang_class
+from spacy.lang.fi import Finnish
+from spacy.tokenizer import Tokenizer
 from gensim.models import KeyedVectors
 from tqdm import tqdm
 
 
-@plac.annotations(
-    freqs_loc=('Path to the input word frequencies', 'positional', None, Path),
-    vectors_loc=('Path to the input word2vec binary file', 'positional', None, Path),
-    freqs_output_loc=('Output path for the selected frequencies', 'positional', None, Path),
-    vectors_output_loc=('Output path for the word2vec text file', 'positional', None, Path),
-    num_tokens=('Maximum number of vecotrs to include', 'option', 'n', int)
-)
-def main(freqs_loc, vectors_loc, freqs_output_loc, vectors_output_loc, num_tokens=100000):
+def main(freqs_loc: Path = typer.Argument(..., help='Path to the input word frequencies'),
+         vectors_loc: Path = typer.Argument(..., help='Path to the input word2vec binary file'),
+         freqs_output_loc: Path = typer.Argument(..., help='Output path for the selected frequencies'),
+         vectors_output_loc: Path = typer.Argument(..., help='Output path for the word2vec text file'),
+         num_tokens: int = typer.Option(100000, help='Maximum number of vectors to include')):
     print(f'Selecting {num_tokens} most frequent tokens')
     selected_tokens = select_tokens(freqs_loc, num_tokens)
     save_frequencies(freqs_output_loc, selected_tokens)
@@ -25,7 +23,8 @@ def main(freqs_loc, vectors_loc, freqs_output_loc, vectors_output_loc, num_token
 
 
 def select_tokens(freqs_loc, num_tokens):
-    tokenizer = get_lang_class("xx").Defaults.create_tokenizer()
+    nlp = Finnish()
+    tokenizer = Tokenizer(nlp.vocab)
     selected_tokens = []
     t = tqdm(total=num_tokens)
     freqs = (x.strip().split(' ', 1) for x in gzip.open(freqs_loc, 'rt', encoding='utf-8').readlines())
@@ -74,7 +73,8 @@ def select_vectors(vectors_loc, selected_tokens):
 
 def is_valid_token(tokenizer, word):
     tokens = tokenizer(word)
-    return ((len(word) > 1 or word.isdigit() or word in '.,:;?!()[]{}/\\"\'&%#<>|-_+=$€£@~*^') and len(word) < 40 and
+    return ((len(word) > 1 or word.isdigit() or word in '.,:;?!()[]{}/\\"\'&%#<>|-_+=$€£@~*^') and
+            len(word) < 40 and
             (len(tokens) == 1 or
              # special case for hyphenated words
              re.match(r'^[A-ZÅÄÖ0-9]+-[A-ZÅÄÖ0-9]+$', word, re.IGNORECASE)) and
@@ -88,4 +88,4 @@ def is_valid_token(tokenizer, word):
 
 
 if __name__ == '__main__':
-    plac.call(main)
+    typer.run(main)

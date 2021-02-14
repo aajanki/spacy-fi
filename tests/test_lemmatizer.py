@@ -1,5 +1,8 @@
 from itertools import chain
-from fi.fi import FinnishExDefaults
+from fi.lemmatizer import FinnishLemmatizer
+from spacy.lang.fi import Finnish
+from spacy.tokens import Doc
+from spacy.vocab import Vocab
 
 
 testcases = {
@@ -371,7 +374,8 @@ testcases = {
 
 
 def check(cases, accept_less_common=True):
-    lemmatizer = FinnishExDefaults.create_lemmatizer()
+    nlp = Finnish()
+    lemmatizer = FinnishLemmatizer(nlp.vocab)
     expanded = list(chain.from_iterable(
         [(word, lemmas, pos) for word, lemmas in words]
         for pos, words in cases.items()
@@ -383,7 +387,8 @@ def check(cases, accept_less_common=True):
             lemmas = lemmas[:1]
         lemmas = [x.lower() for x in lemmas]
 
-        observed = lemmatizer(word, univ_pos)[0]
+        doc = Doc(vocab=nlp.vocab, words=[word], pos=[univ_pos])
+        observed = lemmatizer.lemmatize(doc[0])[0]
         if observed.lower() not in lemmas:
             failed.append((word, univ_pos, observed, lemmas))
 

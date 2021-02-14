@@ -1,30 +1,26 @@
 """Prepare a lexical data file for spacy train."""
 
 import gzip
+import json
 import math
-import plac
 import sys
-import srsly
+import typer
 from itertools import islice
 from pathlib import Path
 
 
-@plac.annotations(
-    full_vocabulary_path=('Path to the full vocabulary', 'positional', None, Path),
-    input_vocabulary_path=('Path to the input vocabulary', 'positional', None, Path),
-    settings_path=('Output path for the lexeme settings file', 'positional', None, Path),
-    prob_path=('Output path to the prob data file', 'positional', None, Path),
-)
 def main(
-    full_vocabulary_path,
-    input_vocabulary_path,
-    settings_path,
-    prob_path
+    full_vocabulary_path: Path = typer.Argument(..., help='Path to the full vocabulary'),
+    input_vocabulary_path: Path = typer.Argument(..., help='Path to the input vocabulary')
 ):
     probs, oov_prob = read_freqs(full_vocabulary_path, input_vocabulary_path)
-    settings = {"oov_prob": oov_prob}
-    srsly.write_json(settings_path, settings)
-    srsly.write_json(prob_path, probs)
+    out = sys.stdout
+
+    header = {'lang': 'fi', 'settings': {'oov_prob': oov_prob}}
+    write_json_line(header, out)
+    for orth, p in probs.items():
+        word_data = {'orth': orth, 'prob': p}
+        write_json_line(word_data, out)
 
 
 def read_freqs(full_loc, freq_loc):
@@ -54,5 +50,10 @@ def read_freqs(full_loc, freq_loc):
     return probs, oov_prob
 
 
+def write_json_line(obj, fp):
+    json.dump(obj, fp=fp, ensure_ascii=False)
+    fp.write('\n')
+
+
 if __name__ == '__main__':
-    plac.call(main)
+    typer.run(main)

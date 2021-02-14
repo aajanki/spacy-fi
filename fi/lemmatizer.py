@@ -1,14 +1,17 @@
-# coding: utf8
-from __future__ import unicode_literals
-
-import json
 import re
 from collections import OrderedDict
 from itertools import chain
-
-from spacy.lemmatizer import Lemmatizer
-from spacy.lookups import Lookups
-from spacy.symbols import NOUN, VERB, ADJ, PUNCT, PROPN, ADV, NUM, PRON, AUX
+from typing import Callable, Iterable, List, Optional
+from spacy.errors import Errors
+from spacy.lang.fi import Finnish
+from spacy.language import Language
+from spacy.lookups import Lookups, load_lookups
+from spacy.pipeline.lemmatizer import Lemmatizer
+from spacy.symbols import NOUN, VERB, ADJ, PROPN, ADV, NUM, PRON, AUX
+from spacy.tokens import Token
+from spacy.training import Example
+from spacy.vocab import Vocab
+from thinc.api import Model
 from voikko import libvoikko
 
 
@@ -43,65 +46,74 @@ class FinnishLemmatizer(Lemmatizer):
         'ken': 'kuka',
     }
 
-    def __init__(self, lookups, *args, **kwargs):
-        super(FinnishLemmatizer, self).__init__(lookups, *args, **kwargs)
+    def __init__(self, vocab: Vocab, name: str = "lemmatizer", overwrite: bool = False) -> None:
+        super().__init__(vocab, model=None, name=name, mode="voikko", overwrite=overwrite)
         self.voikko = libvoikko.Voikko("fi")
 
-    def __call__(self, string, univ_pos, morphology=None):
-        """Lemmatize a string.
+    def initialize(
+        self,
+        get_examples: Optional[Callable[[], Iterable[Example]]] = None,
+        *,
+        nlp: Optional[Language] = None,
+        lookups: Optional[Lookups] = None,
+    ):
+        """Initialize the lemmatizer and load in data.
+        get_examples (Callable[[], Iterable[Example]]): Function that
+            returns a representative sample of gold-standard Example objects.
+        nlp (Language): The current nlp object the component is part of.
+        lookups (Lookups): The lookups object containing the (optional) tables
+            such as "lemma_rules", "lemma_index", "lemma_exc" and
+            "lemma_lookup". Defaults to None.
+        """
+        required_tables = ["lemma_exc"]
+        if lookups is None:
+            #logger.debug("Lemmatizer: loading tables from spacy-lookups-data")
+            lookups = load_lookups(lang=self.vocab.lang, tables=required_tables)
+        self.lookups = lookups
+        self._validate_tables(Errors.E1004)
 
-        string (unicode): The string to lemmatize, e.g. the token text.
-        univ_pos (unicode / int): The token's universal part-of-speech tag.
-        morphology (dict): The token's morphological features following the
-            Universal Dependencies scheme.
+    def voikko_lemmatize(self, token: Token) -> List[str]:
+        """Lemmatize one token using voikko.
+
+        token (Token): The token to lemmatize.
         RETURNS (list): The available lemmas for the string.
         """
-        if univ_pos in (NOUN, "NOUN", "noun"):
+        if token.pos == NOUN:
             univ_pos = "noun"
-        elif univ_pos in (VERB, "VERB", "verb", AUX, "AUX", "aux"):
+        elif token.pos in (VERB, AUX):
             univ_pos = "verb"
-        elif univ_pos in (ADJ, "ADJ", "adj"):
+        elif token.pos == ADJ:
             univ_pos = "adj"
-        elif univ_pos in (ADV, "ADV", "adv"):
+        elif token.pos == ADV:
             univ_pos = "adv"
-        elif univ_pos in (NUM, "NUM", "num"):
+        elif token.pos == NUM:
             univ_pos = "num"
-        elif univ_pos in (PROPN, "PROPN", "propn"):
+        elif token.pos == PROPN:
             univ_pos = "propn"
-        elif univ_pos in (PRON, "PRON", "pron"):
+        elif token.pos == PRON:
             univ_pos = "pron"
-        elif univ_pos in (PUNCT, "PUNCT", "punct"):
-            return [string]
         else:
-            return [string.lower()]
+            return [token.orth_.lower()]
 
-        index_table = self.lookups.get_table("lemma_index", {})
         exc_table = self.lookups.get_table("lemma_exc", {})
-        rules_table = self.lookups.get_table("lemma_rules", {})
-        lemmas = self.lemmatize(
-            string,
-            index_table.get(univ_pos, {}),
-            exc_table.get(univ_pos, {}),
-            rules_table.get(univ_pos, {}),
-            univ_pos,
-        )
-        return lemmas
+        pos_exc_table = exc_table.get(univ_pos, {})
+        return self._lemmatize_one_word(token.orth_, pos_exc_table, univ_pos)
 
-    def lemmatize(self, string, index, exceptions, rules, univ_pos):
-        # base of an inflected abbreviations: BBC:n, EU:ssa
+    def _lemmatize_one_word(self, string, exceptions, univ_pos):
+        # Lemma of inflected abbreviations: BBC:n, EU:ssa
         string = string.rsplit(":", 1)[0]
         
         # Lemmatize only the last part of hyphenated words: VGA-kaapelissa
         parts = string.rsplit("-", 1)
         
-        lemma = self.lemmatize_compound(parts[-1], index, exceptions, rules, univ_pos)
+        lemma = self._lemmatize_compound(parts[-1], exceptions, univ_pos)
 
         if len(parts) == 1:
             return lemma
         else:
             return [parts[0] + "-" + lemma[0]]
 
-    def lemmatize_compound(self, string, index, exceptions, rules, univ_pos):
+    def _lemmatize_compound(self, string, exceptions, univ_pos):
         orig = string
         oov_forms = []
         forms = []
@@ -251,3 +263,15 @@ class FinnishLemmatizer(Lemmatizer):
             return analysis.get("BASEFORM")
         else:
             return word
+
+
+@Finnish.factory(
+    "lemmatizer",
+    assigns=["token.lemma"],
+    default_config={"model": None, "mode": "rule", "overwrite": False},
+    default_score_weights={"lemma_acc": 1.0},
+)
+def make_lemmatizer(
+    nlp: Language, model: Optional[Model], name: str, mode: str, overwrite: bool = False
+):
+    return FinnishLemmatizer(nlp.vocab, model, name, overwrite=overwrite)

@@ -1,6 +1,6 @@
-# Experimental Finnish language model for SpaCy
+# Experimental Finnish language model for spaCy
 
-Finnish language model for [SpaCy](https://spacy.io/). The model contains POS tagger, dependency parser, word vectors, noun phrase extraction, token frequencies and a lemmatizer (libvoikko). See below for notes about NER.
+Finnish language model for [spaCy](https://spacy.io/). The model contains POS tagger, dependency parser, word vectors, noun phrase extraction, token frequencies and a lemmatizer (libvoikko). See below for notes about NER.
 
 ## Install the Finnish language model
 
@@ -32,6 +32,7 @@ Install [the libvoikko native library with Finnish morphology data files](https:
 ```sh
 python3 -m venv .venv
 source .venv/bin/activate
+pip install wheel
 pip install -r requirements.txt
 
 tools/download_data.sh
@@ -75,13 +76,7 @@ See [packaging.md](packaging.md).
 
 ## License
 
-All the content in this repository is available under the [GNU General Public License, version 3 or any later version](LICENSE). 
-
-Source code and other files under fi and tools directories are additionally available under the [MIT license](LICENSE.MIT).
-
-### License for the trained models (Python packages)
-
-The trained models in https://github.com/aajanki/spacy-fi/releases are distributed under GPL v3 or any later version.
+[MIT license](LICENSE)
 
 ### License for the training data
 

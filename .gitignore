@@ -1,4 +1,5 @@
 .venv/
 data/
+traindata/
 models/
 __pycache__/
