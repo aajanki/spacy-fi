@@ -1,13 +1,11 @@
-# coding: utf-8
-from __future__ import unicode_literals
-
 import pytest
 import spacy.util
-from fi.fi import FinnishEx
+from spacy.lang.fi import Finnish
+from spacy.tokenizer import Tokenizer
 from util import get_doc_from_text
 
-spacy.util.set_lang_class('fi', FinnishEx)
-fi_tokenizer = FinnishEx.Defaults.create_tokenizer()
+fi_nlp = Finnish()
+fi_tokenizer = Tokenizer(fi_nlp.vocab)
 
 
 FI_NP_TEST_EXAMPLES = [
