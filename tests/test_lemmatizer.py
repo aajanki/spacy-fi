@@ -6,7 +6,7 @@ from spacy.vocab import Vocab
 
 
 testcases = {
-    'noun': [
+    'NOUN': [
         ('tila', ['tila']),
         ('tilassa', ['tila']),
         ('tilakaan', ['tila']),
@@ -134,7 +134,7 @@ testcases = {
         ('4g:lle', ['4g']),
     ],
 
-    'verb': [
+    'VERB': [
         # negation
         ('ei', ['ei']),
         ('en', ['ei']),
@@ -248,7 +248,7 @@ testcases = {
         ('aukeat', ['aueta']),
     ],
 
-    'adj': [
+    'ADJ': [
         ('lämmin', ['lämmin']),
         ('mielenkiintoinen', ['mielenkiintoinen']),
         ('normaaliin', ['normaali']),
@@ -281,7 +281,7 @@ testcases = {
         ('paras', ['hyvä']),
     ],
 
-    'propn': [
+    'PROPN': [
         ('Etelä-Afrikassa', ['Etelä-Afrikka']),
         ('Hangosta', ['Hanko']),
         ('Belgiakin', ['Belgia']),
@@ -289,7 +289,7 @@ testcases = {
         ('Annan', ['Anna']),
     ],
 
-    'adv': [
+    'ADV': [
         ('myös', ['myös']),
         ('vain', ['vain']),
         ('vuoksi', ['vuoksi']),
@@ -323,7 +323,7 @@ testcases = {
         ('voimakkaamminkokaan', ['voimakkaammin']),
     ],
 
-    'num': [
+    'NUM': [
         ('nollakin', ['nolla']),
         ('neljäs', ['neljäs']),
         ('viiden', ['viisi']),
@@ -352,7 +352,7 @@ testcases = {
         ('6:teen', ['6']),
     ],
 
-    'pron': [
+    'PRON': [
         ('sen', ['se']),
         ('siitä', ['se']),
         ('niiden', ['se']),
