@@ -1,5 +1,6 @@
 from itertools import chain
-from fi.lemmatizer import FinnishLemmatizer
+from fi.lemmatizer import FinnishLemmatizer, create_lookups_from_json_reader
+from pathlib import Path
 from spacy.lang.fi import Finnish
 from spacy.tokens import Doc
 from spacy.vocab import Vocab
@@ -376,6 +377,8 @@ testcases = {
 def check(cases, accept_less_common=True):
     nlp = Finnish()
     lemmatizer = FinnishLemmatizer(nlp.vocab)
+    lemmatizer.initialize(
+        lookups = create_lookups_from_json_reader(Path(__file__).parent.parent / 'fi' / 'lookups'))
     expanded = list(chain.from_iterable(
         [(word, lemmas, pos) for word, lemmas in words]
         for pos, words in cases.items()

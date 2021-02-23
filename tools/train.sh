@@ -37,8 +37,8 @@ spacy convert --lang fi -n 6 -c ner data/finer-data-preprocessed/digitoday.2015.
 spacy convert --lang fi -n 6 -c ner data/finer-data-preprocessed/wikipedia.test.csv traindata/ner/test
 
 echo "Validating tagger and parser training and dev data"
-spacy debug config fi.cfg
-spacy debug data fi.cfg
+spacy debug config fi.cfg --code-path fi/lemmatizer.py
+spacy debug data fi.cfg --code-path fi/lemmatizer.py
 
 ## Training ##
 
@@ -66,11 +66,9 @@ python tools/create_lexdata.py \
        > data/vocab/vocab-data.jsonl
 
 echo "Training"
-spacy train fi.cfg --output models/taggerparser
+spacy train fi.cfg --output models/taggerparser --code fi/lemmatizer.py
 
 
 ## Evaluate ##
 echo "Evaluating"
-spacy evaluate models/taggerparser/model-best \
-      traindata/parser/test \
-      --displacy-path evaluation_parses
+spacy evaluate models/taggerparser/model-best traindata/parser/test --code fi/lemmatizer.py

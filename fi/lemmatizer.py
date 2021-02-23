@@ -1,7 +1,10 @@
 import re
+import srsly
 from collections import OrderedDict
 from itertools import chain
+from pathlib import Path
 from typing import Callable, Iterable, List, Optional
+from spacy import util
 from spacy.errors import Errors
 from spacy.lang.fi import Finnish
 from spacy.language import Language
@@ -65,10 +68,8 @@ class FinnishLemmatizer(Lemmatizer):
             such as "lemma_rules", "lemma_index", "lemma_exc" and
             "lemma_lookup". Defaults to None.
         """
-        required_tables = ["lemma_exc"]
         if lookups is None:
-            #logger.debug("Lemmatizer: loading tables from spacy-lookups-data")
-            lookups = load_lookups(lang=self.vocab.lang, tables=required_tables)
+            lookups = load_lookups(lang=self.vocab.lang, tables=["lemma_exc"])
         self.lookups = lookups
         self._validate_tables(Errors.E1004)
 
@@ -78,20 +79,10 @@ class FinnishLemmatizer(Lemmatizer):
         token (Token): The token to lemmatize.
         RETURNS (list): The available lemmas for the string.
         """
-        if token.pos == NOUN:
-            univ_pos = "noun"
-        elif token.pos in (VERB, AUX):
-            univ_pos = "verb"
-        elif token.pos == ADJ:
-            univ_pos = "adj"
-        elif token.pos == ADV:
-            univ_pos = "adv"
-        elif token.pos == NUM:
-            univ_pos = "num"
-        elif token.pos == PROPN:
-            univ_pos = "propn"
-        elif token.pos == PRON:
-            univ_pos = "pron"
+        if token.pos in (VERB, AUX):
+            univ_pos = 'verb'
+        elif token.pos in (ADJ, ADV, NOUN, NUM, PRON, PROPN):
+            univ_pos = token.pos_.lower()
         else:
             return [token.orth_.lower()]
 
@@ -268,10 +259,20 @@ class FinnishLemmatizer(Lemmatizer):
 @Finnish.factory(
     "lemmatizer",
     assigns=["token.lemma"],
-    default_config={"model": None, "mode": "rule", "overwrite": False},
+    default_config={"model": None, "mode": "voikko", "overwrite": False},
     default_score_weights={"lemma_acc": 1.0},
 )
 def make_lemmatizer(
     nlp: Language, model: Optional[Model], name: str, mode: str, overwrite: bool = False
 ):
-    return FinnishLemmatizer(nlp.vocab, model, name, overwrite=overwrite)
+    return FinnishLemmatizer(nlp.vocab, name, overwrite)
+
+
+@util.registry.readers("spacyfi.read_lookups_from_json.v1")
+def create_lookups_from_json_reader(path: Path) -> Lookups:
+    lookups = Lookups()
+    for p in path.glob("*.json"):
+        table_name = p.stem
+        data = srsly.read_json(p)
+        lookups.add_table(table_name, data)
+    return lookups
