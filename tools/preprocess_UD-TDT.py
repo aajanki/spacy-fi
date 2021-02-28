@@ -8,10 +8,19 @@ def main():
             sys.stdout.write(line)
         else:
             columns = line.rstrip('\n').split('\t')
+            token_id = columns[0]
             orth = columns[1]
             lemma = columns[2]
             upos = columns[3]
             xpos = columns[4]
+
+            if '-' in token_id:
+                # Skip multiword tokens.
+                #
+                # Assert that the UD input has undefined data on
+                # multiword tokens.
+                assert all(x == '_' for x in columns[2:])
+                continue
 
             columns[2] = fix_compund_word_lemmas(orth, lemma)
 
