@@ -1,5 +1,5 @@
 from itertools import chain
-from fi.lemmatizer import FinnishLemmatizer, create_lookups_from_json_reader
+from fi.fi import create_lookups_from_json_reader, FinnishLemmatizer
 from pathlib import Path
 from spacy.lang.fi import Finnish
 from spacy.tokens import Doc

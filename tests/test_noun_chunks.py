@@ -1,11 +1,10 @@
 import pytest
 import spacy.util
-from spacy.lang.fi import Finnish
-from spacy.tokenizer import Tokenizer
+from fi import FinnishExtended
 from util import get_doc_from_text
 
-fi_nlp = Finnish()
-fi_tokenizer = Tokenizer(fi_nlp.vocab)
+fi_nlp = FinnishExtended()
+fi_tokenizer = fi_nlp.tokenizer
 
 
 FI_NP_TEST_EXAMPLES = [
