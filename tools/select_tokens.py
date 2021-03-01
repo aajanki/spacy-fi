@@ -3,7 +3,6 @@ import re
 import typer
 from pathlib import Path
 from spacy.lang.fi import Finnish
-from spacy.tokenizer import Tokenizer
 from gensim.models import KeyedVectors
 from tqdm import tqdm
 
@@ -23,8 +22,7 @@ def main(freqs_loc: Path = typer.Argument(..., help='Path to the input word freq
 
 
 def select_tokens(freqs_loc, num_tokens):
-    nlp = Finnish()
-    tokenizer = Tokenizer(nlp.vocab)
+    tokenizer = Finnish().tokenizer
     selected_tokens = []
     t = tqdm(total=num_tokens)
     freqs = (x.strip().split(' ', 1) for x in gzip.open(freqs_loc, 'rt', encoding='utf-8').readlines())
@@ -73,18 +71,17 @@ def select_vectors(vectors_loc, selected_tokens):
 
 def is_valid_token(tokenizer, word):
     tokens = tokenizer(word)
-    return ((len(word) > 1 or word.isdigit() or word in '.,:;?!()[]{}/\\"\'&%#<>|-_+=$€£@~*^') and
-            len(word) < 40 and
-            (len(tokens) == 1 or
-             # special case for hyphenated words
-             re.match(r'^[A-ZÅÄÖ0-9]+-[A-ZÅÄÖ0-9]+$', word, re.IGNORECASE)) and
-            ('/' not in word or re.match(r'^[0-9]+/[0-9]+(/[0-9]+)?$', word)) and
-            (not any(x in word for x in '\u0080\u0094\u0096\u0097\u200b\\~|=') or
-             word in ['|', '~', '\\', '=']) and
-            not re.match(r'^@\d+$', word) and
-            not (word.startswith('.') and len(word) <= 3 and re.search(r'\d', word)) and
-            # looks like an email adress
-            not re.match(r'^[a-z0-9.]+@[a-z0-9.]+\.[a-z]+$', word, re.IGNORECASE))
+    return bool(
+        (len(word) > 1 or word.isdigit() or (len(word) == 1 and word in '.,:;?!¿()[]{}/\\"\'’”“«»&%#<>|-–−_+=$€£@~*^§®™°±')) and
+        (len(word) < 40) and
+        (len(tokens) == 1) and
+        (word == '/' or '/' not in word or re.match(r'^[0-9]+/[0-9]+(/[0-9]+)?$', word)) and
+        (not any(x in word for x in '\u0080\u0094\u0096\u0097\u200b\\~|=') or
+         word in ['|', '~', '\\', '=']) and
+        not re.match(r'^@\d+$', word) and
+        not (word.startswith('.') and len(word) <= 3 and re.search(r'\d', word)) and
+        # looks like an email adress
+        not re.match(r'^[a-z0-9.]+@[a-z0-9.]+\.[a-z]+$', word, re.IGNORECASE))
 
 
 if __name__ == '__main__':

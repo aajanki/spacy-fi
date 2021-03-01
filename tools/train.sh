@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -euo pipefail
 
@@ -71,4 +71,4 @@ spacy train fi.cfg --output models/taggerparser --code fi/fi.py
 
 ## Evaluate ##
 echo "Evaluating"
-spacy evaluate models/taggerparser/model-best traindata/parser/test --code fi/fi.py
+spacy evaluate models/taggerparser/model-best traindata/parser/dev --code fi/fi.py
