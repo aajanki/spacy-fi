@@ -1,0 +1,23 @@
+{
+    "lang": "fi",
+    "name": "experimental_web_md",
+    "version": "0.5.0",
+    "requirements": ["voikko>=0.5"],
+    "description": "Finnish language model: POS tagger, dependency parser, lemmatizer",
+    "author": "Antti Ajanki",
+    "email": "antti.ajanki@iki.fi",
+    "url": "https://github.com/aajanki/spacy-fi",
+    "license": "MIT",
+    "sources": [
+	{
+	    "name": "UD Finnish TDT",
+	    "url": "https://github.com/UniversalDependencies/UD_Finnish-TDT",
+	    "license": "CC BY-SA 4.0"
+	},
+	{
+	    "name": "Finnish Internet Parsebank",
+	    "url": "https://turkunlp.org/finnish_nlp.html#parsebank",
+	    "license": "CC BY-SA"
+	}
+    ]
+}

@@ -1,34 +1,17 @@
 # Packaging
 
-Package just the POS tagger and dependency parser (this is the model published on GitHub).
-
-Remember to change the version below!
+Remember to change the version in meta.json!
 
 ```sh
-tools/package_model.sh models/taggerparser/model-best <<EOF
-fi
-experimental_web_md
-0.4.1
-
-Finnish language model: POS tagger, dependency parser, lemmatizer
-Antti Ajanki
-antti.ajanki@iki.fi
-https://github.com/aajanki/spacy-fi
-GPL v3.0
-EOF
-```
-
-Alternatively, to build a model with combined tagger, parser and NER capabilities, run the following:
-
-```sh
-tools/package_model.sh models/merged
+mkdir -p packages
+spacy package models/taggerparser/model-best packages --code fi/fi.py --meta-path fi/meta.json --create-meta --build sdist,wheel --force
 ```
 
 ## Publishing
 
 ```sh
-git tag v0.4.1
+git tag v0.5.0
 git push --tags
 
-twine upload models/python-package/fi_experimental_web_md-0.4.1/dist/*
+twine upload packages/fi_experimental_web_md-0.5.0/dist/
 ```
