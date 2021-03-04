@@ -54,11 +54,11 @@ Loading the trained model locally without packaging it as a module:
 
 ```python
 import spacy
-from fi.fi import FinnishEx
+import fi
 
 spacy.util.set_lang_class('fi', FinnishEx)
 
-nlp = spacy.load('models/merged')
+nlp = spacy.load('models/taggerparser/model-best/')
 
 doc = nlp('Hän ajoi punaisella autolla.')
 for t in doc:

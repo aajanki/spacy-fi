@@ -4,34 +4,18 @@ set -eu
 
 TRAINED_MODEL=$1
 
-rm -rf models/python-package/*
-mkdir -p models/python-package
-spacy package "$TRAINED_MODEL" models/python-package --create-meta --force
+mkdir -p packages
+rm -rf packages/*
+spacy package "$TRAINED_MODEL" packages --code fi/fi.py --meta-path fi/meta.json --create-meta --build none --force
 
-PACKAGE_DIR=`ls models/python-package`
-ORIG_MODEL_NAME=`echo $PACKAGE_DIR | sed 's/-[0-9.]\+$//'`
-MODEL_NAME="spacy_$ORIG_MODEL_NAME"
-
-mv "models/python-package/$PACKAGE_DIR/$ORIG_MODEL_NAME" "models/python-package/$PACKAGE_DIR/$MODEL_NAME"
-
-echo "Copying the lemmatizer sources to the package directory"
-mkdir -p models/python-package/"$PACKAGE_DIR/$MODEL_NAME"
-cp -r fi/[^_]*.py fi/lookups/ models/python-package/"$PACKAGE_DIR/$MODEL_NAME"/
-
-echo "Adding import to __init__.py"
-cat python_packaging/init_extra.py >> models/python-package/"$PACKAGE_DIR/$MODEL_NAME"/__init__.py
-
-echo "Updating requirements in meta.json"
-jq '.requirements = ["voikko>=0.5"]' \
-   < models/python-package/"$PACKAGE_DIR"/meta.json \
-   > /tmp/fi_exp_meta.json
-mv /tmp/fi_exp_meta.json models/python-package/"$PACKAGE_DIR"/meta.json
-
+PACKAGE_DIR=$(ls -d packages/*/fi_*)
+NEW_PACKAGE_DIR=$(echo "$PACKAGE_DIR" | sed -E 's#(.*?)/#/\1/spacy_#')
+mv "$PACKAGE_DIR" "$NEW_PACKAGE_DIR"
 
 echo "Building the package"
-cp python_packaging/setup.py models/python-package/"$PACKAGE_DIR"
+cp python_packaging/setup.py packages/*/
 
 (
-    cd models/python-package/"$PACKAGE_DIR";
+    cd packages/*/;
     python setup.py sdist bdist_wheel
 )

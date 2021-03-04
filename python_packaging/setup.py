@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-# coding: utf8
-from __future__ import unicode_literals
-
 import io
 import json
 from os import path, walk
@@ -28,13 +25,6 @@ def list_files(data_dir):
             if not filename.startswith('.'):
                 output.append(path.join(root, filename))
     output = [path.relpath(p, path.dirname(data_dir)) for p in output]
-    return output
-
-
-def data_files(data_dirs):
-    output = []
-    for d in data_dirs:
-        output.extend(list_files(d))
     output.append('meta.json')
     return output
 
@@ -53,29 +43,28 @@ def setup_package():
     root = path.abspath(path.dirname(__file__))
     meta_path = path.join(root, 'meta.json')
     meta = load_meta(meta_path)
-    model_name = 'spacy_{}_{}'.format(meta['lang'], meta['name'])
-    model_dir = path.join(model_name, '{}_{}-{}'.format(meta['lang'], meta['name'], meta['version']))
-    lookups_dir = path.join(model_name, 'lookups')
+    model_name = f"spacy_{meta['lang']}_{meta['name']}"
+    model_dir = path.join(model_name, f"{meta['lang']}_{meta['name']}-{meta['version']}")
 
-    copy(meta_path, model_name)
+    copy(meta_path, path.join(model_name))
     copy(meta_path, model_dir)
 
     setup(
         name=model_name,
-        description=meta['description'],
-        long_description=long_description,
-        author=meta['author'],
-        author_email=meta['email'],
-        url=meta['url'],
+        description=meta.get('description'),
+        author=meta.get('author'),
+        author_email=meta.get('email'),
+        url=meta.get('url'),
         version=meta['version'],
-        license=meta['license'],
+        license=meta.get('license'),
         packages=[model_name],
-        package_data={model_name: data_files([model_dir, lookups_dir])},
+        package_data={model_name: list_files(model_dir)},
         install_requires=list_requirements(meta),
         zip_safe=False,
+        entry_points={'spacy_models': ['{m} = {m}'.format(m=model_name)]},
+        long_description=long_description,
         classifiers=[
-            'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
-            'Natural Language :: Finnish',
+            'License :: OSI Approved :: MIT License'
             'Operating System :: OS Independent',
             'Programming Language :: Python :: 3',
             'Topic :: Text Processing',

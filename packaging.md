@@ -3,8 +3,7 @@
 Remember to change the version in meta.json!
 
 ```sh
-mkdir -p packages
-spacy package models/taggerparser/model-best packages --code fi/fi.py --meta-path fi/meta.json --create-meta --build sdist,wheel --force
+tools/package_model.sh models/taggerparser/model-best
 ```
 
 ## Publishing
