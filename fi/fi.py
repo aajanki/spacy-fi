@@ -257,78 +257,78 @@ class FinnishLemmatizer(Lemmatizer):
 
 
 def noun_chunks(doclike: Union[Doc, Span]) -> Iterator[Span]:
-    """
-    Detect base noun phrases from a dependency parse. Works on both Doc and Span.
-
-    Reference: http://scripta.kotus.fi/visk/sisallys.php?p=562
-    """
+    """Detect base noun phrases from a dependency parse. Works on both Doc and Span."""
     labels = [
-        "acl",
+        "nsubj",
+        "nsubj:cop",
+        "obj",
+        "obl",
+        "ROOT",
+    ]
+    extend_labels = [
+        "advmod",
         "amod",
         "appos",
         "case",
         "compound",
         "compound:nn",
-        "det",
         "flat:name",
         "nmod",
         "nmod:gobj",
         "nmod:gsubj",
         "nmod:poss",
         "nummod",
-        "obj",
-        "obl",
     ]
+
+    def potential_np_head(word):
+        # TODO: PRON handling is inconsistent. Should some pronouns
+        # (indefinite?, personal?) be considered part of a noun chunk?
+        return word.pos in (NOUN, PROPN) and (word.dep in np_deps or word.head.pos == PRON)
 
     doc = doclike.doc  # Ensure works on both Doc and Span.
     if not doc.has_annotation("DEP"):
         raise ValueError(Errors.E029)
 
     np_deps = [doc.vocab.strings[label] for label in labels]
+    extend_deps = [doc.vocab.strings[label] for label in extend_labels]
     np_label = doc.vocab.strings.add("NP")
+    conj_label = doc.vocab.strings.add("conj")
 
-    def extract_nps(word):
-        if word.pos in (NOUN, PROPN):
-            left_i = word.i
-            for t in reversed(list(word.lefts)):
-                if t.dep in np_deps:
-                    left_i = t.left_edge.i
-                else:
+    rbracket = 0
+    prev_end = -1
+    for i, word in enumerate(doclike):
+        if i < rbracket:
+            continue
+
+        # Is this a potential independent NP head or coordinated with
+        # a NOUN that is itself an independent NP head?
+        #
+        # e.g. "Terveyden ja hyvinvoinnin laitos"
+        if potential_np_head(word) or (word.dep == conj_label and potential_np_head(word.head)):
+            # Try to extend to the left to include adjective/num
+            # modifiers, compound words etc.
+            lbracket = word.i
+            for ldep in word.lefts:
+                if ldep.pos in (NOUN, PROPN, NUM, ADJ) and ldep.dep in extend_deps:
+                    lbracket = ldep.left_edge.i
                     break
 
-            for t in word.lefts:
-                if t.i < left_i:
-                    yield from extract_nps(t)
+            # Prevent nested chunks from being produced
+            if lbracket <= prev_end:
+                continue
 
-            right_i = word.i
-            for t in word.rights:
-                if t.dep in np_deps:
-                    right_i = t.right_edge.i
-                else:
-                    break
+            rbracket = word.i
+            # Try to extend the span to the right to capture close
+            # appositions and noun modifiers
+            for rdep in word.rights:
+                if rdep.dep in extend_deps:
+                    rbracket = rdep.i
+                    for j in range(rdep.i + 1, rdep.right_edge.i + 1):
+                        if doc[j].dep in extend_deps:
+                            rbracket = j
+            prev_end = rbracket
 
-            yield left_i, right_i + 1, np_label
-
-            for i in range(right_i + 1, word.right_edge.i + 1):
-                candidate_word = word.doc[i]
-                if candidate_word.head.i <= right_i:
-                    yield from extract_nps(candidate_word)
-
-        else:
-            for t in word.children:
-                yield from extract_nps(t)
-
-    root = _find_root(doclike)
-    yield from extract_nps(root)
-
-
-def _find_root(doc):
-    root = doc.vocab.strings.add("ROOT")
-    for word in doc:
-        if word.dep == root:
-            return word
-
-    assert False, 'No root node!'
+            yield lbracket, rbracket + 1, np_label
 
 
 @Finnish.factory(

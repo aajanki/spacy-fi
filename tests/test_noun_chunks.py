@@ -55,13 +55,13 @@ FI_NP_TEST_EXAMPLES = [
         ['NOUN', 'VERB', 'NOUN', 'VERB', 'NOUN'],
         ['nsubj', 'ROOT', 'nsubj', 'acl', 'obj'],
         [1, 0, 1, 1, -3],
-        ['Yrittäjät', 'tuomioistuimen määräämät korvaukset'],
+        ['Yrittäjät', 'tuomioistuimen', 'korvaukset'],
     ),
     (
         'Julkisoikeudelliset tai niihin rinnastettavat saatavat ovat suoraan ulosottokelpoisia',
         ['ADJ', 'CCONJ', 'PRON', 'VERB', 'NOUN', 'AUX', 'ADV', 'NOUN'],
         ['amod', 'cc', 'obl', 'acl', 'nsubj:cop', 'cop', 'advmod', 'ROOT'],
-        [4, 2, 1, 1, 3, 2, 1, 0],
+        [4, 3, 1, 1, 3, 2, 1, 0],
         ['Julkisoikeudelliset tai niihin rinnastettavat saatavat', 'ulosottokelpoisia'],
     ),
     (
@@ -94,7 +94,7 @@ FI_NP_TEST_EXAMPLES = [
     ),
     (
         'Liikkuvuuden lisääminen on yksi korkeakoulutuksen keskeisistä kehittämiskohteista',
-        ['NOUN', 'NOUN', 'AUX', 'NUM', 'NOUN', 'ADJ', 'NOUN'],
+        ['NOUN', 'NOUN', 'AUX', 'PRON', 'NOUN', 'ADJ', 'NOUN'],
         ['nmod:gobj', 'nsubj:cop', 'cop', 'ROOT', 'nmod:poss', 'amod', 'nmod'],
         [1, 2, 1, 0, 2, 1, -3],
         ['Liikkuvuuden lisääminen', 'korkeakoulutuksen keskeisistä kehittämiskohteista'],
@@ -126,14 +126,14 @@ FI_NP_TEST_EXAMPLES = [
         ['NOUN', 'VERB', 'PRON', 'NOUN'],
         ['ROOT', 'acl', 'det', 'obj'],
         [0, -1, 1, -2],
-        ['mahdollisuus tukea muita päivystysyksiköitä'],
+        ['mahdollisuus', 'päivystysyksiköitä'],
     ),
     (
         'sairaanhoitopiirit harjoittavat leikkaustoimintaa alueellaan useammassa sairaalassa',
         ['NOUN', 'VERB', 'NOUN', 'NOUN', 'ADJ', 'NOUN'],
         ['nsubj', 'ROOT', 'obj', 'obl', 'amod', 'obl'],
         [1, 0, -1, -1, 1, -3],
-        ['sairaanhoitopiirit', 'leikkaustoimintaa alueellaan useammassa sairaalassa'],
+        ['sairaanhoitopiirit', 'leikkaustoimintaa', 'alueellaan', 'useammassa sairaalassa'],
     ),
     (
         'Lain mukaan varhaiskasvatus on suunnitelmallista toimintaa',
