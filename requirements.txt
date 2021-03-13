@@ -1,4 +1,4 @@
-spacy>=3.0,<3.1
+spacy>=3.0.5,<3.1
 gensim>=3.8,<3.9
 voikko==0.5
 pytest==6.2.2
