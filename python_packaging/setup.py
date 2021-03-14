@@ -64,7 +64,7 @@ def setup_package():
         entry_points={'spacy_models': ['{m} = {m}'.format(m=model_name)]},
         long_description=long_description,
         classifiers=[
-            'License :: OSI Approved :: MIT License'
+            'License :: OSI Approved :: MIT License',
             'Operating System :: OS Independent',
             'Programming Language :: Python :: 3',
             'Topic :: Text Processing',
