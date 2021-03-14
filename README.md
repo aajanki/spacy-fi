@@ -56,8 +56,6 @@ Loading the trained model locally without packaging it as a module:
 import spacy
 import fi
 
-spacy.util.set_lang_class('fi', FinnishEx)
-
 nlp = spacy.load('models/taggerparser/model-best/')
 
 doc = nlp('Hän ajoi punaisella autolla.')
