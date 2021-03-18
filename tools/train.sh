@@ -2,6 +2,12 @@
 
 set -euo pipefail
 
+if [ "$1" == "--pretrain" ]; then
+    DO_PRETRAIN=1
+else
+    DO_PRETRAIN=0
+fi
+
 ## Preparing the training data ##
 
 mkdir -p data/preprocessed/UD_Finnish-TDT
@@ -66,8 +72,17 @@ spacy debug data fi.cfg --code-path fi/fi.py
 
 ## Training ##
 
-echo "Training"
-spacy train fi.cfg --output models/taggerparser --code fi/fi.py
+if [ $DO_PRETRAIN -eq 0 ]; then
+    echo "Training"
+    spacy train fi.cfg --output models/taggerparser --code fi/fi.py
+else
+    echo "Pretrain"
+    rm -r models/pretrain
+    spacy pretrain fi.cfg models/pretrain --code fi/fi.py
+
+    echo "Training"
+    spacy train fi.cfg --output models/taggerparser --code fi/fi.py --paths.init_tok2vec models/pretrain/model100.bin
+fi
 
 
 ## Evaluate ##
