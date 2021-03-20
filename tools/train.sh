@@ -81,7 +81,7 @@ else
     spacy pretrain fi.cfg models/pretrain --code fi/fi.py
 
     echo "Training"
-    spacy train fi.cfg --output models/taggerparser --code fi/fi.py --paths.init_tok2vec models/pretrain/model100.bin
+    spacy train fi.cfg --output models/taggerparser --code fi/fi.py --paths.init_tok2vec models/pretrain/model200.bin
 fi
 
 
