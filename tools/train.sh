@@ -72,17 +72,18 @@ spacy debug data fi.cfg --code-path fi/fi.py
 
 ## Training ##
 
-if [ $DO_PRETRAIN -eq 0 ]; then
-    echo "Training"
-    spacy train fi.cfg --output models/taggerparser --code fi/fi.py
-else
+if [ $DO_PRETRAIN -ne 0 ]; then
     echo "Pretrain"
     rm -r models/pretrain
     spacy pretrain fi.cfg models/pretrain --code fi/fi.py
 
-    echo "Training"
-    spacy train fi.cfg --output models/taggerparser --code fi/fi.py --paths.init_tok2vec models/pretrain/model200.bin
+    cp models/pretrain/models300.bin pretrain/weights.bin
+    #cp models/pretrain/config.cfg pretrain
+    #cp models/pretrain/log.jsonl pretrain
 fi
+
+echo "Training"
+spacy train fi.cfg --output models/taggerparser --code fi/fi.py --paths.init_tok2vec pretrain/weights.bin
 
 
 ## Evaluate ##
