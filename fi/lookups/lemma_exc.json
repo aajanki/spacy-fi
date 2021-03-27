@@ -1,5 +1,5 @@
 {
-    "adv": {
+    "ADV": {
 	"ainakin": ["ainakin"],
 	"ainakaan": ["ainakaan"],
 	"alkuunkin": ["alkuunkin"],
@@ -18,7 +18,7 @@
 	"vieläkin": ["vieläkin"],
 	"vieläkään": ["vieläkään"]
     },
-    "pron": {
+    "PRON": {
 	"mä": ["minä"],
 	"mun": ["minä"],
 	"mut": ["minä"],

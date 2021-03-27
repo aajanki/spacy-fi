@@ -26,17 +26,17 @@ class FinnishLemmatizer(Lemmatizer):
     sti_re = re.compile(r"\b(\w+)\[Ssti\]sti")
     ny_re = re.compile(r"\[X\]\[\w+\]\[Ny\](\w+)")
     voikko_pos_to_upos = {
-        "nimisana": "noun",
-        "teonsana": "verb",
-        "laatusana": "adj",
-        "nimisana_laatusana": "adj",
-        "seikkasana": "adv",
-        "lukusana": "num",
-        "nimi": "propn",
-        "etunimi": "propn",
-        "sukunimi": "propn",
-        "paikannimi": "propn",
-        "asemosana": "pron",
+        "nimisana": NOUN,
+        "teonsana": VERB,
+        "laatusana": ADJ,
+        "nimisana_laatusana": ADJ,
+        "seikkasana": ADV,
+        "lukusana": NUM,
+        "nimi": PROPN,
+        "etunimi": PROPN,
+        "sukunimi": PROPN,
+        "paikannimi": PROPN,
+        "asemosana": PRON,
     }
 
     # Use singular pronoun as lemmas (similar to in universal
@@ -82,9 +82,9 @@ class FinnishLemmatizer(Lemmatizer):
         RETURNS (list): The available lemmas for the string.
         """
         if token.pos in (VERB, AUX):
-            univ_pos = 'verb'
+            univ_pos = VERB
         elif token.pos in (ADJ, ADV, NOUN, NUM, PRON, PROPN):
-            univ_pos = token.pos_.lower()
+            univ_pos = token.pos
         else:
             return [token.orth_.lower()]
 
@@ -116,7 +116,7 @@ class FinnishLemmatizer(Lemmatizer):
             self._baseform_and_pos(x, string) for x in analyses
         ]))
         matching_pos = [x for x in base_and_pos if x[1] == univ_pos]
-        if univ_pos == "adv" and analyses:
+        if univ_pos == ADV and analyses:
             oov_forms.append(self._normalize_adv(analyses[0], orig.lower()))
         elif matching_pos:
             forms.extend(x[0] for x in matching_pos)
@@ -148,9 +148,9 @@ class FinnishLemmatizer(Lemmatizer):
             # MINEN infinitive
             form = self._fst_form(analysis, self.minen_re, "minen")
             if form:
-                return [(form, "noun")]
+                return [(form, NOUN)]
             else:
-                return [(baseform, "verb")]
+                return [(baseform, VERB)]
 
         elif (voikko_class == "laatusana" and
               analysis.get("PARTICIPLE") in ["past_active",
@@ -160,27 +160,27 @@ class FinnishLemmatizer(Lemmatizer):
         ):
             # VA, NUT and TU participles
             return [
-                (self._wordbase(analysis), "verb"),
-                (baseform, "adj")
+                (self._wordbase(analysis), VERB),
+                (baseform, ADJ)
             ]
 
         elif (voikko_class == "nimisana" and
               analysis.get("PARTICIPLE") == "agent"
         ):
             # agent participle
-            return [(self._wordbase(analysis), "verb")]
+            return [(self._wordbase(analysis), VERB)]
 
         elif (voikko_class in ["laatusana", "lukusana"] and
               analysis.get("SIJAMUOTO") == "kerrontosti"
         ):
             form = self._fst_form(analysis, self.sti_re, "sti")
             if form:
-                return [(form, "adv")]
+                return [(form, ADV)]
             else:
                 return [(baseform, self.voikko_pos_to_upos[voikko_class])]
 
         elif voikko_class == "seikkasana" and orig.endswith("itse"):
-            return [(orig, "adv")]
+            return [(orig, ADV)]
 
         elif voikko_class == "asemosana":
             lemma = self.pron_baseform_exceptions.get(baseform, baseform)
