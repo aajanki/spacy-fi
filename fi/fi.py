@@ -10,14 +10,655 @@ from spacy.errors import Errors
 from spacy.lang.fi import Finnish, FinnishDefaults
 from spacy.language import Language
 from spacy.lookups import Lookups, load_lookups
+from spacy.pipeline.pipe import Pipe
 from spacy.pipeline.lemmatizer import Lemmatizer
-from spacy.symbols import NOUN, VERB, ADJ, PROPN, ADV, NUM, PRON, AUX
+from spacy.symbols import NOUN, VERB, ADJ, ADP, PROPN, ADV, NUM, PRON, AUX, CCONJ, SCONJ, SYM
+from spacy.symbols import acl, aux, cc, conj, cop
 from spacy.tokens import Doc, Span, Token
 from spacy.training import Example
 from spacy.vocab import Vocab
 from thinc.api import Model
 from voikko import libvoikko
 from zipfile import ZipFile
+
+
+# TODO: Use the same Voikko analysis both here and on the lemmatizer.
+class FinnishMorphologizer(Pipe):
+    compound_re = re.compile(r"\+(\w+)(?:\(\+?[\w=]+\))?")
+    minen_re = re.compile(r"\b(\w+)\[Tn4\]mi")
+    sti_re = re.compile(r"\b(\w+)\[Ssti\]sti")
+    ny_re = re.compile(r"\[X\]\[\w+\]\[Ny\](\w+)")
+    voikko_pos_to_upos = {
+        "nimisana":   NOUN,
+        "lyhenne":    NOUN,
+        "teonsana":   VERB,
+        "laatusana":  ADJ,
+        "seikkasana": ADV,
+        "lukusana":   NUM,
+        "nimi":       PROPN,
+        "etunimi":    PROPN,
+        "sukunimi":   PROPN,
+        "paikannimi": PROPN,
+        "asemosana":  PRON,
+    }
+    voikko_cases = {
+        "nimento":     "Case=Nom",
+        "omanto":      "Case=Gen",
+        "kohdanto":    "Case=Acc",
+        "olento":      "Case=Ess",
+        "osanto":      "Case=Par",
+        "tulento":     "Case=Tra",
+        "sisaolento":  "Case=Ine",
+        "sisaeronto":  "Case=Ela",
+        "sisatulento": "Case=Ill",
+        "ulkoolento":  "Case=Ade",
+        "ulkoeronto":  "Case=Abl",
+        "ulkotulento": "Case=All",
+        "vajanto":     "Case=Abe",
+        "seuranto":    "Case=Com",
+        "keinonto":    "Case=Ins"
+    }
+    affix_to_sijamuoto = {
+        "n":    "omanto",
+        "na":   "olento",
+        "nä":   "olento",
+        "a":    "osanto",
+        "ä":    "osanto",
+        "ta":   "osanto",
+        "tä":   "osanto",
+        "ksi":  "tulento",
+        "ssa":  "sisaolento",
+        "ssä":  "sisaolento",
+        "sta":  "sisaeronto",
+        "stä":  "sisaeronto",
+        "han":  "sisatulento",
+        "hin":  "sisatulento",
+        "hun":  "sisatulento",
+        "seen": "sisatulento",
+        "siin": "sisatulento",
+        "lla":  "ulkoolento",
+        "llä":  "ulkoolento",
+        "lta":  "ulkoeronto",
+        "ltä":  "ulkoeronto",
+        "lle":  "ulkotulento",
+        "tta":  "vajanto",
+        "ttä":  "vajanto",
+    }
+    voikko_degree = {
+        "positive":    "Degree=Pos",
+        "comparative": "Degree=Cmp",
+        "superlative": "Degree=Sup"
+    }
+    voikko_inf_forms = {
+        "A-infinitive":  "InfForm=1",
+        "E-infinitive":  "InfForm=2",
+        "MA-infinitive": "InfForm=3"
+    }
+    voikko_mood = {
+        "indicative":  "Mood=Ind",
+        "conditional": "Mood=Cnd",
+        "potential":   "Mood=Pot",
+        "imperative":  "Mood=Imp"
+    }
+    voikko_part_form = {
+        "past_active":     "PartForm=Past",
+        "past_passive":    "PartForm=Past",
+        "present_active":  "PartForm=Pres",
+        "present_passive": "PartForm=Pres",
+        "agent":           "PartForm=Agt"
+    }
+    voikko_tense = {
+        "present_active":    "Tense=Pres",
+        "present_passive":   "Tense=Pres",
+        "present_simple":    "Tense=Pres",
+        "past_active":       "Tense=Past",
+        "past_passive":      "Tense=Past",
+        "past_imperfective": "Tense=Past"
+    }
+    pron_types = {
+        "minä":       "Prs",
+        "sinä":       "Prs",
+        "hän":        "Prs",
+        "me":         "Prs",
+        "te":         "Prs",
+        "he":         "Prs",
+
+        "tämä":       "Dem",
+        "tuo":        "Dem",
+        "se":         "Dem",
+        "nämä":       "Dem",
+        "nuo":        "Dem",
+        "ne":         "Dem",
+
+        # The relative "mikä" will be handled as a special case
+        # separately so here we label all occurences of "mikä" as
+        # interrogative.
+        "mikä":       "Int",
+        "kuka":       "Int",
+        "ken":        "Int",  # ketä
+        "kumpi":      "Int",
+        "millainen":  "Int",
+        "kuinka":     "Int",
+        "miksi":      "Int",
+
+        # The relative "joka" will be handled else where. Here "joka"
+        # is Voikko's lemmatization of jotakin, jollekin, jostakin, ...
+        "joka":       "Ind",
+        "kaikki":     "Ind",
+        "jokainen":   "Ind",
+        "koko":       "Ind",
+        "harva":      "Ind",
+        "muutama":    "Ind",
+        "jokunen":    "Ind",
+        "yksi":       "Ind",
+        "ainoa":      "Ind",
+        "eräs":       "Ind",
+        "muuan":      "Ind",
+        "joku":       "Ind",
+        "jokin":      "Ind",
+        "kukin":      "Ind",
+        "moni":       "Ind",
+        "usea":       "Ind",
+        "molempi":    "Ind",
+        "kumpikin":   "Ind",
+        "kumpikaan":  "Ind",
+        "jompikumpi": "Ind",
+        "sama":       "Ind",
+        "muu":        "Ind",
+        "kukaan":     "Ind",
+        "mikään":     "Ind",
+        "kenenkään":  "Ind",
+
+        "toinen":     "Rcp"
+    }
+    pron_persons = {
+        "minä":       "1",
+        "sinä":       "2",
+        "hän":        "3",
+        "me":         "1",
+        "te":         "2",
+        "he":         "3"
+    }
+
+    def __init__(self, vocab: Vocab, model: Optional[Model], name: str = "morphologizer") -> None:
+        super().__init__()
+
+        self.name = name
+        self.vocab = vocab
+        self.voikko = libvoikko.Voikko("fi")
+        self.aux_labels = [vocab.strings.add(x) for x in ["aux", "aux:pass"]]
+        self.cop_labels = [vocab.strings.add(x) for x in ["cop", "cop:own"]]
+        self.nsubj_labels = [vocab.strings.add(x) for x in ["nsubj", "nsubj:cop"]]
+        self.ccomp_labels = [vocab.strings.add(x) for x in ["csubj", "csubj:cop", "xcomp", "xcomp:ds"]]
+        self.relcl_labels = [vocab.strings.add(x) for x in ["acl:relcl", "ccomp"]]
+        self.foreign_tag = vocab.strings.add('Foreign')
+
+    def __call__(self, doc: Doc) -> Doc:
+        error_handler = self.get_error_handler()
+        try:
+            for token in doc:
+                morph = self.voikko_morph(token)
+                if morph:
+                    token.set_morph(morph)
+            return doc
+        except Exception as e:
+            error_handler(self.name, self, [doc], e)
+
+    def voikko_morph(self, token: Token) -> Optional[str]:
+        # Run Voikko's analysis and convert the result to morph
+        # features.
+        morphology = []
+        analysis = self._analyze(token)
+
+        # Abbr
+        if analysis.get("CLASS") == "lyhenne":
+            morphology.append("Abbr=Yes")
+
+        # AdpType
+        if analysis.get("ADPTYPE"):
+            morphology.append(f"AdpType={analysis.get('ADPTYPE')}")
+
+        # Case
+        morph_case = self.voikko_cases.get(analysis.get("SIJAMUOTO"))
+        if morph_case:
+            morphology.append(morph_case)
+
+        # Clitic
+        focus = analysis.get("FOCUS")
+        if focus:
+            morphology.append(f"Clitic={focus.title()}")
+        elif "KYSYMYSLIITE" in analysis:
+            morphology.append("Clitic=Ko")
+
+        # Connegative
+        if "CONNEGATIVE" in analysis:
+            morphology.append("Connegative=Yes")
+
+        # Degree
+        morph_degree = self.voikko_degree.get(analysis.get("COMPARISON"))
+        if morph_degree:
+            morphology.append(morph_degree)
+
+        # Foreign
+        if token.tag == self.foreign_tag:
+            morphology.append('Foreign=Yes')
+
+        # InfForm
+        mood = analysis.get("MOOD")
+        if token.pos in [AUX, VERB]:
+            morph_inf_form = self.voikko_inf_forms.get(mood)
+            if morph_inf_form:
+                morphology.append(morph_inf_form)
+
+        # Mood
+        morph_mood = self.voikko_mood.get(mood)
+        if morph_mood:
+            morphology.append(morph_mood)
+
+        # Number
+        number = analysis.get("NUMBER")
+        if number == "singular":
+            morphology.append("Number=Sing")
+        elif number == "plural":
+            morphology.append("Number=Plur")
+
+        # NumType
+        if analysis.get("NUMTYPE"):
+            morphology.append(f'NumType={analysis.get("NUMTYPE")}')
+
+        # PartForm
+        participle = analysis.get("PARTICIPLE")
+        if token.pos in [AUX, VERB]:
+            morph_part_form = self.voikko_part_form.get(participle)
+            if morph_part_form:
+                morphology.append(morph_part_form)
+
+        # Person
+        person = analysis.get("PERSON")
+        if person in ["0", "1", "2", "3"]:
+            morphology.append(f"Person={person}")
+
+        # Person[psor], Number[psor]
+        possessive = analysis.get("POSSESSIVE")
+        if possessive == "1p":
+            morphology.append("Number[psor]=Plur")
+            morphology.append("Person[psor]=1")
+        elif possessive == "1s":
+            morphology.append("Number[psor]=Sing")
+            morphology.append("Person[psor]=1")
+        elif possessive == "3":
+            morphology.append("Person[psor]=3")
+
+        # Polarity
+        if analysis.get("CLASS") == "kieltosana":
+            morphology.append("Polarity=Neg")
+
+        # PronType
+        pron_type = analysis.get("PRONTYPE")
+        if pron_type:
+            morphology.append(f"PronType={pron_type}")
+
+        # Reflex
+        if token.pos == PRON and analysis.get("BASEFORM") == "itse":
+            morphology.append("Reflex=Yes")
+
+        # Tense
+        morph_tense = self.voikko_tense.get(analysis.get("TENSE"))
+        if morph_tense:
+            morphology.append(morph_tense)
+
+        # VerbForm
+        if analysis.get("MOOD") in ["A-infinitive", "E-infinitive", "MA-infinitive"]:
+            morphology.append("VerbForm=Inf")
+        elif token.pos in [AUX, VERB] and participle:
+            morphology.append("VerbForm=Part")
+        elif token.pos in [AUX, VERB]:
+            morphology.append("VerbForm=Fin")
+
+        # Voice
+        if token.pos in [AUX, VERB]:
+            if person in ["0", "1", "2", "3"]:
+                morphology.append("Voice=Act")
+            elif person == "4":
+                morphology.append("Voice=Pass")
+            elif "VOICE" in analysis:
+                morphology.append(f"Voice={analysis['VOICE']}")
+            elif participle in ["past_passive"]:
+                morphology.append("Voice=Pass")
+            elif participle in ["present_active", "past_active", "present_passive"]:
+                morphology.append("Voice=Act")
+
+        return "|".join(morphology) if morphology else None
+
+    def _analyze(self, token):
+        orth = token.orth_
+        if '-' in orth:
+            # Analyze only the head token on hyphenated compound
+            # words.
+            #
+            # (The analysis["BASEFORM"] will be just the head. Will
+            # this cause problems later on?)
+            parts = [x for x in orth.split('-') if x]
+            if parts:
+                orth = parts[-1]
+
+        analyses = self.voikko.analyze(orth)
+        matching_pos = [x for x in analyses if token.pos in self._normalize_pos(x, orth)]
+        if matching_pos:
+            analyses = matching_pos
+
+        analysis = self._disambiguate_analyses(token, analyses)
+        return self._enrich_voikko_analysis(token, analysis)
+
+    def _enrich_voikko_analysis(self, token, analysis):
+        # Enrich Voikko's analysis with extra features
+
+        # NumType
+        if analysis.get("CLASS") == "lukusana" and token.pos in [NUM, ADJ]:
+            base = analysis.get("BASEFORM", "")
+            if (base.endswith(".") or
+                base.endswith("s") or
+                base.endswith("stoista") or
+                base in ["ensimmäinen", "toinen"]
+            ):
+                analysis["NUMTYPE"] = "Ord"
+            elif base:
+                analysis["NUMTYPE"] = "Card"
+
+        # "eikä" has the clitic "ka"
+        if analysis.get("CLASS") == "kieltosana" and token.orth_.lower().endswith("kä"):
+            analysis["FOCUS"] = "ka"
+
+        # connegative
+        if token.pos in [AUX, VERB] and analysis.get("TENSE") == "present_simple":
+            if (
+                    # "en [ole]", "et [halua]", "ei [maksaisi]"
+                    self._last_aux_is_negative(token.lefts) or
+
+                    # "et [ole] nähnyt", "emme [ehdi] tutustua"
+                    (token.dep in self.aux_labels and self._last_aux_is_negative(t for t in token.head.lefts if t.i < token.i)) or
+
+                    # "minulla ei [ole] autoa", "tietoja ei [ole] saatu"
+                    (token.dep in self.cop_labels and self._last_aux_is_negative(t for t in token.head.children if t.i < token.i))
+            ):
+                analysis["CONNEGATIVE"] = True
+                if analysis.get("MOOD") == "imperative":
+                    analysis["MOOD"] = "indicative"
+                if "PERSON" in analysis and analysis["PERSON"] != "4":
+                    del analysis["PERSON"]
+                if "NUMBER" in analysis:
+                    del analysis["NUMBER"]
+
+        # correlated voice in verb chains
+        if token.pos == VERB and "PERSON" not in analysis and not analysis.get("CONNEGATIVE"):
+            corr_person = None
+            auxs = [t for t in token.lefts if t.dep == aux]
+            if auxs:
+                # voimme [haluta]
+                corr_person = auxs[-1].morph.get("Person")
+            elif token.head.pos == VERB:
+                # lähdimme [kävelemään]
+                corr_person = token.head.morph.get("Person")
+
+            if corr_person:
+                person = corr_person[0]
+                if person in ["1", "2", "3"]:
+                    analysis["VOICE"] = "Act"
+                elif person == "4":
+                    analysis["VOICE"] = "Pass"
+
+        # Abbreviation cases: YK:n, BKT:stä
+        if token.pos in [NOUN, PROPN] and "SIJAMUOTO" not in analysis:
+            if ':' in token.orth_:
+                affix = token.orth_.rsplit(':', 1)[-1]
+                sijamuoto = self.affix_to_sijamuoto.get(affix)
+                if sijamuoto:
+                    analysis["SIJAMUOTO"] = sijamuoto
+
+        # adpositions: pre- or postposition?
+        if token.pos == ADP:
+            if token.head.i < token.i:
+                analysis["ADPTYPE"] = "Post"
+            else:
+                analysis["ADPTYPE"] = "Prep"
+
+        # Pronoun types
+        if token.pos == PRON:
+            base = analysis.get("BASEFORM")
+            # Hacks for misclassified tokens
+            if base == "Mona":
+                base = "moni"
+            elif base == "Aino":
+                base = "ainoa"
+            elif ((base == "kumpi" and token.orth_ in ["kumpikin", "kumpikaan"]) or
+                  (base == "ken" and token.orth_ == "kenenkään")):
+                base = token.orth_
+
+            if self._is_relative_pronoun(token, base):
+                analysis["PRONTYPE"] = "Rel"
+            else:
+                pron_type = self.pron_types.get(base)
+                if pron_type:
+                    analysis["PRONTYPE"] = pron_type
+                if pron_type == "Prs":
+                    person = self.pron_persons.get(base)
+                    if person:
+                        analysis["PERSON"] = person
+
+        # Cleanup extra features not in UD
+        if token.pos in [ADP, ADV, CCONJ, SCONJ, SYM]:
+            if "NUMBER" in analysis:
+                del analysis["NUMBER"]
+            if "SIJAMUOTO" in analysis:
+                del analysis["SIJAMUOTO"]
+
+        if analysis.get("BASEFORM") == "ei":
+            # UD doesn't assign a mood for the negative verb
+            del analysis["MOOD"]
+
+        # A hack for detecting singular proper names
+        if token.pos == PROPN and ("NUMBER" not in analysis) and not token.orth_.endswith("t"):
+            analysis["NUMBER"] = "singular"
+
+        return analysis
+
+    def _disambiguate_analyses(self, token, analyses):
+        if len(analyses) > 1:
+            # Disambiguate among multiple possible analyses
+
+            if token.pos == VERB:
+                if token.dep == conj:
+                    coord_head = token.head
+                else:
+                    coord_head = token
+                negative = any(
+                    t.dep == aux and "Neg" in t.morph.get("Polarity")
+                    for t in coord_head.lefts)
+                if negative:
+                    analyses = [x for x in analyses if x.get("NEGATIVE") != "false"] or analyses
+                else:
+                    analyses = [x for x in analyses if x.get("NEGATIVE") != "true"] or analyses
+
+                if (any(t.dep == aux or t.dep == cop for t in coord_head.lefts) and
+                    any(x.get("PARTICIPLE") == "past_active" for x in analyses)):
+                    # "olen haaveillut"
+                    analyses = self._prefer_active(analyses)
+                elif token.dep in self.ccomp_labels or \
+                     token.dep == acl or \
+                     any(t.dep == aux and "Neg" not in t.morph.get("Polarity") for t in coord_head.lefts):
+                    # verbiketjut: "saa [nähdä]", "osaat [uida]", "voi [veistää]"
+                    analyses = self._prefer_infinite_form(analyses)
+                elif token.dep == conj and token.head.morph.get("InfForm"):
+                    # If we are coordinated with an infinite form we
+                    # should also have the same (TODO) infinitive form.
+                    #
+                    # "tarkoitus on tutkia ja todistaa"
+                    analyses = self._prefer_infinite_form(analyses)
+                else:
+                    analyses = self._prefer_indicative_form(analyses)
+
+            elif token.pos == AUX:
+                negative = any(
+                    t.dep == aux and "Neg" in t.morph.get("Polarity")
+                    for t in token.head.lefts)
+                if negative:
+                    analyses = [x for x in analyses if x.get("NEGATIVE") != "false"] or analyses
+                else:
+                    analyses = [x for x in analyses if x.get("NEGATIVE") != "true"] or analyses
+
+                if any(x.get("PARTICIPLE") == "past_active" for x in analyses):
+                    # "olen ollut", "ei ollut käyty"
+                    analyses = self._prefer_active(analyses)
+
+            elif token.pos == NUM:
+                # For numbers like 1,5 prefer the analysis without
+                # SIJAMUOTO and NUMBER because UD doesn't have them,
+                # either.
+                analyses = [x for x in analyses if "SIJAMUOTO" not in x] or analyses
+
+
+            elif token.pos in [NOUN, PRON] and \
+                 ((token.dep in self.nsubj_labels) or \
+                  (token.dep == conj and token.head.dep in self.nsubj_labels)):
+                # Subject is usually nominative, genetive or partitive
+                analyses = [
+                    x for x in analyses
+                    if x.get("SIJAMUOTO") in ["nimento", "omanto", "osanto"]
+                ] or analyses
+
+            elif token.pos == ADJ:
+                # Prefer laatusana over nimisana_laatusana
+                analyses = [x for x in analyses if x.get("CLASS") == "laatusana"] or analyses
+
+        if analyses:
+            return analyses[0]
+        else:
+            return {}
+
+    def _prefer_infinite_form(self, analyses):
+        infinite = [x for x in analyses
+                    if "MOOD" in x and x["MOOD"] in ["A-infinitive", "E-infinitive", "MA-infinitive"]]
+        return infinite or analyses
+
+    def _prefer_indicative_form(self, analyses):
+        indicative = [x for x in analyses if "MOOD" in x and x.get("MOOD") == "indicative"]
+        return indicative or analyses
+
+    def _prefer_active(self, analyses):
+        active = [x for x in analyses if x.get("PARTICIPLE") == "past_active"]
+        return active or analyses
+
+    def _normalize_pos(self, analysis, orth):
+        voikko_class = analysis.get("CLASS")
+
+        if (voikko_class == "teonsana" and
+            analysis.get("MOOD") == "MINEN-infinitive"
+        ):
+            # MINEN infinitive
+            form = self._fst_form(analysis, self.minen_re, "minen")
+            if form:
+                return [NOUN]
+            else:
+                return [VERB]
+
+        elif (voikko_class in ["laatusana", "lukusana"] and
+              analysis.get("SIJAMUOTO") == "kerrontosti"
+        ):
+            form = self._fst_form(analysis, self.sti_re, "sti")
+            if form:
+                return [ADV]
+            else:
+                return [self.voikko_pos_to_upos[voikko_class]]
+
+        elif (voikko_class == "laatusana" and
+              analysis.get("PARTICIPLE") in ["past_active",
+                                             "past_passive",
+                                             "present_active",
+                                             "present_passive"]
+        ):
+            # VA, NUT and TU participles
+            return [VERB, ADJ]
+
+        elif (voikko_class == "nimisana" and
+              analysis.get("PARTICIPLE") == "agent"
+        ):
+            # agent participle
+            return [VERB]
+
+        elif voikko_class == "seikkasana" and orth.endswith("itse"):
+            return [ADV]
+
+        elif voikko_class == "sidesana":
+            return [CCONJ, SCONJ]
+
+        elif voikko_class == "teonsana":
+            return [AUX, VERB]
+
+        elif voikko_class == "nimisana_laatusana":
+            return [NOUN, ADJ]
+
+        elif voikko_class in self.voikko_pos_to_upos:
+            return [self.voikko_pos_to_upos[voikko_class]]
+
+        else:
+            return []
+
+    def _fst_form(self, analysis, stem_re, suffix):
+        fstoutput = analysis.get("FSTOUTPUT")
+        ny_match = self.ny_re.search(fstoutput)
+        if ny_match:
+            return ny_match.group(1)
+
+        fst_match = stem_re.search(fstoutput)
+        if not fst_match:
+            return None
+
+        stem = fst_match.group(1)
+        compounds = self.compound_re.findall(analysis.get("WORDBASES"))
+        if len(compounds) > 1:
+            return "".join(compounds[:-1]) + stem + suffix
+        else:
+            return stem + suffix
+
+    def _is_relative_pronoun(self, token, baseform):
+        if baseform in ["joka", "kuka", "mikä"]:
+            relcl_head = self._relative_clause_head(token)
+            if relcl_head is not None:
+                i = relcl_head.left_edge.i
+                return ((i == token.i) or
+                        ((i + 1 == token.i) and token.nbor(-1).orth_ == ",") or
+                        (token.nbor(-1).dep == cc))
+
+        # FIXME: independent relative clauses: "Maksan mitä pyydät."
+
+        return False
+
+    def _relative_clause_head(self, token):
+        t = token
+        while t.head != t:
+            if t.dep in self.relcl_labels:
+                return t
+            t = t.head
+        return None
+
+    def _last_aux_is_negative(self, tokens):
+        auxs = [t for t in tokens if t.dep in self.aux_labels]
+        return bool(auxs and ("Neg" in auxs[-1].morph.get("Polarity")))
+
+
+@Finnish.factory(
+    "morphologizer",
+    assigns=["token.morph"],
+    requires=["token.pos", "token.dep"],
+    default_config={"model": None},
+    default_score_weights={"morph_acc": 1.0, "morph_per_feat": None},
+)
+def make_morphologizer(
+    nlp: Language,
+    model: Optional[Model],
+    name: str,
+):
+    return FinnishMorphologizer(nlp.vocab, model, name)
 
 
 class FinnishLemmatizer(Lemmatizer):
