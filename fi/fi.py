@@ -1,18 +1,15 @@
 import re
 import srsly
-from collections import OrderedDict
-from itertools import chain
 from io import TextIOWrapper
 from pathlib import Path
-from typing import Callable, Iterable, Iterator, List, Optional, Union
+from typing import Callable, Iterable, Iterator, Optional, Union
 from spacy import util
 from spacy.errors import Errors
 from spacy.lang.fi import Finnish, FinnishDefaults
 from spacy.language import Language
 from spacy.lookups import Lookups, load_lookups
 from spacy.pipeline.pipe import Pipe
-from spacy.pipeline.lemmatizer import Lemmatizer
-from spacy.symbols import NOUN, VERB, ADJ, ADP, PROPN, ADV, NUM, PRON, AUX, CCONJ, SCONJ, SYM
+from spacy.symbols import ADJ, ADP, ADV, AUX, CCONJ, INTJ, NOUN, NUM, PROPN, PRON, SCONJ, SYM, VERB, X
 from spacy.symbols import acl, aux, cc, conj, cop
 from spacy.tokens import Doc, Span, Token
 from spacy.training import Example
@@ -22,8 +19,11 @@ from voikko import libvoikko
 from zipfile import ZipFile
 
 
-# TODO: Use the same Voikko analysis both here and on the lemmatizer.
 class FinnishMorphologizer(Pipe):
+    """Pipeline component that assigns morphological features and a lemma to Docs.
+
+    The actual morphological analysis is done by libvoikko.
+    """
     compound_re = re.compile(r"\+(\w+)(?:\(\+?[\w=]+\))?")
     minen_re = re.compile(r"\b(\w+)\[Tn4\]mi")
     sti_re = re.compile(r"\b(\w+)\[Ssti\]sti")
@@ -83,6 +83,13 @@ class FinnishMorphologizer(Pipe):
         "lle":  "ulkotulento",
         "tta":  "vajanto",
         "ttä":  "vajanto",
+    }
+    possessive_suffixes = {
+        "1s": ["ni"],
+        "2s": ["si"],
+        "1p": ["mme"],
+        "2p": ["nne"],
+        "3": ["nsa", "nsä", "an", "en", "in" "on", "un", "yn", "än", "ön"],
     }
     voikko_degree = {
         "positive":    "Degree=Pos",
@@ -180,12 +187,21 @@ class FinnishMorphologizer(Pipe):
         "he":         "3"
     }
 
-    def __init__(self, vocab: Vocab, model: Optional[Model], name: str = "morphologizer") -> None:
+    def __init__(
+            self,
+            vocab: Vocab,
+            model: Optional[Model] = None,
+            name: str = "morphologizer",
+            *,
+            overwrite_lemma: bool = False,
+    ) -> None:
         super().__init__()
 
         self.name = name
         self.vocab = vocab
         self.voikko = libvoikko.Voikko("fi")
+        self.lookups = Lookups()
+        self.overwrite_lemma = overwrite_lemma
         self.aux_labels = [vocab.strings.add(x) for x in ["aux", "aux:pass"]]
         self.cop_labels = [vocab.strings.add(x) for x in ["cop", "cop:own"]]
         self.nsubj_labels = [vocab.strings.add(x) for x in ["nsubj", "nsubj:cop"]]
@@ -197,18 +213,44 @@ class FinnishMorphologizer(Pipe):
         error_handler = self.get_error_handler()
         try:
             for token in doc:
-                morph = self.voikko_morph(token)
+                analysis = self._analyze(token)
+                morph = self.voikko_morph(token, analysis)
                 if morph:
                     token.set_morph(morph)
+                if self.overwrite_lemma or token.lemma == 0:
+                    token.lemma_ = self.lemmatize(token, analysis)
             return doc
         except Exception as e:
             error_handler(self.name, self, [doc], e)
 
-    def voikko_morph(self, token: Token) -> Optional[str]:
+    def initialize(
+        self,
+        get_examples: Optional[Callable[[], Iterable[Example]]] = None,
+        *,
+        nlp: Optional[Language] = None,
+        lookups: Optional[Lookups] = None,
+    ):
+        """Initialize the morphologizer and load in data.
+        get_examples (Callable[[], Iterable[Example]]): Function that
+            returns a representative sample of gold-standard Example objects.
+        nlp (Language): The current nlp object the component is part of.
+        lookups (Lookups): The lookups object containing the (optional) tables
+            such as "lemma_exc" and "morphologizer_exc". Defaults to None.
+        """
+        if lookups is None:
+            lookups = load_lookups(lang=self.vocab.lang,
+                                   tables=["lemma_exc", "morphologizer_exc"])
+        self.lookups = lookups
+
+    def voikko_morph(self, token: Token, analysis: dict) -> Optional[str]:
         # Run Voikko's analysis and convert the result to morph
         # features.
         morphology = []
-        analysis = self._analyze(token)
+
+        exc_table = self.lookups.get_table("morphologizer_exc", {}).get(token.pos, {})
+        exc = exc_table.get(token.orth_)
+        if exc:
+            return exc
 
         # Abbr
         if analysis.get("CLASS") == "lyhenne":
@@ -219,9 +261,10 @@ class FinnishMorphologizer(Pipe):
             morphology.append(f"AdpType={analysis.get('ADPTYPE')}")
 
         # Case
-        morph_case = self.voikko_cases.get(analysis.get("SIJAMUOTO"))
-        if morph_case:
-            morphology.append(morph_case)
+        if token.pos in [ADJ, AUX, NOUN, NUM, PRON, PROPN, VERB]:
+            morph_case = self.voikko_cases.get(analysis.get("SIJAMUOTO"))
+            if morph_case:
+                morphology.append(morph_case)
 
         # Clitic
         focus = analysis.get("FOCUS")
@@ -330,17 +373,41 @@ class FinnishMorphologizer(Pipe):
 
         return "|".join(morphology) if morphology else None
 
+    def lemmatize(self, token: Token, analysis: dict) -> str:
+        # Lemma of inflected abbreviations: BBC:n, EU:ssa
+        orth_lower = token.orth_.lower()
+        if ":" in orth_lower:
+            return orth_lower.rsplit(":", 1)[0]
+
+        exc_table = self.lookups.get_table("lemma_exc", {}).get(token.pos, {})
+        exc = exc_table.get(orth_lower)
+        if exc:
+            return exc
+
+        if token.pos not in (ADJ, ADV, AUX, NOUN, NUM, PRON, PROPN, VERB) or "BASEFORM" not in analysis:
+            return orth_lower
+
+        # Some exceptions to Voikko's lemmatization algorithm to
+        # better match UD lemmas
+        if token.pos == VERB and analysis.get("PARTICIPLE"):
+            return self._participle_lemma(analysis)
+        elif token.pos == NOUN and analysis.get("MOOD") == "MINEN-infinitive":
+            return self._fst_form(analysis, self.minen_re, "minen")
+        elif token.pos == ADV:
+            return self._adv_lemma(analysis, orth_lower)
+        else:
+            return analysis["BASEFORM"]
+
     def _analyze(self, token):
         orth = token.orth_
         if '-' in orth:
             # Analyze only the head token on hyphenated compound
             # words.
-            #
-            # (The analysis["BASEFORM"] will be just the head. Will
-            # this cause problems later on?)
             parts = [x for x in orth.split('-') if x]
             if parts:
                 orth = parts[-1]
+        else:
+            parts = [orth]
 
         analyses = self.voikko.analyze(orth)
         matching_pos = [x for x in analyses if token.pos in self._normalize_pos(x, orth)]
@@ -348,6 +415,8 @@ class FinnishMorphologizer(Pipe):
             analyses = matching_pos
 
         analysis = self._disambiguate_analyses(token, analyses)
+        if len(parts) > 1 and "BASEFORM" in analysis:
+            analysis["BASEFORM"] = parts[0] + "-" + analysis["BASEFORM"]
         return self._enrich_voikko_analysis(token, analysis)
 
     def _enrich_voikko_analysis(self, token, analysis):
@@ -446,11 +515,9 @@ class FinnishMorphologizer(Pipe):
                         analysis["PERSON"] = person
 
         # Cleanup extra features not in UD
-        if token.pos in [ADP, ADV, CCONJ, SCONJ, SYM]:
+        if token.pos in [ADP, ADV, CCONJ, SCONJ, SYM, INTJ, X]:
             if "NUMBER" in analysis:
                 del analysis["NUMBER"]
-            if "SIJAMUOTO" in analysis:
-                del analysis["SIJAMUOTO"]
 
         if analysis.get("BASEFORM") == "ei":
             # UD doesn't assign a mood for the negative verb
@@ -645,212 +712,7 @@ class FinnishMorphologizer(Pipe):
         auxs = [t for t in tokens if t.dep in self.aux_labels]
         return bool(auxs and ("Neg" in auxs[-1].morph.get("Polarity")))
 
-
-@Finnish.factory(
-    "morphologizer",
-    assigns=["token.morph"],
-    requires=["token.pos", "token.dep"],
-    default_config={"model": None},
-    default_score_weights={"morph_acc": 1.0, "morph_per_feat": None},
-)
-def make_morphologizer(
-    nlp: Language,
-    model: Optional[Model],
-    name: str,
-):
-    return FinnishMorphologizer(nlp.vocab, model, name)
-
-
-class FinnishLemmatizer(Lemmatizer):
-    compound_re = re.compile(r"\+(\w+)(?:\(\+?[\w=]+\))?")
-    minen_re = re.compile(r"\b(\w+)\[Tn4\]mi")
-    sti_re = re.compile(r"\b(\w+)\[Ssti\]sti")
-    ny_re = re.compile(r"\[X\]\[\w+\]\[Ny\](\w+)")
-    voikko_pos_to_upos = {
-        "nimisana": NOUN,
-        "teonsana": VERB,
-        "laatusana": ADJ,
-        "nimisana_laatusana": ADJ,
-        "seikkasana": ADV,
-        "lukusana": NUM,
-        "nimi": PROPN,
-        "etunimi": PROPN,
-        "sukunimi": PROPN,
-        "paikannimi": PROPN,
-        "asemosana": PRON,
-    }
-
-    # Use singular pronoun as lemmas (similar to in universal
-    # dependencies)
-    pron_baseform_exceptions = {
-        'me': 'minä',
-        'te': 'sinä',
-        'he': 'hän',
-        'nämä': 'tämä',
-        'nuo': 'tuo',
-        'ne': 'se',
-        'ken': 'kuka',
-    }
-
-    def __init__(self, vocab: Vocab, name: str = "lemmatizer", overwrite: bool = False) -> None:
-        super().__init__(vocab, model=None, name=name, mode="voikko", overwrite=overwrite)
-        self.voikko = libvoikko.Voikko("fi")
-
-    def initialize(
-        self,
-        get_examples: Optional[Callable[[], Iterable[Example]]] = None,
-        *,
-        nlp: Optional[Language] = None,
-        lookups: Optional[Lookups] = None,
-    ):
-        """Initialize the lemmatizer and load in data.
-        get_examples (Callable[[], Iterable[Example]]): Function that
-            returns a representative sample of gold-standard Example objects.
-        nlp (Language): The current nlp object the component is part of.
-        lookups (Lookups): The lookups object containing the (optional) tables
-            such as "lemma_rules", "lemma_index", "lemma_exc" and
-            "lemma_lookup". Defaults to None.
-        """
-        if lookups is None:
-            lookups = load_lookups(lang=self.vocab.lang, tables=["lemma_exc"])
-        self.lookups = lookups
-        self._validate_tables(Errors.E1004)
-
-    def voikko_lemmatize(self, token: Token) -> List[str]:
-        """Lemmatize one token using voikko.
-
-        token (Token): The token to lemmatize.
-        RETURNS (list): The available lemmas for the string.
-        """
-        if token.pos in (VERB, AUX):
-            univ_pos = VERB
-        elif token.pos in (ADJ, ADV, NOUN, NUM, PRON, PROPN):
-            univ_pos = token.pos
-        else:
-            return [token.orth_.lower()]
-
-        exc_table = self.lookups.get_table("lemma_exc", {})
-        pos_exc_table = exc_table.get(univ_pos, {})
-        return self._lemmatize_one_word(token.orth_, pos_exc_table, univ_pos)
-
-    def _lemmatize_one_word(self, string, exceptions, univ_pos):
-        # Lemma of inflected abbreviations: BBC:n, EU:ssa
-        string = string.rsplit(":", 1)[0]
-        
-        # Lemmatize only the last part of hyphenated words: VGA-kaapelissa
-        parts = string.rsplit("-", 1)
-        
-        lemma = self._lemmatize_compound(parts[-1], exceptions, univ_pos)
-
-        if len(parts) == 1:
-            return lemma
-        else:
-            return [parts[0] + "-" + lemma[0]]
-
-    def _lemmatize_compound(self, string, exceptions, univ_pos):
-        orig = string
-        oov_forms = []
-        forms = []
-
-        analyses = self.voikko.analyze(string)
-        base_and_pos = list(chain.from_iterable([
-            self._baseform_and_pos(x, string) for x in analyses
-        ]))
-        matching_pos = [x for x in base_and_pos if x[1] == univ_pos]
-        if univ_pos == ADV and analyses:
-            oov_forms.append(self._normalize_adv(analyses[0], orig.lower()))
-        elif matching_pos:
-            forms.extend(x[0] for x in matching_pos)
-        elif analyses:
-            oov_forms.extend(x[0] for x in base_and_pos)
-
-        forms = list(OrderedDict.fromkeys(forms))
-
-        # Put exceptions at the front of the list, so they get priority.
-        # This is a dodgy heuristic -- but it's the best we can do until we get
-        # frequencies on this. We can at least prune out problematic exceptions,
-        # if they shadow more frequent analyses.
-        for exc in exceptions.get(orig.lower(), []):
-            if exc not in forms:
-                forms.insert(0, exc)
-        if not forms:
-            forms.extend(oov_forms)
-        if not forms:
-            forms.append(orig)
-        return forms
-
-    def _baseform_and_pos(self, analysis, orig):
-        baseform = analysis.get("BASEFORM")
-        voikko_class = analysis.get("CLASS")
-
-        if (voikko_class == "teonsana" and
-            analysis.get("MOOD") == "MINEN-infinitive"
-        ):
-            # MINEN infinitive
-            form = self._fst_form(analysis, self.minen_re, "minen")
-            if form:
-                return [(form, NOUN)]
-            else:
-                return [(baseform, VERB)]
-
-        elif (voikko_class == "laatusana" and
-              analysis.get("PARTICIPLE") in ["past_active",
-                                             "past_passive",
-                                             "present_active",
-                                             "present_passive"]
-        ):
-            # VA, NUT and TU participles
-            return [
-                (self._wordbase(analysis), VERB),
-                (baseform, ADJ)
-            ]
-
-        elif (voikko_class == "nimisana" and
-              analysis.get("PARTICIPLE") == "agent"
-        ):
-            # agent participle
-            return [(self._wordbase(analysis), VERB)]
-
-        elif (voikko_class in ["laatusana", "lukusana"] and
-              analysis.get("SIJAMUOTO") == "kerrontosti"
-        ):
-            form = self._fst_form(analysis, self.sti_re, "sti")
-            if form:
-                return [(form, ADV)]
-            else:
-                return [(baseform, self.voikko_pos_to_upos[voikko_class])]
-
-        elif voikko_class == "seikkasana" and orig.endswith("itse"):
-            return [(orig, ADV)]
-
-        elif voikko_class == "asemosana":
-            lemma = self.pron_baseform_exceptions.get(baseform, baseform)
-            return [(lemma, self.voikko_pos_to_upos[voikko_class])]
-
-        elif voikko_class in self.voikko_pos_to_upos:
-            return [(baseform, self.voikko_pos_to_upos[voikko_class])]
-
-        else:
-            return [(baseform, None)]
-
-    def _fst_form(self, analysis, stem_re, suffix):
-        fstoutput = analysis.get("FSTOUTPUT")
-        ny_match = self.ny_re.search(fstoutput)
-        if ny_match:
-            return ny_match.group(1)
-
-        fst_match = stem_re.search(fstoutput)
-        if not fst_match:
-            return None
-
-        stem = fst_match.group(1)
-        compounds = self.compound_re.findall(analysis.get("WORDBASES"))
-        if len(compounds) > 1:
-            return "".join(compounds[:-1]) + stem + suffix
-        else:
-            return stem + suffix
-
-    def _wordbase(self, analysis):
+    def _participle_lemma(self, analysis):
         wordbases = analysis.get("WORDBASES")
         num_bases = max(analysis.get("STRUCTURE", "").count("="), 1)
 
@@ -877,7 +739,7 @@ class FinnishLemmatizer(Lemmatizer):
 
         return ''.join(forms)
 
-    def _normalize_adv(self, analysis, word):
+    def _adv_lemma(self, analysis, word):
         focus = analysis.get("FOCUS")
         kysymysliite = analysis.get("KYSYMYSLIITE")
 
@@ -893,10 +755,49 @@ class FinnishLemmatizer(Lemmatizer):
             elif kysymysliite and (word.endswith("ko") or word.endswith("kö")):
                 word = word[:-2]
 
-        if analysis.get("POSSESSIVE") and not analysis.get("SIJAMUOTO"):
-            return analysis.get("BASEFORM")
-        else:
+        if "POSSESSIVE" in analysis and analysis["POSSESSIVE"] != "3":
+            word = self._remove_possessive_suffix(word, analysis)
+
+        return word
+
+    def _remove_possessive_suffix(self, word, analysis):
+        """Removes possessive suffix from the word.
+
+        Example: "kanssamme" -> "kanssa"
+        """
+        suffixes = self.possessive_suffixes.get(analysis["POSSESSIVE"])
+        if not suffixes:
             return word
+
+        suffix = next((s for s in suffixes if word.endswith(s)), None)
+        if not suffix:
+            return word
+
+        word = word[:-len(suffix)]
+        if analysis.get("SIJAMUOTO") == "tulento" and word.endswith("e"):
+            # onne-kse-mme -> onne-ksi
+            word = word[:-1] + "i"
+        elif analysis.get("SIJAMUOTO") == "sisatulento":
+            # lapsee-ni -> lapseen
+            word = word + "n"
+
+        return word
+
+
+@Finnish.factory(
+    "morphologizer",
+    assigns=["token.morph", "token.lemma"],
+    requires=["token.pos", "token.dep"],
+    default_config={"model": None},
+    default_score_weights={"morph_acc": 1.0, "morph_per_feat": None, "lemma_acc": 0.0},
+)
+def make_morphologizer(
+    nlp: Language,
+    model: Optional[Model],
+    name: str,
+    overwrite_lemma: bool = False
+):
+    return FinnishMorphologizer(nlp.vocab, model, name, overwrite_lemma=overwrite_lemma)
 
 
 class VrtZipCorpus:
@@ -1097,18 +998,6 @@ def noun_chunks(doclike: Union[Doc, Span]) -> Iterator[Span]:
             prev_end = rbracket
 
             yield lbracket, rbracket + 1, np_label
-
-
-@Finnish.factory(
-    "lemmatizer",
-    assigns=["token.lemma"],
-    default_config={"model": None, "mode": "voikko", "overwrite": False},
-    default_score_weights={"lemma_acc": 1.0},
-)
-def make_lemmatizer(
-    nlp: Language, model: Optional[Model], name: str, mode: str, overwrite: bool = False
-):
-    return FinnishLemmatizer(nlp.vocab, name, overwrite)
 
 
 @util.registry.misc("spacyfi.read_lookups_from_json.v1")

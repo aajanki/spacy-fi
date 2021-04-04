@@ -1,5 +1,5 @@
 from itertools import chain
-from fi.fi import create_lookups_from_json_reader, FinnishLemmatizer
+from fi.fi import create_lookups_from_json_reader, FinnishMorphologizer
 from pathlib import Path
 from spacy.lang.fi import Finnish
 from spacy.tokens import Doc
@@ -298,6 +298,7 @@ testcases = {
         ('kohta', ['kohta']),
         ('piankin', ['pian']),
         ('nopeasti', ['nopeasti']),
+        ('nopeammin', ['nopeasti']),
         ('useasti', ['useasti']),
         ('fyysisestikin', ['fyysisesti']),
         ('luonnollisestikaan', ['luonnollisesti']),
@@ -305,6 +306,7 @@ testcases = {
         ('tuhannestikin', ['tuhannesti']),
         ('tarpeeksi', ['tarpeeksi']),
         ('onneksikaan', ['onneksi']),
+        ('onneksemme', ['onneksi']),
         ('aluksi', ['aluksi']),
         ('toiseksi', ['toiseksi']),
         ('kunnolla', ['kunnolla']),
@@ -317,6 +319,7 @@ testcases = {
         ('tosin', ['tosin']),
         ('tosiaan', ['tosiaan']),
         ('edelleen', ['edelleen']),
+        ('edelleenkö', ['edelleen']),
         ('kanssamme', ['kanssa']),
         ('postitse', ['postitse']),
         ('järeämmin', ['järeämmin']),
@@ -376,7 +379,7 @@ testcases = {
 
 def check(cases, accept_less_common=True):
     nlp = Finnish()
-    lemmatizer = FinnishLemmatizer(nlp.vocab)
+    lemmatizer = FinnishMorphologizer(nlp.vocab)
     lemmatizer.initialize(
         lookups = create_lookups_from_json_reader(Path(__file__).parent.parent / 'fi' / 'lookups'))
     expanded = list(chain.from_iterable(
@@ -390,8 +393,8 @@ def check(cases, accept_less_common=True):
             lemmas = lemmas[:1]
         lemmas = [x.lower() for x in lemmas]
 
-        doc = Doc(vocab=nlp.vocab, words=[word], pos=[univ_pos])
-        observed = lemmatizer.lemmatize(doc[0])[0]
+        doc = Doc(vocab=nlp.vocab, words=[word], pos=[univ_pos], deps=["ROOT"])
+        observed = lemmatizer(doc)[0].lemma_
         if observed.lower() not in lemmas:
             failed.append((word, univ_pos, observed, lemmas))
 
@@ -409,4 +412,4 @@ def test_lemmas(capsys):
             for fail in failed:
                 print(f'{fail[0]} ({fail[1]})\t\tobserved: {fail[2]}\texpected: {fail[3][0]}')
 
-    assert failed_prop < 0.03
+    assert failed_prop < 0.02
