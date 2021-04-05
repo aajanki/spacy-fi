@@ -9,10 +9,12 @@ from spacy.lang.fi import Finnish, FinnishDefaults
 from spacy.language import Language
 from spacy.lookups import Lookups, load_lookups
 from spacy.pipeline.pipe import Pipe
+from spacy.scorer import Scorer
 from spacy.symbols import ADJ, ADP, ADV, AUX, CCONJ, INTJ, NOUN, NUM, PROPN, PRON, SCONJ, SYM, VERB, X
 from spacy.symbols import acl, aux, cc, conj, cop
 from spacy.tokens import Doc, Span, Token
-from spacy.training import Example
+from spacy.training import Example, validate_examples
+from spacy.util import SimpleFrozenList
 from spacy.vocab import Vocab
 from thinc.api import Model
 from voikko import libvoikko
@@ -782,6 +784,42 @@ class FinnishMorphologizer(Pipe):
             word = word + "n"
 
         return word
+
+    def score(self, examples, **kwargs):
+        def morph_key_getter(token, attr):
+            return getattr(token, attr).key
+
+        validate_examples(examples, "FinnishMorphologizer.score")
+        results = {}
+        results.update(Scorer.score_token_attr(examples, "morph", getter=morph_key_getter, **kwargs))
+        results.update(Scorer.score_token_attr_per_feat(examples,
+            "morph", getter=morph_key_getter, **kwargs))
+        results.update(Scorer.score_token_attr(examples, "lemma", **kwargs))
+        return results
+
+    def to_disk(
+        self, path: Union[str, Path], *, exclude: Iterable[str] = SimpleFrozenList()
+    ):
+        serialize = {"lookups": lambda p: self.lookups.to_disk(p)}
+        util.to_disk(path, serialize, exclude)
+
+    def from_disk(
+        self, path: Union[str, Path], *, exclude: Iterable[str] = SimpleFrozenList()
+    ) -> "FinnishMorphologizer":
+        deserialize = {"lookups": lambda p: self.lookups.from_disk(p)}
+        util.from_disk(path, deserialize, exclude)
+        return self
+
+    def to_bytes(self, *, exclude: Iterable[str] = SimpleFrozenList()) -> bytes:
+        serialize = {"lookups": self.lookups.to_bytes}
+        return util.to_bytes(serialize, exclude)
+
+    def from_bytes(
+        self, bytes_data: bytes, *, exclude: Iterable[str] = SimpleFrozenList()
+    ) -> "FinnishMorphologizer":
+        deserialize = {"lookups": lambda b: self.lookups.from_bytes(b)}
+        util.from_bytes(bytes_data, deserialize, exclude)
+        return self
 
 
 @Finnish.factory(
