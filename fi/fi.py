@@ -10,7 +10,8 @@ from spacy.language import Language
 from spacy.lookups import Lookups, load_lookups
 from spacy.pipeline.pipe import Pipe
 from spacy.scorer import Scorer
-from spacy.symbols import ADJ, ADP, ADV, AUX, CCONJ, INTJ, NOUN, NUM, PROPN, PRON, SCONJ, SYM, VERB, X
+from spacy.symbols import ADJ, ADP, ADV, AUX, CCONJ, INTJ, NOUN, NUM, PROPN
+from spacy.symbols import PRON, PUNCT, SCONJ, SYM, VERB, X
 from spacy.symbols import acl, aux, cc, conj, cop
 from spacy.tokens import Doc, Span, Token
 from spacy.training import Example, validate_examples
@@ -363,25 +364,29 @@ class FinnishMorphologizer(Pipe):
     def lemmatize(self, token: Token, analysis: dict) -> str:
         # Lemma of inflected abbreviations: BBC:n, EU:ssa
         orth_lower = token.orth_.lower()
-        if ":" in orth_lower:
-            return orth_lower.rsplit(":", 1)[0]
-
         exc_table = self.lookups.get_table("lemma_exc", {}).get(token.pos, {})
         exc = exc_table.get(orth_lower)
         if exc:
             return exc
 
-        if token.pos not in (ADJ, ADV, AUX, NOUN, NUM, PRON, PROPN, VERB) or "BASEFORM" not in analysis:
-            return orth_lower
+        if token.pos not in (PUNCT, SYM, X) and ":" in orth_lower:
+            return token.orth_.rsplit(":", 1)[0]
 
         # Some exceptions to Voikko's lemmatization algorithm to
         # better match UD lemmas
-        if token.pos == VERB and analysis.get("PARTICIPLE"):
+        if token.pos in [AUX, VERB] and analysis.get("PARTICIPLE"):
             return self._participle_lemma(analysis)
         elif token.pos == NOUN and analysis.get("MOOD") == "MINEN-infinitive":
             return self._fst_form(analysis, self.minen_re, "minen")
         elif token.pos == ADV:
             return self._adv_lemma(analysis, orth_lower)
+        elif token.pos in [ADP, CCONJ, SCONJ]:
+            return orth_lower
+        elif not "BASEFORM" in analysis:
+            if token.pos in [PROPN, SYM, X]:
+                return token.orth_
+            else:
+                return orth_lower
         else:
             return analysis["BASEFORM"]
 
@@ -480,14 +485,9 @@ class FinnishMorphologizer(Pipe):
         # Pronoun types
         if token.pos == PRON:
             base = analysis.get("BASEFORM")
-            # Hacks for misclassified tokens
-            if base == "Mona":
-                base = "moni"
-            elif base == "Aino":
-                base = "ainoa"
-            elif ((base == "kumpi" and token.orth_ in ["kumpikin", "kumpikaan"]) or
-                  (base == "ken" and token.orth_ == "kenenkään")):
-                base = token.orth_
+            if ((base == "kumpi" and token.orth_.lower() in ["kumpikin", "kumpikaan"]) or
+                (base == "ken" and token.orth_.lower() == "kenenkään")):
+                base = token.orth_.lower()
 
             if self._is_relative_pronoun(token, base):
                 analysis["PRONTYPE"] = "Rel"
@@ -616,7 +616,7 @@ class FinnishMorphologizer(Pipe):
 
             (tpos == NUM and vclass == "lukusana") or
 
-            (tpos == PRON and vclass == "asemosana") or
+            (tpos == PRON and vclass in ["asemosana", "nimisana", "nimisana_laatusana"]) or
 
             (tpos == PROPN and vclass in ["nimi", "etunimi", "sukunimi", "paikannimi"]) or
 

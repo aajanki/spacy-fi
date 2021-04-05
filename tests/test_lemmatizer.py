@@ -325,6 +325,13 @@ testcases = {
         ('järeämmin', ['järeämmin']),
         ('voimakkaamminkaanko', ['voimakkaammin']),
         ('voimakkaamminkokaan', ['voimakkaammin']),
+        ('mukaani', ['mukaan']),
+    ],
+
+    'ADP': [
+        ('alkaen', ['alkaen']),
+        ('takaa', ['takaa']),
+        ('sijaan', ['sijaan']),
     ],
 
     'NUM': [
@@ -373,7 +380,19 @@ testcases = {
         ('multa', ['minä']),
         ('sut', ['sinä']),
         ('sulle', ['sinä']),
+        ('ainoa', ['ainoa']),
+        ('ainoamme', ['ainoa']),
+        ('moniksi', ['moni']),
     ],
+
+    'SCONJ': [
+        ('sillä', ['sillä']),
+    ],
+
+    'SYM': [
+        (':)', [':)']),
+        (':D', [':D']),
+    ]
 }
 
 
