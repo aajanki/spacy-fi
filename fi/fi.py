@@ -16,7 +16,6 @@ from spacy.tokens import Doc, Span, Token
 from spacy.training import Example, validate_examples
 from spacy.util import SimpleFrozenList
 from spacy.vocab import Vocab
-from thinc.api import Model
 from voikko import libvoikko
 from zipfile import ZipFile
 
@@ -192,7 +191,6 @@ class FinnishMorphologizer(Pipe):
     def __init__(
             self,
             vocab: Vocab,
-            model: Optional[Model] = None,
             name: str = "morphologizer",
             *,
             overwrite_lemma: bool = False,
@@ -826,16 +824,14 @@ class FinnishMorphologizer(Pipe):
     "morphologizer",
     assigns=["token.morph", "token.lemma"],
     requires=["token.pos", "token.dep"],
-    default_config={"model": None},
     default_score_weights={"morph_acc": 1.0, "morph_per_feat": None, "lemma_acc": 0.0},
 )
 def make_morphologizer(
     nlp: Language,
-    model: Optional[Model],
     name: str,
     overwrite_lemma: bool = False
 ):
-    return FinnishMorphologizer(nlp.vocab, model, name, overwrite_lemma=overwrite_lemma)
+    return FinnishMorphologizer(nlp.vocab, name, overwrite_lemma=overwrite_lemma)
 
 
 class VrtZipCorpus:
