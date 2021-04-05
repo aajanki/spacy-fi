@@ -411,7 +411,10 @@ class FinnishMorphologizer(Pipe):
             if (base.endswith(".") or
                 base.endswith("s") or
                 base.endswith("stoista") or
-                base in ["ensimmäinen", "toinen"]
+                base in ["ensimmäinen", "toinen"] or
+                # A hack for recognizing ordinal numbers("1.", "2.",
+                # "3.", ...) until the tokenizer is fixed.
+                (base.isdigit() and token.i < len(token.doc) - 1 and token.nbor(1).orth_ == ".")
             ):
                 analysis["NUMTYPE"] = "Ord"
             elif base:
