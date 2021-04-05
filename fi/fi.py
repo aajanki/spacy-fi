@@ -671,7 +671,7 @@ class FinnishMorphologizer(Pipe):
                 i = relcl_head.left_edge.i
                 return ((i == token.i) or
                         ((i + 1 == token.i) and token.nbor(-1).orth_ == ",") or
-                        (token.nbor(-1).dep == cc))
+                        (token.i > 0 and token.nbor(-1).dep == cc))
 
         # FIXME: independent relative clauses: "Maksan mitä pyydät."
 
