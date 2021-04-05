@@ -12,7 +12,7 @@ from spacy.pipeline.pipe import Pipe
 from spacy.scorer import Scorer
 from spacy.symbols import ADJ, ADP, ADV, AUX, CCONJ, INTJ, NOUN, NUM, PROPN
 from spacy.symbols import PRON, PUNCT, SCONJ, SYM, VERB, X
-from spacy.symbols import acl, aux, cc, conj, cop
+from spacy.symbols import acl, aux, cc, conj, cop, obj
 from spacy.tokens import Doc, Span, Token
 from spacy.training import Example, validate_examples
 from spacy.util import SimpleFrozenList
@@ -586,6 +586,14 @@ class FinnishMorphologizer(Pipe):
                 analyses = [
                     x for x in analyses
                     if x.get("SIJAMUOTO") in ["nimento", "omanto", "osanto"]
+                ] or analyses
+
+            elif token.pos in [NOUN, PRON] and \
+                 (token.dep == obj or (token.dep == conj and token.head.dep == obj)):
+                # Object is usually partitive, accusative or genetive
+                analyses = [
+                    x for x in analyses
+                    if x.get("SIJAMUOTO") in ["kohdanto", "omanto", "osanto"]
                 ] or analyses
 
             elif token.pos == ADJ:
