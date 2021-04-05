@@ -29,19 +29,6 @@ class FinnishMorphologizer(Pipe):
     minen_re = re.compile(r"\b(\w+)\[Tn4\]mi")
     sti_re = re.compile(r"\b(\w+)\[Ssti\]sti")
     ny_re = re.compile(r"\[X\]\[\w+\]\[Ny\](\w+)")
-    voikko_pos_to_upos = {
-        "nimisana":   NOUN,
-        "lyhenne":    NOUN,
-        "teonsana":   VERB,
-        "laatusana":  ADJ,
-        "seikkasana": ADV,
-        "lukusana":   NUM,
-        "nimi":       PROPN,
-        "etunimi":    PROPN,
-        "sukunimi":   PROPN,
-        "paikannimi": PROPN,
-        "asemosana":  PRON,
-    }
     voikko_cases = {
         "nimento":     "Case=Nom",
         "omanto":      "Case=Gen",
@@ -410,10 +397,6 @@ class FinnishMorphologizer(Pipe):
             parts = [orth]
 
         analyses = self.voikko.analyze(orth)
-        matching_pos = [x for x in analyses if token.pos in self._normalize_pos(x, orth)]
-        if matching_pos:
-            analyses = matching_pos
-
         analysis = self._disambiguate_analyses(token, analyses)
         if len(parts) > 1 and "BASEFORM" in analysis:
             analysis["BASEFORM"] = parts[0] + "-" + analysis["BASEFORM"]
@@ -530,6 +513,10 @@ class FinnishMorphologizer(Pipe):
         return analysis
 
     def _disambiguate_analyses(self, token, analyses):
+        matching_pos = [x for x in analyses if self._analysis_has_compatible_pos(token, x)]
+        if matching_pos:
+            analyses = matching_pos
+
         if len(analyses) > 1:
             # Disambiguate among multiple possible analyses
 
@@ -602,6 +589,48 @@ class FinnishMorphologizer(Pipe):
         else:
             return {}
 
+    def _analysis_has_compatible_pos(self, token, analysis):
+        tpos = token.pos
+        vclass = analysis.get("CLASS")
+        return (
+            (tpos == ADJ and vclass in ["laatusana", "nimisana_laatusana"]) or
+
+            (tpos == ADP and vclass in ["nimisana", "seikkasana", "suhdesana"]) or
+
+            (tpos == ADV and vclass == "seikkasana") or
+            (tpos == ADV and vclass in ["laatusana", "lukusana"] and
+             analysis.get("SIJAMUOTO") == "kerrontosti") or
+
+            (tpos == AUX and vclass in ["teonsana", "kieltosana"]) or
+
+            (tpos == CCONJ and vclass == "sidesana") or
+
+            (tpos == INTJ and vclass == "huudahdussana") or
+
+            (tpos == NOUN and vclass in ["nimisana", "nimisana_laatusana", "lyhenne"]) or
+            (tpos == NOUN and vclass == "teonsana" and
+             analysis.get("MOOD") == "MINEN-infinitive") or
+
+            (tpos == NUM and vclass == "lukusana") or
+
+            (tpos == PRON and vclass == "asemosana") or
+
+            (tpos == PROPN and vclass in ["nimi", "etunimi", "sukunimi", "paikannimi"]) or
+
+            (tpos == SCONJ and vclass == "sidesana") or
+
+            (tpos == VERB and vclass == "teonsana" and
+             not (analysis.get("MOOD") == "MINEN-infinitive")) or
+            # VA, NUT and TU participles
+            (tpos == VERB and vclass == "laatusana" and
+             analysis.get("PARTICIPLE") in ["past_active",
+                                            "past_passive",
+                                            "present_active",
+                                            "present_passive"]) or
+            # agent participle
+            (tpos == VERB and vclass == "nimisana" and analysis.get("PARTICIPLE") == "agent")
+        )
+
     def _prefer_infinite_form(self, analyses):
         infinite = [x for x in analyses
                     if "MOOD" in x and x["MOOD"] in ["A-infinitive", "E-infinitive", "MA-infinitive"]]
@@ -614,61 +643,6 @@ class FinnishMorphologizer(Pipe):
     def _prefer_active(self, analyses):
         active = [x for x in analyses if x.get("PARTICIPLE") == "past_active"]
         return active or analyses
-
-    def _normalize_pos(self, analysis, orth):
-        voikko_class = analysis.get("CLASS")
-
-        if (voikko_class == "teonsana" and
-            analysis.get("MOOD") == "MINEN-infinitive"
-        ):
-            # MINEN infinitive
-            form = self._fst_form(analysis, self.minen_re, "minen")
-            if form:
-                return [NOUN]
-            else:
-                return [VERB]
-
-        elif (voikko_class in ["laatusana", "lukusana"] and
-              analysis.get("SIJAMUOTO") == "kerrontosti"
-        ):
-            form = self._fst_form(analysis, self.sti_re, "sti")
-            if form:
-                return [ADV]
-            else:
-                return [self.voikko_pos_to_upos[voikko_class]]
-
-        elif (voikko_class == "laatusana" and
-              analysis.get("PARTICIPLE") in ["past_active",
-                                             "past_passive",
-                                             "present_active",
-                                             "present_passive"]
-        ):
-            # VA, NUT and TU participles
-            return [VERB, ADJ]
-
-        elif (voikko_class == "nimisana" and
-              analysis.get("PARTICIPLE") == "agent"
-        ):
-            # agent participle
-            return [VERB]
-
-        elif voikko_class == "seikkasana" and orth.endswith("itse"):
-            return [ADV]
-
-        elif voikko_class == "sidesana":
-            return [CCONJ, SCONJ]
-
-        elif voikko_class == "teonsana":
-            return [AUX, VERB]
-
-        elif voikko_class == "nimisana_laatusana":
-            return [NOUN, ADJ]
-
-        elif voikko_class in self.voikko_pos_to_upos:
-            return [self.voikko_pos_to_upos[voikko_class]]
-
-        else:
-            return []
 
     def _fst_form(self, analysis, stem_re, suffix):
         fstoutput = analysis.get("FSTOUTPUT")
