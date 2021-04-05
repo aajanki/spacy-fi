@@ -752,10 +752,13 @@ class FinnishMorphologizer(Pipe):
 
         word = word[:-len(suffix)]
         if analysis.get("SIJAMUOTO") == "tulento" and word.endswith("e"):
-            # onne-kse-mme -> onne-ksi
+            # onne+kse+mme -> onne+ksi
             word = word[:-1] + "i"
         elif analysis.get("SIJAMUOTO") == "sisatulento":
-            # lapsee-ni -> lapseen
+            # lapsee+ni -> lapseen
+            word = word + "n"
+        elif suffix.startswith('n') and analysis.get("BASEFORM").endswith("n"):
+            # mukaa+ni -> mukaan
             word = word + "n"
 
         return word
