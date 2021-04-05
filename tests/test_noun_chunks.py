@@ -142,6 +142,9 @@ FI_NP_TEST_EXAMPLES = [
         [5, -1, 3, 2, 1, 0],
         ['Lain mukaan', 'varhaiskasvatus', 'suunnitelmallista toimintaa'],
     ),
+]
+
+FI_NP_TEST_EXAMPLES_APPOS = [
     (
         'Terveyden ja hyvinvoinnin laitos (THL) johtaa hanketta',
         ['NOUN', 'CCONJ', 'NOUN', 'NOUN', 'PUNCT', 'PROPN', 'PUNCT', 'VERB', 'NOUN'],
@@ -170,6 +173,19 @@ FI_NP_TEST_EXAMPLES_MULTI_SENTENCE = [
     "text,pos,deps,heads,expected_noun_chunks", FI_NP_TEST_EXAMPLES
 )
 def test_fi_noun_chunks(text, pos, deps, heads, expected_noun_chunks):
+    doc = get_doc_from_text(text, fi_tokenizer, pos=pos, heads=heads, deps=deps)
+    noun_chunks = list(doc.noun_chunks)
+
+    assert len(noun_chunks) == len(expected_noun_chunks)
+    for i, np in enumerate(noun_chunks):
+        assert np.text == expected_noun_chunks[i]
+
+
+@pytest.mark.xfail
+@pytest.mark.parametrize(
+    "text,pos,deps,heads,expected_noun_chunks", FI_NP_TEST_EXAMPLES_APPOS
+)
+def test_fi_noun_chunks_appos(text, pos, deps, heads, expected_noun_chunks):
     doc = get_doc_from_text(text, fi_tokenizer, pos=pos, heads=heads, deps=deps)
     noun_chunks = list(doc.noun_chunks)
 
