@@ -30,6 +30,7 @@ class FinnishMorphologizer(Pipe):
     minen_re = re.compile(r"\b(\w+)\[Tn4\]mi")
     sti_re = re.compile(r"\b(\w+)\[Ssti\]sti")
     ny_re = re.compile(r"\[X\]\[\w+\]\[Ny\](\w+)")
+    roman_numeral_structure_re = re.compile(r"=j+|=q+")
     voikko_cases = {
         "nimento":     "Case=Nom",
         "omanto":      "Case=Gen",
@@ -383,7 +384,7 @@ class FinnishMorphologizer(Pipe):
         elif token.pos in [ADP, CCONJ, SCONJ]:
             return orth_lower
         elif not "BASEFORM" in analysis:
-            if token.pos in [PROPN, SYM, X]:
+            if token.pos in [PROPN, INTJ, SYM, X]:
                 return token.orth_
             else:
                 return orth_lower
@@ -573,6 +574,10 @@ class FinnishMorphologizer(Pipe):
                 # either.
                 analyses = [x for x in analyses if "SIJAMUOTO" not in x] or analyses
 
+                # Prefer uppercase Roman numerals
+                if all(self.roman_numeral_structure_re.fullmatch(x.get("STRUCTURE", ""))
+                       for x in analyses):
+                    analyses = [x for x in analyses if "j" in x.get("STRUCTURE")]
 
             elif token.pos in [NOUN, PRON] and \
                  ((token.dep in self.nsubj_labels) or \
