@@ -418,6 +418,46 @@
         "keihin": "kuka",
         "keillä": "kuka",
         "keiltä": "kuka",
-        "keille": "kuka"
+        "keille": "kuka",
+
+	"kumpikin": "kumpikin",
+	"kummankin": "kumpikin",
+	"kumpaakin": "kumpikin",
+	"kumpanakin": "kumpikin",
+	"kummaksikin": "kumpikin",
+	"kummassakin": "kumpikin",
+	"kummastakin": "kumpikin",
+	"kumpaankin": "kumpikin",
+	"kummallakin": "kumpikin",
+	"kummaltakin": "kumpikin",
+	"kummallekin": "kumpikin",
+
+	"kumpikaan": "kumpikaan",
+	"kummankaan": "kumpikaan",
+	"kumpaakaan": "kumpikaan",
+	"kumpanakaan": "kumpikaan",
+	"kummaksikaan": "kumpikaan",
+	"kummassakaan": "kumpikaan",
+	"kummastakaan": "kumpikaan",
+	"kumpaankaan": "kumpikaan",
+	"kummallakaan": "kumpikaan",
+	"kummaltakaan": "kumpikaan",
+	"kummallekaan": "kumpikaan",
+
+	"kenenkään": "kukaan",
+	"keneksikään": "kukaan",
+	"kenessäkään": "kukaan",
+	"kenestäkään": "kukaan",
+	"keneenkään": "kukaan",
+	"kenelläkään": "kukaan",
+	"keneltäkään": "kukaan",
+	"kenellekään": "kukaan",
+
+	"miksikään": "mikään",
+	"missään": "mikään",
+	"mistään": "mikään",
+	"mihinkään": "mikään",
+	"millekään": "mikään",
+	"mitkään": "mikään"
     }
 }

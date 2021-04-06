@@ -164,7 +164,6 @@ class FinnishMorphologizer(Pipe):
         "muu":        "Ind",
         "kukaan":     "Ind",
         "mikään":     "Ind",
-        "kenenkään":  "Ind",
 
         "toinen":     "Rcp"
     }
@@ -486,10 +485,6 @@ class FinnishMorphologizer(Pipe):
         # Pronoun types
         if token.pos == PRON:
             base = analysis.get("BASEFORM")
-            if ((base == "kumpi" and token.orth_.lower() in ["kumpikin", "kumpikaan"]) or
-                (base == "ken" and token.orth_.lower() == "kenenkään")):
-                base = token.orth_.lower()
-
             if self._is_relative_pronoun(token, base):
                 analysis["PRONTYPE"] = "Rel"
             else:

@@ -377,6 +377,7 @@ testcases = {
         ('häneltä', ['hän']),
         ('häneltäkään', ['hän']),
         ('kehen', ['kuka']),
+        ('kenenkään', ['kukaan']),
         ('multa', ['minä']),
         ('sut', ['sinä']),
         ('sulle', ['sinä']),

@@ -79,6 +79,46 @@
         "suhunko": "Case=Ill|Clitic=Ko|Number=Sing|Person=2|PronType=Prs|Style=Coll",
         "sullako": "Case=Ade|Clitic=Ko|Number=Sing|Person=2|PronType=Prs|Style=Coll",
         "sultako": "Case=Abl|Clitic=Ko|Number=Sing|Person=2|PronType=Prs|Style=Coll",
-        "sulleko": "Case=All|Clitic=Ko|Number=Sing|Person=2|PronType=Prs|Style=Coll"
+        "sulleko": "Case=All|Clitic=Ko|Number=Sing|Person=2|PronType=Prs|Style=Coll",
+
+	"kumpikin": "Case=Nom|Number=Sing|PronType=Ind",
+	"kummankin": "Case=Gen|Number=Sing|PronType=Ind",
+	"kumpaakin": "Case=Par|Number=Sing|PronType=Ind",
+	"kumpanakin": "Case=Ess|Number=Sing|PronType=Ind",
+	"kummaksikin": "Case=Tra|Number=Sing|PronType=Ind",
+	"kummassakin": "Case=Ine|Number=Sing|PronType=Ind",
+	"kummastakin": "Case=Ela|Number=Sing|PronType=Ind",
+	"kumpaankin": "Case=Ill|Number=Sing|PronType=Ind",
+	"kummallakin": "Case=Ade|Number=Sing|PronType=Ind",
+	"kummaltakin": "Case=Abl|Number=Sing|PronType=Ind",
+	"kummallekin": "Case=All|Number=Sing|PronType=Ind",
+
+	"kumpikaan": "Case=Nom|Number=Sing|PronType=Ind",
+	"kummankaan": "Case=Gen|Number=Sing|PronType=Ind",
+	"kumpaakaan": "Case=Par|Number=Sing|PronType=Ind",
+	"kumpanakaan": "Case=Ess|Number=Sing|PronType=Ind",
+	"kummaksikaan": "Case=Tra|Number=Sing|PronType=Ind",
+	"kummassakaan": "Case=Ine|Number=Sing|PronType=Ind",
+	"kummastakaan": "Case=Ela|Number=Sing|PronType=Ind",
+	"kumpaankaan": "Case=Ill|Number=Sing|PronType=Ind",
+	"kummallakaan": "Case=Ade|Number=Sing|PronType=Ind",
+	"kummaltakaan": "Case=Abl|Number=Sing|PronType=Ind",
+	"kummallekaan": "Case=All|Number=Sing|PronType=Ind",
+
+	"kenenkään": "Case=Gen|Number=Sing|PronType=Ind",
+	"keneksikään": "Case=Tra|Number=Sing|PronType=Ind",
+	"kenessäkään": "Case=Ine|Number=Sing|PronType=Ind",
+	"kenestäkään": "Case=Ela|Number=Sing|PronType=Ind",
+	"keneenkään": "Case=Ill|Number=Sing|PronType=Ind",
+	"kenelläkään": "Case=Ade|Number=Sing|PronType=Ind",
+	"keneltäkään": "Case=Abl|Number=Sing|PronType=Ind",
+	"kenellekään": "Case=All|Number=Sing|PronType=Ind",
+
+	"miksikään": "Case=Tra|Number=Sing|PronType=Ind",
+	"missään": "Case=Ine|Number=Sing|PronType=Ind",
+	"mistään": "Case=Ela|Number=Sing|PronType=Ind",
+	"mihinkään": "Case=Ill|Number=Sing|PronType=Ind",
+	"millekään": "Case=All|Number=Sing|PronType=Ind",
+	"mitkään": "Case=Nom|Number=Plur|PronType=Ind"
     }
 }
