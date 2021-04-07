@@ -234,6 +234,7 @@ class FinnishMorphologizer(Pipe):
         # Run Voikko's analysis and convert the result to morph
         # features.
         morphology = []
+        vclass = analysis.get("CLASS")
 
         exc_table = self.lookups.get_table("morphologizer_exc", {}).get(token.pos, {})
         exc = exc_table.get(token.orth_)
@@ -241,12 +242,13 @@ class FinnishMorphologizer(Pipe):
             return exc
 
         # Abbr
-        if analysis.get("CLASS") == "lyhenne":
+        if vclass == "lyhenne":
             morphology.append("Abbr=Yes")
 
         # AdpType
-        if analysis.get("ADPTYPE"):
-            morphology.append(f"AdpType={analysis.get('ADPTYPE')}")
+        adp_type = analysis.get("ADPTYPE")
+        if adp_type:
+            morphology.append(f"AdpType={adp_type}")
 
         # Case
         if token.pos in (ADJ, AUX, NOUN, NUM, PRON, PROPN, VERB):
@@ -266,9 +268,13 @@ class FinnishMorphologizer(Pipe):
             morphology.append("Connegative=Yes")
 
         # Degree
-        morph_degree = self.voikko_degree.get(analysis.get("COMPARISON"))
-        if morph_degree:
-            morphology.append(morph_degree)
+        comparison = analysis.get("COMPARISON")
+        if token.pos in (AUX, ADJ, VERB):
+            morph_degree = self.voikko_degree.get(comparison)
+            if morph_degree:
+                morphology.append(morph_degree)
+        elif token.pos == ADV and comparison in ("comparative", "superlative"):
+            morphology.append(self.voikko_degree.get(comparison))
 
         # Foreign
         if token.tag == self.foreign_tag:
@@ -321,7 +327,7 @@ class FinnishMorphologizer(Pipe):
             morphology.append("Person[psor]=3")
 
         # Polarity
-        if analysis.get("CLASS") == "kieltosana":
+        if vclass == "kieltosana":
             morphology.append("Polarity=Neg")
 
         # PronType
