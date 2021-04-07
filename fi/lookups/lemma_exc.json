@@ -16,7 +16,9 @@
         "varsinkin": "varsinkin",
         "varsinkaan": "varsinkaan",
         "vieläkin": "vieläkin",
-        "vieläkään": "vieläkään"
+        "vieläkään": "vieläkään",
+	"paremmin": "hyvin",
+	"parhaiten": "hyvin"
     },
     "PRON": {
         "me": "minä",
