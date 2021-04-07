@@ -249,7 +249,7 @@ class FinnishMorphologizer(Pipe):
             morphology.append(f"AdpType={analysis.get('ADPTYPE')}")
 
         # Case
-        if token.pos in [ADJ, AUX, NOUN, NUM, PRON, PROPN, VERB]:
+        if token.pos in (ADJ, AUX, NOUN, NUM, PRON, PROPN, VERB):
             morph_case = self.voikko_cases.get(analysis.get("SIJAMUOTO"))
             if morph_case:
                 morphology.append(morph_case)
@@ -276,7 +276,7 @@ class FinnishMorphologizer(Pipe):
 
         # InfForm
         mood = analysis.get("MOOD")
-        if token.pos in [AUX, VERB]:
+        if token.pos in (AUX, VERB):
             morph_inf_form = self.voikko_inf_forms.get(mood)
             if morph_inf_form:
                 morphology.append(morph_inf_form)
@@ -299,14 +299,14 @@ class FinnishMorphologizer(Pipe):
 
         # PartForm
         participle = analysis.get("PARTICIPLE")
-        if token.pos in [AUX, VERB]:
+        if token.pos in (AUX, VERB):
             morph_part_form = self.voikko_part_form.get(participle)
             if morph_part_form:
                 morphology.append(morph_part_form)
 
         # Person
         person = analysis.get("PERSON")
-        if person in ["0", "1", "2", "3"]:
+        if person in ("0", "1", "2", "3"):
             morphology.append(f"Person={person}")
 
         # Person[psor], Number[psor]
@@ -339,24 +339,24 @@ class FinnishMorphologizer(Pipe):
             morphology.append(morph_tense)
 
         # VerbForm
-        if analysis.get("MOOD") in ["A-infinitive", "E-infinitive", "MA-infinitive"]:
+        if analysis.get("MOOD") in ("A-infinitive", "E-infinitive", "MA-infinitive"):
             morphology.append("VerbForm=Inf")
-        elif token.pos in [AUX, VERB] and participle:
+        elif token.pos in (AUX, VERB) and participle:
             morphology.append("VerbForm=Part")
-        elif token.pos in [AUX, VERB]:
+        elif token.pos in (AUX, VERB):
             morphology.append("VerbForm=Fin")
 
         # Voice
-        if token.pos in [AUX, VERB]:
-            if person in ["0", "1", "2", "3"]:
+        if token.pos in (AUX, VERB):
+            if person in ("0", "1", "2", "3"):
                 morphology.append("Voice=Act")
             elif person == "4":
                 morphology.append("Voice=Pass")
             elif "VOICE" in analysis:
                 morphology.append(f"Voice={analysis['VOICE']}")
-            elif participle in ["past_passive"]:
+            elif participle == "past_passive":
                 morphology.append("Voice=Pass")
-            elif participle in ["present_active", "past_active", "present_passive"]:
+            elif participle in ("present_active", "past_active", "present_passive"):
                 morphology.append("Voice=Act")
 
         return "|".join(morphology) if morphology else None
@@ -374,16 +374,16 @@ class FinnishMorphologizer(Pipe):
 
         # Some exceptions to Voikko's lemmatization algorithm to
         # better match UD lemmas
-        if token.pos in [AUX, VERB] and analysis.get("PARTICIPLE"):
+        if token.pos in (AUX, VERB) and analysis.get("PARTICIPLE"):
             return self._participle_lemma(analysis)
         elif token.pos == NOUN and analysis.get("MOOD") == "MINEN-infinitive":
             return self._fst_form(analysis, self.minen_re, "minen")
         elif token.pos == ADV:
             return self._adv_lemma(analysis, orth_lower)
-        elif token.pos in [ADP, CCONJ, SCONJ]:
+        elif token.pos in (ADP, CCONJ, SCONJ):
             return orth_lower
         elif not "BASEFORM" in analysis:
-            if token.pos in [PROPN, INTJ, SYM, X]:
+            if token.pos in (PROPN, INTJ, SYM, X):
                 return token.orth_
             else:
                 return orth_lower
@@ -411,7 +411,7 @@ class FinnishMorphologizer(Pipe):
         # Enrich Voikko's analysis with extra features
 
         # NumType
-        if analysis.get("CLASS") == "lukusana" and token.pos in [NUM, ADJ]:
+        if analysis.get("CLASS") == "lukusana" and token.pos in (NUM, ADJ):
             base = analysis.get("BASEFORM", "")
             if (base.endswith(".") or
                 base.endswith("s") or
@@ -430,7 +430,7 @@ class FinnishMorphologizer(Pipe):
             analysis["FOCUS"] = "ka"
 
         # connegative
-        if token.pos in [AUX, VERB] and analysis.get("TENSE") == "present_simple":
+        if token.pos in (AUX, VERB) and analysis.get("TENSE") == "present_simple":
             if (
                     # "en [ole]", "et [halua]", "ei [maksaisi]"
                     self._last_aux_is_negative(token.lefts) or
@@ -462,13 +462,13 @@ class FinnishMorphologizer(Pipe):
 
             if corr_person:
                 person = corr_person[0]
-                if person in ["1", "2", "3"]:
+                if person in ("1", "2", "3"):
                     analysis["VOICE"] = "Act"
                 elif person == "4":
                     analysis["VOICE"] = "Pass"
 
         # Abbreviation cases: YK:n, BKT:stä
-        if token.pos in [NOUN, PROPN] and "SIJAMUOTO" not in analysis:
+        if token.pos in (NOUN, PROPN) and "SIJAMUOTO" not in analysis:
             if ':' in token.orth_:
                 affix = token.orth_.rsplit(':', 1)[-1]
                 sijamuoto = self.affix_to_sijamuoto.get(affix)
@@ -497,7 +497,7 @@ class FinnishMorphologizer(Pipe):
                         analysis["PERSON"] = person
 
         # Cleanup extra features not in UD
-        if token.pos in [ADP, ADV, CCONJ, SCONJ, SYM, INTJ, X]:
+        if token.pos in (ADP, ADV, CCONJ, SCONJ, SYM, INTJ, X):
             if "NUMBER" in analysis:
                 del analysis["NUMBER"]
 
@@ -574,7 +574,7 @@ class FinnishMorphologizer(Pipe):
                        for x in analyses):
                     analyses = [x for x in analyses if "j" in x.get("STRUCTURE")]
 
-            elif token.pos in [NOUN, PRON] and \
+            elif token.pos in (NOUN, PRON) and \
                  ((token.dep in self.nsubj_labels) or \
                   (token.dep == conj and token.head.dep in self.nsubj_labels)):
                 # Subject is usually nominative, genetive or partitive
@@ -583,12 +583,12 @@ class FinnishMorphologizer(Pipe):
                     if x.get("SIJAMUOTO") in ["nimento", "omanto", "osanto"]
                 ] or analyses
 
-            elif token.pos in [NOUN, PRON] and \
+            elif token.pos in (NOUN, PRON) and \
                  (token.dep == obj or (token.dep == conj and token.head.dep == obj)):
                 # Object is usually partitive, accusative or genetive
                 analyses = [
                     x for x in analyses
-                    if x.get("SIJAMUOTO") in ["kohdanto", "omanto", "osanto"]
+                    if x.get("SIJAMUOTO") in ("kohdanto", "omanto", "osanto")
                 ] or analyses
 
             elif token.pos == ADJ:
@@ -604,29 +604,29 @@ class FinnishMorphologizer(Pipe):
         tpos = token.pos
         vclass = analysis.get("CLASS")
         return (
-            (tpos == ADJ and vclass in ["laatusana", "nimisana_laatusana"]) or
+            (tpos == ADJ and vclass in ("laatusana", "nimisana_laatusana")) or
 
-            (tpos == ADP and vclass in ["nimisana", "seikkasana", "suhdesana"]) or
+            (tpos == ADP and vclass in ("nimisana", "seikkasana", "suhdesana")) or
 
             (tpos == ADV and vclass == "seikkasana") or
-            (tpos == ADV and vclass in ["laatusana", "lukusana"] and
+            (tpos == ADV and vclass in ("laatusana", "lukusana") and
              analysis.get("SIJAMUOTO") == "kerrontosti") or
 
-            (tpos == AUX and vclass in ["teonsana", "kieltosana"]) or
+            (tpos == AUX and vclass in ("teonsana", "kieltosana")) or
 
             (tpos == CCONJ and vclass == "sidesana") or
 
             (tpos == INTJ and vclass == "huudahdussana") or
 
-            (tpos == NOUN and vclass in ["nimisana", "nimisana_laatusana", "lyhenne"]) or
+            (tpos == NOUN and vclass in ("nimisana", "nimisana_laatusana", "lyhenne")) or
             (tpos == NOUN and vclass == "teonsana" and
              analysis.get("MOOD") == "MINEN-infinitive") or
 
             (tpos == NUM and vclass == "lukusana") or
 
-            (tpos == PRON and vclass in ["asemosana", "nimisana", "nimisana_laatusana"]) or
+            (tpos == PRON and vclass in ("asemosana", "nimisana", "nimisana_laatusana")) or
 
-            (tpos == PROPN and vclass in ["nimi", "etunimi", "sukunimi", "paikannimi"]) or
+            (tpos == PROPN and vclass in ("nimi", "etunimi", "sukunimi", "paikannimi")) or
 
             (tpos == SCONJ and vclass == "sidesana") or
 
@@ -634,17 +634,17 @@ class FinnishMorphologizer(Pipe):
              not (analysis.get("MOOD") == "MINEN-infinitive")) or
             # VA, NUT and TU participles
             (tpos == VERB and vclass == "laatusana" and
-             analysis.get("PARTICIPLE") in ["past_active",
+             analysis.get("PARTICIPLE") in ("past_active",
                                             "past_passive",
                                             "present_active",
-                                            "present_passive"]) or
+                                            "present_passive")) or
             # agent participle
             (tpos == VERB and vclass == "nimisana" and analysis.get("PARTICIPLE") == "agent")
         )
 
     def _prefer_infinite_form(self, analyses):
         infinite = [x for x in analyses
-                    if "MOOD" in x and x["MOOD"] in ["A-infinitive", "E-infinitive", "MA-infinitive"]]
+                    if "MOOD" in x and x["MOOD"] in ("A-infinitive", "E-infinitive", "MA-infinitive")]
         return infinite or analyses
 
     def _prefer_indicative_form(self, analyses):
@@ -673,7 +673,7 @@ class FinnishMorphologizer(Pipe):
             return stem + suffix
 
     def _is_relative_pronoun(self, token, baseform):
-        if baseform in ["joka", "kuka", "mikä"]:
+        if baseform in ("joka", "kuka", "mikä"):
             relcl_head = self._relative_clause_head(token)
             if relcl_head is not None:
                 i = relcl_head.left_edge.i
