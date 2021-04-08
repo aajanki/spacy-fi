@@ -240,10 +240,11 @@ class FinnishMorphologizer(Pipe):
         morphology = []
         vclass = analysis.get("CLASS")
 
-        exc_table = self.lookups.get_table("morphologizer_exc", {}).get(token.pos, {})
-        exc = exc_table.get(token.orth_)
-        if exc:
-            return exc
+        exc_table = self.lookups.get_table("morphologizer_exc", {}).get(token.pos)
+        if exc_table is not None:
+            exc = exc_table.get(token.orth_)
+            if exc:
+                return exc
 
         # Abbr
         if vclass == "lyhenne":
@@ -372,11 +373,13 @@ class FinnishMorphologizer(Pipe):
         return "|".join(morphology) if morphology else None
 
     def lemmatize(self, token: Token, analysis: dict) -> str:
-        orth_lower = token.orth_.lower()
-        exc_table = self.lookups.get_table("lemma_exc", {}).get(token.pos, {})
-        exc = exc_table.get(orth_lower)
-        if exc:
-            return exc
+        cached_lower = None
+        exc_table = self.lookups.get_table("lemma_exc", {}).get(token.pos)
+        if exc_table is not None:
+            cached_lower = token.orth_.lower()
+            exc = exc_table.get(cached_lower)
+            if exc:
+                return exc
 
         # Some exceptions to Voikko's lemmatization algorithm to
         # better match UD lemmas
@@ -388,14 +391,15 @@ class FinnishMorphologizer(Pipe):
             # Lemma of inflected abbreviations: BBC:n, EU:ssa
             return token.orth_[:colon_i]
         elif token.pos == ADV:
-            return self._adv_lemma(analysis, orth_lower)
+            cached_lower = cached_lower or token.orth_.lower()
+            return self._adv_lemma(analysis, cached_lower)
         elif token.pos == ADP:
-            return orth_lower
+            return cached_lower or token.orth_.lower()
         elif not "BASEFORM" in analysis:
             if token.pos in (PROPN, INTJ, SYM, X):
                 return token.orth_
             else:
-                return orth_lower
+                return cached_lower or token.orth_.lower()
         else:
             return analysis["BASEFORM"]
 
