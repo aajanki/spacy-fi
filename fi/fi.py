@@ -372,15 +372,11 @@ class FinnishMorphologizer(Pipe):
         return "|".join(morphology) if morphology else None
 
     def lemmatize(self, token: Token, analysis: dict) -> str:
-        # Lemma of inflected abbreviations: BBC:n, EU:ssa
         orth_lower = token.orth_.lower()
         exc_table = self.lookups.get_table("lemma_exc", {}).get(token.pos, {})
         exc = exc_table.get(orth_lower)
         if exc:
             return exc
-
-        if token.pos not in (PUNCT, SYM, X) and ":" in orth_lower:
-            return token.orth_.rsplit(":", 1)[0]
 
         # Some exceptions to Voikko's lemmatization algorithm to
         # better match UD lemmas
@@ -388,6 +384,9 @@ class FinnishMorphologizer(Pipe):
             return self._participle_lemma(analysis)
         elif token.pos == NOUN and analysis.get("MOOD") == "MINEN-infinitive":
             return self._fst_form(analysis, self.minen_re, "minen")
+        elif token.pos in (NOUN, NUM, PROPN) and len(orth_lower) > 1 and ":" in orth_lower:
+            # Lemma of inflected abbreviations: BBC:n, EU:ssa
+            return token.orth_.rsplit(":", 1)[0]
         elif token.pos == ADV:
             return self._adv_lemma(analysis, orth_lower)
         elif token.pos in (ADP, CCONJ, SCONJ):
