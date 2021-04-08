@@ -420,7 +420,7 @@ class FinnishMorphologizer(Pipe):
         # Enrich Voikko's analysis with extra features
 
         # NumType
-        if analysis.get("CLASS") == "lukusana" and token.pos in (NUM, ADJ):
+        if token.pos in (NUM, ADJ) and analysis.get("CLASS") == "lukusana":
             base = analysis.get("BASEFORM", "")
             if (base.endswith(".") or
                 base.endswith("s") or
@@ -435,7 +435,8 @@ class FinnishMorphologizer(Pipe):
                 analysis["NUMTYPE"] = "Card"
 
         # "eikä" has the clitic "ka"
-        if analysis.get("CLASS") == "kieltosana" and token.orth_.lower().endswith("kä"):
+        if token.pos in (AUX, VERB) and analysis.get("CLASS") == "kieltosana" and \
+           token.orth_.lower().endswith("kä"):
             analysis["FOCUS"] = "ka"
 
         # connegative
@@ -510,7 +511,7 @@ class FinnishMorphologizer(Pipe):
             if "NUMBER" in analysis:
                 del analysis["NUMBER"]
 
-        if analysis.get("BASEFORM") == "ei":
+        if token.pos in (AUX, VERB) and analysis.get("BASEFORM") == "ei":
             # UD doesn't assign a mood for the negative verb
             del analysis["MOOD"]
 
