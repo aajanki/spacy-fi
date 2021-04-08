@@ -389,7 +389,7 @@ class FinnishMorphologizer(Pipe):
             return token.orth_.rsplit(":", 1)[0]
         elif token.pos == ADV:
             return self._adv_lemma(analysis, orth_lower)
-        elif token.pos in (ADP, CCONJ, SCONJ):
+        elif token.pos == ADP:
             return orth_lower
         elif not "BASEFORM" in analysis:
             if token.pos in (PROPN, INTJ, SYM, X):
