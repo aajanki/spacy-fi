@@ -242,7 +242,7 @@ class FinnishMorphologizer(Pipe):
 
         exc_table = self.lookups.get_table("morphologizer_exc", {}).get(token.pos)
         if exc_table is not None:
-            exc = exc_table.get(token.orth_)
+            exc = exc_table.get(token.orth_.lower())
             if exc:
                 return exc
 
