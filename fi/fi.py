@@ -201,12 +201,16 @@ class FinnishMorphologizer(Pipe):
         error_handler = self.get_error_handler()
         try:
             for token in doc:
-                analysis = self._analyze(token)
-                morph = self.voikko_morph(token, analysis)
-                if morph:
-                    token.set_morph(morph)
-                if self.overwrite_lemma or token.lemma == 0:
-                    token.lemma_ = self.lemmatize(token, analysis)
+                if token.pos == PUNCT:
+                    if self.overwrite_lemma or token.lemma == 0:
+                        token.lemma = token.orth
+                else:
+                    analysis = self._analyze(token)
+                    morph = self.voikko_morph(token, analysis)
+                    if morph:
+                        token.set_morph(morph)
+                    if self.overwrite_lemma or token.lemma == 0:
+                        token.lemma_ = self.lemmatize(token, analysis)
             return doc
         except Exception as e:
             error_handler(self.name, self, [doc], e)
