@@ -384,9 +384,9 @@ class FinnishMorphologizer(Pipe):
             return self._participle_lemma(analysis)
         elif token.pos == NOUN and analysis.get("MOOD") == "MINEN-infinitive":
             return self._fst_form(analysis, self.minen_re, "minen")
-        elif token.pos in (NOUN, NUM, PROPN) and len(orth_lower) > 1 and ":" in orth_lower:
+        elif token.pos in (NOUN, NUM, PROPN) and (colon_i := token.orth_.find(":")) > 0:
             # Lemma of inflected abbreviations: BBC:n, EU:ssa
-            return token.orth_.rsplit(":", 1)[0]
+            return token.orth_[:colon_i]
         elif token.pos == ADV:
             return self._adv_lemma(analysis, orth_lower)
         elif token.pos == ADP:
@@ -478,9 +478,10 @@ class FinnishMorphologizer(Pipe):
                     analysis["VOICE"] = "Pass"
 
         # Abbreviation cases: YK:n, BKT:stä
-        if token.pos in (NOUN, PROPN) and "SIJAMUOTO" not in analysis:
-            if ':' in token.orth_:
-                affix = token.orth_.rsplit(':', 1)[-1]
+        if token.pos in (NOUN, NUM, PROPN) and "SIJAMUOTO" not in analysis:
+            i = token.orth_.find(":")
+            if i > 0:
+                affix = token.orth_[(i+1):]
                 sijamuoto = self.affix_to_sijamuoto.get(affix)
                 if sijamuoto:
                     analysis["SIJAMUOTO"] = sijamuoto
