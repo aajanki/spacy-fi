@@ -45,7 +45,10 @@ class FinnishMorphologizer(Pipe):
         "ulkotulento": "Case=All",
         "vajanto":     "Case=Abe",
         "seuranto":    "Case=Com",
-        "keinonto":    "Case=Ins"
+        "keinonto":    "Case=Ins",
+        "kerrontosti": "Case=Nom"  # Should never occur. "kerrontosti"
+                                   # should only appear on ADVs, which
+                                   # don't have cases.
     }
     affix_to_sijamuoto = {
         "n":    "omanto",
