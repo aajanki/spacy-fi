@@ -773,31 +773,12 @@ class FinnishMorphologizer(Pipe):
         tpos = token.pos
         vclass = analysis["CLASS"]
         return (
-            (tpos == ADJ and vclass in ("laatusana", "nimisana_laatusana")) or
-
-            (tpos == ADP and vclass in ("nimisana", "seikkasana", "suhdesana")) or
-
-            (tpos == ADV and vclass == "seikkasana") or
-            (tpos == ADV and vclass in ("laatusana", "lukusana") and
-             analysis.get("SIJAMUOTO") == "kerrontosti") or
-
-            (tpos == AUX and vclass in ("teonsana", "kieltosana")) or
-
-            (tpos == CCONJ and vclass == "sidesana") or
-
-            (tpos == INTJ and vclass == "huudahdussana") or
-
             (tpos == NOUN and vclass in ("nimisana", "nimisana_laatusana", "lyhenne")) or
             (tpos == NOUN and vclass == "teonsana" and
              analysis.get("MOOD") == "MINEN-infinitive") or
 
-            (tpos == NUM and vclass == "lukusana") or
-
-            (tpos == PRON and vclass in ("asemosana", "nimisana", "nimisana_laatusana")) or
-
-            (tpos == PROPN and vclass in ("nimi", "etunimi", "sukunimi", "paikannimi")) or
-
-            (tpos == SCONJ and vclass == "sidesana") or
+            # agent participle
+            (tpos == VERB and vclass == "nimisana" and analysis.get("PARTICIPLE") == "agent") or
 
             (tpos == VERB and vclass == "teonsana" and
              not (analysis.get("MOOD") == "MINEN-infinitive")) or
@@ -807,8 +788,28 @@ class FinnishMorphologizer(Pipe):
                                             "past_passive",
                                             "present_active",
                                             "present_passive")) or
-            # agent participle
-            (tpos == VERB and vclass == "nimisana" and analysis.get("PARTICIPLE") == "agent")
+
+            (tpos == AUX and vclass in ("teonsana", "kieltosana")) or
+
+            (tpos == PRON and vclass in ("asemosana", "nimisana", "nimisana_laatusana")) or
+
+            (tpos == PROPN and vclass in ("nimi", "etunimi", "sukunimi", "paikannimi")) or
+
+            (tpos == ADV and vclass == "seikkasana") or
+            (tpos == ADV and vclass in ("laatusana", "lukusana") and
+             analysis.get("SIJAMUOTO") == "kerrontosti") or
+            
+            (tpos == ADJ and vclass in ("laatusana", "nimisana_laatusana")) or
+
+            (tpos == ADP and vclass in ("nimisana", "seikkasana", "suhdesana")) or
+
+            (tpos == CCONJ and vclass == "sidesana") or
+
+            (tpos == SCONJ and vclass == "sidesana") or
+
+            (tpos == NUM and vclass == "lukusana") or
+
+            (tpos == INTJ and vclass == "huudahdussana")
         )
 
     def _prefer_infinite_form(self, analyses):
