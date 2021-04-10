@@ -248,9 +248,14 @@ class FinnishMorphologizer(Pipe):
 
         # Clitic
         morph_clitic = None
-        focus = analysis.get("FOCUS")
-        if focus is not None:
-            morph_clitic = f"Clitic={focus.title()}"
+        if "FOCUS" in analysis:
+            focus = analysis["FOCUS"]
+            if focus == "kin":
+                morph_clitic = "Clitic=Kin"
+            elif focus == "kaan":
+                morph_clitic = "Clitic=Kaan"
+            elif focus == "ka":
+                morph_clitic = "Clitic=Ka"
         elif "KYSYMYSLIITE" in analysis:
             morph_clitic = "Clitic=Ko"
 
