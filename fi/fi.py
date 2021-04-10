@@ -388,7 +388,10 @@ class FinnishMorphologizer(Pipe):
                     morphology.append(morph_tense)
 
             # VerbForm
-            if analysis.get("MOOD") in ("A-infinitive", "E-infinitive", "MA-infinitive"):
+            if mood in ("A-infinitive",
+                        "E-infinitive",
+                        "MA-infinitive",
+                        "MAINEN-infinitive"):
                 morphology.append("VerbForm=Inf")
             elif participle:
                 morphology.append("VerbForm=Part")
