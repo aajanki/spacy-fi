@@ -238,7 +238,6 @@ class FinnishMorphologizer(Pipe):
         # Run Voikko's analysis and convert the result to morph
         # features.
         morphology = []
-        vclass = analysis.get("CLASS")
 
         exc_table = self.lookups.get_table("morphologizer_exc", {}).get(token.pos)
         if exc_table is not None:
@@ -246,119 +245,157 @@ class FinnishMorphologizer(Pipe):
             if exc:
                 return exc
 
-        # Abbr
-        if vclass == "lyhenne":
-            morphology.append("Abbr=Yes")
-
-        # AdpType
-        adp_type = analysis.get("ADPTYPE")
-        if adp_type:
-            morphology.append(f"AdpType={adp_type}")
-
-        # Case
-        if token.pos in (ADJ, AUX, NOUN, NUM, PRON, PROPN, VERB):
-            morph_case = self.voikko_cases.get(analysis.get("SIJAMUOTO"))
-            if morph_case:
-                morphology.append(morph_case)
+        # Pre-compute some frequent morphs to avoid code duplication.
+        # (Functions are not an option because the function call
+        # overhead is too high.)
 
         # Clitic
+        morph_clitic = None
         focus = analysis.get("FOCUS")
-        if focus:
-            morphology.append(f"Clitic={focus.title()}")
+        if focus is not None:
+            morph_clitic = f"Clitic={focus.title()}"
         elif "KYSYMYSLIITE" in analysis:
-            morphology.append("Clitic=Ko")
+            morph_clitic = "Clitic=Ko"
 
-        # Connegative
-        if "CONNEGATIVE" in analysis:
-            morphology.append("Connegative=Yes")
+        morph_number = None
+        morph_number_psor = None
+        morph_person_psor = None
+        if token.pos in (ADJ, ADP, ADV, AUX, NOUN, NUM, PRON, PROPN, VERB):
+            # Number
+            number = analysis.get("NUMBER")
+            if number == "singular":
+                morph_number = "Number=Sing"
+            elif number == "plural":
+                morph_number = "Number=Plur"
 
-        # Degree
-        comparison = analysis.get("COMPARISON")
-        if token.pos in (AUX, ADJ, VERB):
-            morph_degree = self.voikko_degree.get(comparison)
-            if morph_degree:
-                morphology.append(morph_degree)
-        elif token.pos == ADV and comparison in ("comparative", "superlative"):
-            morphology.append(self.voikko_degree.get(comparison))
+            # Number[psor] and Person[psor]
+            possessive = analysis.get("POSSESSIVE")
+            if possessive == "1s":
+                morph_number_psor = "Number[psor]=Sing"
+                morph_person_psor = "Person[psor]=1"
+            elif possessive == "1p":
+                morph_number_psor = "Number[psor]=Plur"
+                morph_person_psor = "Person[psor]=1"
+            elif possessive == "3":
+                morph_person_psor = "Person[psor]=3"
 
-        # Foreign
-        if token.tag == self.foreign_tag:
-            morphology.append('Foreign=Yes')
+        # Set morphs per POS
+        if token.pos in (ADJ, NOUN, PROPN):
+            # Abbr
+            if analysis.get("CLASS") == "lyhenne":
+                morphology.append("Abbr=Yes")
 
-        # InfForm
-        mood = analysis.get("MOOD")
-        if token.pos in (AUX, VERB):
+            # Case
+            morph_case = self.voikko_cases.get(analysis.get("SIJAMUOTO"))
+            if morph_case is not None:
+                morphology.append(morph_case)
+
+            # Clitic
+            if morph_clitic is not None:
+                morphology.append(morph_clitic)
+
+            # Degree
+            if token.pos == ADJ:
+                comparison = analysis.get("COMPARISON")
+                if comparison is not None:
+                    morphology.append(self.voikko_degree.get(comparison))
+
+            # Number
+            if morph_number is not None:
+                morphology.append(morph_number)
+
+            # Number[psor]
+            if morph_number_psor is not None:
+                morphology.append(morph_number_psor)
+
+            # NumType
+            if token.pos == ADJ:
+                num_type = analysis.get("NUMTYPE")
+                if num_type is not None:
+                    morphology.append(f'NumType={num_type}')
+
+            # Person[psor]
+            if morph_person_psor is not None:
+                morphology.append(morph_person_psor)
+
+        elif token.pos in (AUX, VERB):
+            vclass = analysis.get("CLASS")
+
+            # Abbr
+            if vclass == "lyhenne":
+                morphology.append("Abbr=Yes")
+
+            # Case
+            morph_case = self.voikko_cases.get(analysis.get("SIJAMUOTO"))
+            if morph_case is not None:
+                morphology.append(morph_case)
+
+            # Clitic
+            if morph_clitic is not None:
+                morphology.append(morph_clitic)
+            
+            # Connegative
+            if "CONNEGATIVE" in analysis:
+                morphology.append("Connegative=Yes")
+
+            # Degree
+            comparison = analysis.get("COMPARISON")
+            if comparison is not None:
+                morphology.append(self.voikko_degree.get(comparison))
+
+            # InfForm
+            mood = analysis.get("MOOD")
             morph_inf_form = self.voikko_inf_forms.get(mood)
-            if morph_inf_form:
+            if morph_inf_form is not None:
                 morphology.append(morph_inf_form)
 
-        # Mood
-        morph_mood = self.voikko_mood.get(mood)
-        if morph_mood:
-            morphology.append(morph_mood)
+            # Mood
+            morph_mood = self.voikko_mood.get(mood)
+            if morph_mood is not None:
+                morphology.append(morph_mood)
 
-        # Number
-        number = analysis.get("NUMBER")
-        if number == "singular":
-            morphology.append("Number=Sing")
-        elif number == "plural":
-            morphology.append("Number=Plur")
+            # Number
+            if morph_number is not None:
+                morphology.append(morph_number)
 
-        # NumType
-        if analysis.get("NUMTYPE"):
-            morphology.append(f'NumType={analysis.get("NUMTYPE")}')
+            # Number[psor]
+            if morph_number_psor is not None:
+                morphology.append(morph_number_psor)
 
-        # PartForm
-        participle = analysis.get("PARTICIPLE")
-        if token.pos in (AUX, VERB):
-            morph_part_form = self.voikko_part_form.get(participle)
-            if morph_part_form:
-                morphology.append(morph_part_form)
+            # PartForm
+            participle = analysis.get("PARTICIPLE")
+            if token.pos in (AUX, VERB):
+                morph_part_form = self.voikko_part_form.get(participle)
+                if morph_part_form:
+                    morphology.append(morph_part_form)
 
-        # Person
-        person = analysis.get("PERSON")
-        if person in ("0", "1", "2", "3"):
-            morphology.append(f"Person={person}")
+            # Person
+            person = analysis.get("PERSON")
+            if person in ("0", "1", "2", "3"):
+                morphology.append(f"Person={person}")
 
-        # Person[psor], Number[psor]
-        possessive = analysis.get("POSSESSIVE")
-        if possessive == "1p":
-            morphology.append("Number[psor]=Plur")
-            morphology.append("Person[psor]=1")
-        elif possessive == "1s":
-            morphology.append("Number[psor]=Sing")
-            morphology.append("Person[psor]=1")
-        elif possessive == "3":
-            morphology.append("Person[psor]=3")
+            # Person[psor]
+            if morph_person_psor is not None:
+                morphology.append(morph_person_psor)
 
-        # Polarity
-        if vclass == "kieltosana":
-            morphology.append("Polarity=Neg")
+            # Polarity
+            if vclass == "kieltosana":
+                morphology.append("Polarity=Neg")
 
-        # PronType
-        pron_type = analysis.get("PRONTYPE")
-        if pron_type:
-            morphology.append(f"PronType={pron_type}")
+            # Tense
+            morph_tense = self.voikko_tense.get(analysis.get("TENSE"))
+            if morph_tense is not None:
+                morphology.append(morph_tense)
 
-        # Reflex
-        if token.pos == PRON and analysis.get("BASEFORM") == "itse":
-            morphology.append("Reflex=Yes")
+            # VerbForm
+            if analysis.get("MOOD") in ("A-infinitive", "E-infinitive", "MA-infinitive"):
+                morphology.append("VerbForm=Inf")
+            elif participle:
+                morphology.append("VerbForm=Part")
+            else:
+                morphology.append("VerbForm=Fin")
 
-        # Tense
-        morph_tense = self.voikko_tense.get(analysis.get("TENSE"))
-        if morph_tense:
-            morphology.append(morph_tense)
-
-        # VerbForm
-        if analysis.get("MOOD") in ("A-infinitive", "E-infinitive", "MA-infinitive"):
-            morphology.append("VerbForm=Inf")
-        elif token.pos in (AUX, VERB) and participle:
-            morphology.append("VerbForm=Part")
-        elif token.pos in (AUX, VERB):
-            morphology.append("VerbForm=Fin")
-
-        # Voice
-        if token.pos in (AUX, VERB):
+            # Voice
             if person in ("0", "1", "2", "3"):
                 morphology.append("Voice=Act")
             elif person == "4":
@@ -369,6 +406,126 @@ class FinnishMorphologizer(Pipe):
                 morphology.append("Voice=Pass")
             elif participle in ("present_active", "past_active", "present_passive"):
                 morphology.append("Voice=Act")
+
+        elif token.pos == ADV:
+            # Abbr
+            if analysis.get("CLASS") == "lyhenne":
+                morphology.append("Abbr=Yes")
+
+            # Clitic
+            if morph_clitic is not None:
+                morphology.append(morph_clitic)
+
+            # Degree
+            comparison = analysis.get("COMPARISON")
+            if comparison in ("comparative", "superlative"):
+                morphology.append(self.voikko_degree.get(comparison))
+
+            # Number[psor]
+            if morph_number_psor is not None:
+                morphology.append(morph_number_psor)
+
+            # Person[psor]
+            if morph_person_psor is not None:
+                morphology.append(morph_person_psor)
+
+        elif token.pos == PRON:
+            # Case
+            morph_case = self.voikko_cases.get(analysis.get("SIJAMUOTO"))
+            if morph_case is not None:
+                morphology.append(morph_case)
+
+            # Clitic
+            if morph_clitic is not None:
+                morphology.append(morph_clitic)
+
+            # Degree
+            comparison = analysis.get("COMPARISON")
+            if comparison is not None:
+                morphology.append(self.voikko_degree.get(comparison))
+            
+            # Number
+            if morph_number is not None:
+                morphology.append(morph_number)
+
+            # Number[psor]
+            if morph_number_psor is not None:
+                morphology.append(morph_number_psor)
+
+            # Person
+            person = analysis.get("PERSON")
+            if person in ("0", "1", "2", "3"):
+                morphology.append(f"Person={person}")
+
+            # Person[psor]
+            if morph_person_psor is not None:
+                morphology.append(morph_person_psor)
+
+            # PronType
+            pron_type = analysis.get("PRONTYPE")
+            if pron_type is not None:
+                morphology.append(f"PronType={pron_type}")
+
+            # Reflex
+            if analysis.get("BASEFORM") == "itse":
+                morphology.append("Reflex=Yes")
+
+        elif token.pos in (CCONJ, SCONJ):
+            # Clitic
+            if morph_clitic is not None:
+                morphology.append(morph_clitic)
+
+        elif token.pos == NUM:
+            # Abbr
+            if analysis.get("CLASS") == "lyhenne":
+                morphology.append("Abbr=Yes")
+
+            # Case
+            morph_case = self.voikko_cases.get(analysis.get("SIJAMUOTO"))
+            if morph_case is not None:
+                morphology.append(morph_case)
+
+            # Clitic
+            if morph_clitic is not None:
+                morphology.append(morph_clitic)
+                
+            # Number
+            if morph_number is not None:
+                morphology.append(morph_number)
+
+            # NumType
+            num_type = analysis.get("NUMTYPE")
+            if num_type is not None:
+                morphology.append(f'NumType={num_type}')
+
+        elif token.pos == ADP:
+            # AdpType
+            adp_type = analysis.get("ADPTYPE")
+            if adp_type is not None:
+                morphology.append(f"AdpType={adp_type}")
+
+            # Clitic
+            if morph_clitic is not None:
+                morphology.append(morph_clitic)
+
+            # Number[psor]
+            if morph_number_psor is not None:
+                morphology.append(morph_number_psor)
+
+            # Person[psor]
+            if morph_person_psor is not None:
+                morphology.append(morph_person_psor)
+
+        elif token.pos == SYM:
+            # Case
+            morph_case = self.voikko_cases.get(analysis.get("SIJAMUOTO"))
+            if morph_case is not None:
+                morphology.append(morph_case)
+            
+        elif token.pos == X:
+            # Foreign
+            if token.tag == self.foreign_tag:
+                morphology.append('Foreign=Yes')
 
         return "|".join(morphology) if morphology else None
 
