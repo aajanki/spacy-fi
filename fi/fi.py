@@ -283,9 +283,11 @@ class FinnishMorphologizer(Pipe):
                 morphology.append("Abbr=Yes")
 
             # Case
-            morph_case = self.voikko_cases.get(analysis.get("SIJAMUOTO"))
-            if morph_case is not None:
-                morphology.append(morph_case)
+            sijamuoto = analysis.get("SIJAMUOTO")
+            if sijamuoto is not None:
+                morph_case = self.voikko_cases[sijamuoto]
+                if morph_case is not None:
+                    morphology.append(morph_case)
 
             # Clitic
             if morph_clitic is not None:
@@ -295,7 +297,7 @@ class FinnishMorphologizer(Pipe):
             if token.pos == ADJ:
                 comparison = analysis.get("COMPARISON")
                 if comparison is not None:
-                    morphology.append(self.voikko_degree.get(comparison))
+                    morphology.append(self.voikko_degree[comparison])
 
             # Number
             if morph_number is not None:
@@ -323,9 +325,11 @@ class FinnishMorphologizer(Pipe):
                 morphology.append("Abbr=Yes")
 
             # Case
-            morph_case = self.voikko_cases.get(analysis.get("SIJAMUOTO"))
-            if morph_case is not None:
-                morphology.append(morph_case)
+            sijamuoto = analysis.get("SIJAMUOTO")
+            if sijamuoto is not None:
+                morph_case = self.voikko_cases[sijamuoto]
+                if morph_case is not None:
+                    morphology.append(morph_case)
 
             # Clitic
             if morph_clitic is not None:
@@ -338,7 +342,7 @@ class FinnishMorphologizer(Pipe):
             # Degree
             comparison = analysis.get("COMPARISON")
             if comparison is not None:
-                morphology.append(self.voikko_degree.get(comparison))
+                morphology.append(self.voikko_degree[comparison])
 
             # InfForm and Mood
             # These are mutually exclusive and both are based on MOOD
@@ -377,9 +381,11 @@ class FinnishMorphologizer(Pipe):
                 morphology.append("Polarity=Neg")
 
             # Tense
-            morph_tense = self.voikko_tense.get(analysis.get("TENSE"))
-            if morph_tense is not None:
-                morphology.append(morph_tense)
+            tense = analysis.get("TENSE")
+            if tense is not None:
+                morph_tense = self.voikko_tense[tense]
+                if morph_tense is not None:
+                    morphology.append(morph_tense)
 
             # VerbForm
             if analysis.get("MOOD") in ("A-infinitive", "E-infinitive", "MA-infinitive"):
@@ -413,7 +419,7 @@ class FinnishMorphologizer(Pipe):
             # Degree
             comparison = analysis.get("COMPARISON")
             if comparison in ("comparative", "superlative"):
-                morphology.append(self.voikko_degree.get(comparison))
+                morphology.append(self.voikko_degree[comparison])
 
             # Number[psor]
             if morph_number_psor is not None:
@@ -425,9 +431,11 @@ class FinnishMorphologizer(Pipe):
 
         elif token.pos == PRON:
             # Case
-            morph_case = self.voikko_cases.get(analysis.get("SIJAMUOTO"))
-            if morph_case is not None:
-                morphology.append(morph_case)
+            sijamuoto = analysis.get("SIJAMUOTO")
+            if sijamuoto is not None:
+                morph_case = self.voikko_cases[sijamuoto]
+                if morph_case is not None:
+                    morphology.append(morph_case)
 
             # Clitic
             if morph_clitic is not None:
@@ -436,7 +444,7 @@ class FinnishMorphologizer(Pipe):
             # Degree
             comparison = analysis.get("COMPARISON")
             if comparison is not None:
-                morphology.append(self.voikko_degree.get(comparison))
+                morphology.append(self.voikko_degree[comparison])
             
             # Number
             if morph_number is not None:
@@ -475,9 +483,11 @@ class FinnishMorphologizer(Pipe):
                 morphology.append("Abbr=Yes")
 
             # Case
-            morph_case = self.voikko_cases.get(analysis.get("SIJAMUOTO"))
-            if morph_case is not None:
-                morphology.append(morph_case)
+            sijamuoto = analysis.get("SIJAMUOTO")
+            if sijamuoto is not None:
+                morph_case = self.voikko_cases[sijamuoto]
+                if morph_case is not None:
+                    morphology.append(morph_case)
 
             # Clitic
             if morph_clitic is not None:
@@ -512,9 +522,11 @@ class FinnishMorphologizer(Pipe):
 
         elif token.pos == SYM:
             # Case
-            morph_case = self.voikko_cases.get(analysis.get("SIJAMUOTO"))
-            if morph_case is not None:
-                morphology.append(morph_case)
+            sijamuoto = analysis.get("SIJAMUOTO")
+            if sijamuoto is not None:
+                morph_case = self.voikko_cases[sijamuoto]
+                if morph_case is not None:
+                    morphology.append(morph_case)
             
         elif token.pos == X:
             # Foreign
