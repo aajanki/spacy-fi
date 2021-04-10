@@ -234,8 +234,6 @@ class FinnishMorphologizer(Pipe):
     def voikko_morph(self, token: Token, analysis: dict) -> Optional[str]:
         # Run Voikko's analysis and convert the result to morph
         # features.
-        morphology = []
-
         exc_table = self.lookups.get_table("morphologizer_exc", {}).get(token.pos)
         if exc_table is not None:
             exc = exc_table.get(token.orth_.lower())
@@ -264,45 +262,43 @@ class FinnishMorphologizer(Pipe):
         morph_person_psor = None
         if token.pos in (ADJ, ADP, ADV, AUX, NOUN, NUM, PRON, PROPN, VERB):
             # Number
-            number = analysis.get("NUMBER")
-            if number == "singular":
-                morph_number = "Number=Sing"
-            elif number == "plural":
-                morph_number = "Number=Plur"
+            if "NUMBER" in analysis:
+                number = analysis["NUMBER"]
+                if number == "singular":
+                    morph_number = "Number=Sing"
+                elif number == "plural":
+                    morph_number = "Number=Plur"
 
             # Number[psor] and Person[psor]
-            possessive = analysis.get("POSSESSIVE")
-            if possessive == "1s":
-                morph_number_psor = "Number[psor]=Sing"
-                morph_person_psor = "Person[psor]=1"
-            elif possessive == "1p":
-                morph_number_psor = "Number[psor]=Plur"
-                morph_person_psor = "Person[psor]=1"
-            elif possessive == "3":
-                morph_person_psor = "Person[psor]=3"
+            if "POSSESSIVE" in analysis:
+                possessive = analysis["POSSESSIVE"]
+                if possessive == "1s":
+                    morph_number_psor = "Number[psor]=Sing"
+                    morph_person_psor = "Person[psor]=1"
+                elif possessive == "1p":
+                    morph_number_psor = "Number[psor]=Plur"
+                    morph_person_psor = "Person[psor]=1"
+                elif possessive == "3":
+                    morph_person_psor = "Person[psor]=3"
 
         # Set morphs per POS
+        morphology = []
         if token.pos in (ADJ, NOUN, PROPN):
             # Abbr
-            if analysis.get("CLASS") == "lyhenne":
+            if "CLASS" in analysis and analysis["CLASS"] == "lyhenne":
                 morphology.append("Abbr=Yes")
 
             # Case
-            sijamuoto = analysis.get("SIJAMUOTO")
-            if sijamuoto is not None:
-                morph_case = self.voikko_cases[sijamuoto]
-                if morph_case is not None:
-                    morphology.append(morph_case)
+            if "SIJAMUOTO" in analysis:
+                morphology.append(self.voikko_cases[analysis["SIJAMUOTO"]])
 
             # Clitic
             if morph_clitic is not None:
                 morphology.append(morph_clitic)
 
             # Degree
-            if token.pos == ADJ:
-                comparison = analysis.get("COMPARISON")
-                if comparison is not None:
-                    morphology.append(self.voikko_degree[comparison])
+            if token.pos == ADJ and "COMPARISON" in analysis:
+                morphology.append(self.voikko_degree[analysis["COMPARISON"]])
 
             # Number
             if morph_number is not None:
@@ -313,10 +309,8 @@ class FinnishMorphologizer(Pipe):
                 morphology.append(morph_number_psor)
 
             # NumType
-            if token.pos == ADJ:
-                num_type = analysis.get("NUMTYPE")
-                if num_type is not None:
-                    morphology.append(f'NumType={num_type}')
+            if token.pos == ADJ and "NUMTYPE" in analysis:
+                morphology.append(f'NumType={analysis["NUMTYPE"]}')
 
             # Person[psor]
             if morph_person_psor is not None:
@@ -330,11 +324,8 @@ class FinnishMorphologizer(Pipe):
                 morphology.append("Abbr=Yes")
 
             # Case
-            sijamuoto = analysis.get("SIJAMUOTO")
-            if sijamuoto is not None:
-                morph_case = self.voikko_cases[sijamuoto]
-                if morph_case is not None:
-                    morphology.append(morph_case)
+            if "SIJAMUOTO" in analysis:
+                morphology.append(self.voikko_cases[analysis["SIJAMUOTO"]])
 
             # Clitic
             if morph_clitic is not None:
@@ -345,14 +336,14 @@ class FinnishMorphologizer(Pipe):
                 morphology.append("Connegative=Yes")
 
             # Degree
-            comparison = analysis.get("COMPARISON")
-            if comparison is not None:
-                morphology.append(self.voikko_degree[comparison])
+            if "COMPARISON" in analysis:
+                morphology.append(self.voikko_degree[analysis["COMPARISON"]])
 
             # InfForm and Mood
             # These are mutually exclusive and both are based on MOOD
-            mood = analysis.get("MOOD")
-            if mood is not None:
+            mood = None
+            if "MOOD" in analysis:
+                mood = analysis["MOOD"]
                 morph_inf_form_or_mood = self.voikko_mood.get(mood)
                 if morph_inf_form_or_mood is not None:
                     morphology.append(morph_inf_form_or_mood)
@@ -366,16 +357,19 @@ class FinnishMorphologizer(Pipe):
                 morphology.append(morph_number_psor)
 
             # PartForm
-            participle = analysis.get("PARTICIPLE")
-            if participle is not None:
+            participle = None
+            if "PARTICIPLE" in analysis:
+                participle = analysis["PARTICIPLE"]
                 morph_part_form = self.voikko_part_form.get(participle)
                 if morph_part_form:
                     morphology.append(morph_part_form)
 
             # Person
-            person = analysis.get("PERSON")
-            if person in ("0", "1", "2", "3"):
-                morphology.append(f"Person={person}")
+            person = None
+            if "PERSON" in analysis:
+                person = analysis["PERSON"]
+                if person in ("0", "1", "2", "3"):
+                    morphology.append(f"Person={person}")
 
             # Person[psor]
             if morph_person_psor is not None:
@@ -386,11 +380,8 @@ class FinnishMorphologizer(Pipe):
                 morphology.append("Polarity=Neg")
 
             # Tense
-            tense = analysis.get("TENSE")
-            if tense is not None:
-                morph_tense = self.voikko_tense[tense]
-                if morph_tense is not None:
-                    morphology.append(morph_tense)
+            if "TENSE" in analysis:
+                morphology.append(self.voikko_tense[analysis["TENSE"]])
 
             # VerbForm
             if mood in ("A-infinitive",
@@ -398,7 +389,7 @@ class FinnishMorphologizer(Pipe):
                         "MA-infinitive",
                         "MAINEN-infinitive"):
                 morphology.append("VerbForm=Inf")
-            elif participle:
+            elif participle is not None:
                 morphology.append("VerbForm=Part")
             else:
                 morphology.append("VerbForm=Fin")
@@ -417,7 +408,7 @@ class FinnishMorphologizer(Pipe):
 
         elif token.pos == ADV:
             # Abbr
-            if analysis.get("CLASS") == "lyhenne":
+            if "CLASS" in analysis and analysis["CLASS"] == "lyhenne":
                 morphology.append("Abbr=Yes")
 
             # Clitic
@@ -425,9 +416,10 @@ class FinnishMorphologizer(Pipe):
                 morphology.append(morph_clitic)
 
             # Degree
-            comparison = analysis.get("COMPARISON")
-            if comparison in ("comparative", "superlative"):
-                morphology.append(self.voikko_degree[comparison])
+            if "COMPARISON" in analysis:
+                degree = analysis["COMPARISON"]
+                if degree in ("comparative", "superlative"):
+                    morphology.append(self.voikko_degree[degree])
 
             # Number[psor]
             if morph_number_psor is not None:
@@ -439,20 +431,16 @@ class FinnishMorphologizer(Pipe):
 
         elif token.pos == PRON:
             # Case
-            sijamuoto = analysis.get("SIJAMUOTO")
-            if sijamuoto is not None:
-                morph_case = self.voikko_cases[sijamuoto]
-                if morph_case is not None:
-                    morphology.append(morph_case)
+            if "SIJAMUOTO" in analysis:
+                morphology.append(self.voikko_cases[analysis["SIJAMUOTO"]])
 
             # Clitic
             if morph_clitic is not None:
                 morphology.append(morph_clitic)
 
             # Degree
-            comparison = analysis.get("COMPARISON")
-            if comparison is not None:
-                morphology.append(self.voikko_degree[comparison])
+            if "COMPARISON" in analysis:
+                morphology.append(self.voikko_degree[analysis["COMPARISON"]])
             
             # Number
             if morph_number is not None:
@@ -463,21 +451,21 @@ class FinnishMorphologizer(Pipe):
                 morphology.append(morph_number_psor)
 
             # Person
-            person = analysis.get("PERSON")
-            if person in ("0", "1", "2", "3"):
-                morphology.append(f"Person={person}")
+            if "PERSON" in analysis:
+                person = analysis["PERSON"]
+                if person in ("0", "1", "2", "3"):
+                    morphology.append(f"Person={person}")
 
             # Person[psor]
             if morph_person_psor is not None:
                 morphology.append(morph_person_psor)
 
             # PronType
-            pron_type = analysis.get("PRONTYPE")
-            if pron_type is not None:
-                morphology.append(f"PronType={pron_type}")
+            if "PRONTYPE" in analysis:
+                morphology.append(f"PronType={analysis['PRONTYPE']}")
 
             # Reflex
-            if analysis.get("BASEFORM") == "itse":
+            if "BASEFORM" in analysis and analysis["BASEFORM"] == "itse":
                 morphology.append("Reflex=Yes")
 
         elif token.pos in (CCONJ, SCONJ):
@@ -487,15 +475,12 @@ class FinnishMorphologizer(Pipe):
 
         elif token.pos == NUM:
             # Abbr
-            if analysis.get("CLASS") == "lyhenne":
+            if "CLASS" in analysis and analysis["CLASS"] == "lyhenne":
                 morphology.append("Abbr=Yes")
 
             # Case
-            sijamuoto = analysis.get("SIJAMUOTO")
-            if sijamuoto is not None:
-                morph_case = self.voikko_cases[sijamuoto]
-                if morph_case is not None:
-                    morphology.append(morph_case)
+            if "SIJAMUOTO" in analysis:
+                morphology.append(self.voikko_cases[analysis["SIJAMUOTO"]])
 
             # Clitic
             if morph_clitic is not None:
@@ -506,15 +491,13 @@ class FinnishMorphologizer(Pipe):
                 morphology.append(morph_number)
 
             # NumType
-            num_type = analysis.get("NUMTYPE")
-            if num_type is not None:
-                morphology.append(f'NumType={num_type}')
+            if "NUMTYPE" in analysis:
+                morphology.append(f'NumType={analysis["NUMTYPE"]}')
 
         elif token.pos == ADP:
             # AdpType
-            adp_type = analysis.get("ADPTYPE")
-            if adp_type is not None:
-                morphology.append(f"AdpType={adp_type}")
+            if "ADPTYPE" in analysis:
+                morphology.append(f"AdpType={analysis['ADPTYPE']}")
 
             # Clitic
             if morph_clitic is not None:
@@ -530,11 +513,8 @@ class FinnishMorphologizer(Pipe):
 
         elif token.pos == SYM:
             # Case
-            sijamuoto = analysis.get("SIJAMUOTO")
-            if sijamuoto is not None:
-                morph_case = self.voikko_cases[sijamuoto]
-                if morph_case is not None:
-                    morphology.append(morph_case)
+            if "SIJAMUOTO" in analysis:
+                morphology.append(self.voikko_cases[analysis["SIJAMUOTO"]])
             
         elif token.pos == X:
             # Foreign
@@ -554,7 +534,7 @@ class FinnishMorphologizer(Pipe):
 
         # Some exceptions to Voikko's lemmatization algorithm to
         # better match UD lemmas
-        if token.pos in (AUX, VERB) and analysis.get("PARTICIPLE"):
+        if token.pos in (AUX, VERB) and "PARTICIPLE" in analysis:
             return self._participle_lemma(analysis)
         elif token.pos == NOUN and analysis.get("MOOD") == "MINEN-infinitive":
             return self._fst_form(analysis, self.minen_re, "minen")
@@ -635,7 +615,7 @@ class FinnishMorphologizer(Pipe):
                     del analysis["NUMBER"]
 
         # correlated voice in verb chains
-        if token.pos == VERB and "PERSON" not in analysis and not analysis.get("CONNEGATIVE"):
+        if token.pos == VERB and "PERSON" not in analysis and "CONNEGATIVE" not in analysis:
             corr_person = None
             auxs = [t for t in token.lefts if t.dep == aux]
             if auxs:
@@ -787,8 +767,11 @@ class FinnishMorphologizer(Pipe):
             return {}
 
     def _analysis_has_compatible_pos(self, token, analysis):
+        if "CLASS" not in analysis:
+            return False
+
         tpos = token.pos
-        vclass = analysis.get("CLASS")
+        vclass = analysis["CLASS"]
         return (
             (tpos == ADJ and vclass in ("laatusana", "nimisana_laatusana")) or
 
@@ -834,7 +817,7 @@ class FinnishMorphologizer(Pipe):
         return infinite or analyses
 
     def _prefer_indicative_form(self, analyses):
-        indicative = [x for x in analyses if "MOOD" in x and x.get("MOOD") == "indicative"]
+        indicative = [x for x in analyses if "MOOD" in x and x["MOOD"] == "indicative"]
         return indicative or analyses
 
     def _prefer_active(self, analyses):
@@ -912,18 +895,18 @@ class FinnishMorphologizer(Pipe):
 
     def _adv_lemma(self, analysis, word):
         focus = analysis.get("FOCUS")
-        kysymysliite = analysis.get("KYSYMYSLIITE")
+        has_kysymysliite = "KYSYMYSLIITE" in analysis
 
-        if focus and kysymysliite:
+        if focus and has_kysymysliite:
             k = 2
-        elif focus or kysymysliite:
+        elif focus or has_kysymysliite:
             k = 1
         else:
             k = 0
         for _ in range(k):
             if focus and word.endswith(focus):
                 word = word[:-len(focus)]
-            elif kysymysliite and (word.endswith("ko") or word.endswith("kö")):
+            elif has_kysymysliite and (word.endswith("ko") or word.endswith("kö")):
                 word = word[:-2]
 
         if "POSSESSIVE" in analysis and analysis["POSSESSIVE"] != "3":
@@ -936,11 +919,8 @@ class FinnishMorphologizer(Pipe):
 
         Example: "kanssamme" -> "kanssa"
         """
-        suffixes = self.possessive_suffixes.get(analysis["POSSESSIVE"])
-        if not suffixes:
-            return word
-
-        suffix = next((s for s in suffixes if word.endswith(s)), None)
+        suffixes = self.possessive_suffixes[analysis["POSSESSIVE"]]
+        suffix = next((s for s in suffixes if word.endswith(s)))
         if not suffix:
             return word
 
