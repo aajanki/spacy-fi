@@ -537,7 +537,7 @@ class FinnishMorphologizer(Pipe):
         if token.pos in (AUX, VERB) and "PARTICIPLE" in analysis:
             return self._participle_lemma(analysis)
         elif token.pos == NOUN and analysis.get("MOOD") == "MINEN-infinitive":
-            return self._fst_form(analysis, self.minen_re, "minen")
+            return self._minen_noun_lemma(analysis)
         elif token.pos in (NOUN, NUM, PROPN) and (colon_i := token.orth_.find(":")) > 0:
             # Lemma of inflected abbreviations: BBC:n, EU:ssa
             return token.orth_[:colon_i]
@@ -825,22 +825,22 @@ class FinnishMorphologizer(Pipe):
         active = [x for x in analyses if x.get("PARTICIPLE") == "past_active"]
         return active or analyses
 
-    def _fst_form(self, analysis, stem_re, suffix):
+    def _minen_noun_lemma(self, analysis):
         fstoutput = analysis.get("FSTOUTPUT")
         ny_match = self.ny_re.search(fstoutput)
         if ny_match:
             return ny_match.group(1)
 
-        fst_match = stem_re.search(fstoutput)
+        fst_match = self.minen_re.search(fstoutput)
         if not fst_match:
             return None
 
         stem = fst_match.group(1)
         compounds = self.compound_re.findall(analysis.get("WORDBASES"))
         if len(compounds) > 1:
-            return "".join(compounds[:-1]) + stem + suffix
+            return "".join(compounds[:-1]) + stem + "minen"
         else:
-            return stem + suffix
+            return stem + "minen"
 
     def _is_relative_pronoun(self, token, baseform):
         if baseform in ("joka", "kuka", "mikä"):
