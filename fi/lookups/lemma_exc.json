@@ -461,5 +461,8 @@
 	"mihinkään": "mikään",
 	"millekään": "mikään",
 	"mitkään": "mikään"
+    },
+    "SCONJ": {
+	"sillä": "sillä"
     }
 }
