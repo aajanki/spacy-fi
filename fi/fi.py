@@ -28,7 +28,6 @@ class FinnishMorphologizer(Pipe):
     """
     compound_re = re.compile(r"\+(\w+)(?:\(\+?[\w=]+\))?")
     minen_re = re.compile(r"\b(\w+)\[Tn4\]mi")
-    sti_re = re.compile(r"\b(\w+)\[Ssti\]sti")
     ny_re = re.compile(r"\[X\]\[\w+\]\[Ny\](\w+)")
     roman_numeral_structure_re = re.compile(r"=j+|=q+")
     voikko_cases = {
@@ -86,16 +85,14 @@ class FinnishMorphologizer(Pipe):
         "comparative": "Degree=Cmp",
         "superlative": "Degree=Sup"
     }
-    voikko_inf_forms = {
+    voikko_mood = {
         "A-infinitive":  "InfForm=1",
         "E-infinitive":  "InfForm=2",
-        "MA-infinitive": "InfForm=3"
-    }
-    voikko_mood = {
-        "indicative":  "Mood=Ind",
-        "conditional": "Mood=Cnd",
-        "potential":   "Mood=Pot",
-        "imperative":  "Mood=Imp"
+        "MA-infinitive": "InfForm=3",
+        "indicative":    "Mood=Ind",
+        "conditional":   "Mood=Cnd",
+        "potential":     "Mood=Pot",
+        "imperative":    "Mood=Imp"
     }
     voikko_part_form = {
         "past_active":     "PartForm=Past",
@@ -343,16 +340,13 @@ class FinnishMorphologizer(Pipe):
             if comparison is not None:
                 morphology.append(self.voikko_degree.get(comparison))
 
-            # InfForm
+            # InfForm and Mood
+            # These are mutually exclusive and both are based on MOOD
             mood = analysis.get("MOOD")
-            morph_inf_form = self.voikko_inf_forms.get(mood)
-            if morph_inf_form is not None:
-                morphology.append(morph_inf_form)
-
-            # Mood
-            morph_mood = self.voikko_mood.get(mood)
-            if morph_mood is not None:
-                morphology.append(morph_mood)
+            if mood is not None:
+                morph_inf_form_or_mood = self.voikko_mood.get(mood)
+                if morph_inf_form_or_mood is not None:
+                    morphology.append(morph_inf_form_or_mood)
 
             # Number
             if morph_number is not None:
@@ -364,7 +358,7 @@ class FinnishMorphologizer(Pipe):
 
             # PartForm
             participle = analysis.get("PARTICIPLE")
-            if token.pos in (AUX, VERB):
+            if participle is not None:
                 morph_part_form = self.voikko_part_form.get(participle)
                 if morph_part_form:
                     morphology.append(morph_part_form)
