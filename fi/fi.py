@@ -559,7 +559,7 @@ class FinnishMorphologizer(Pipe):
         if '-' in orth:
             # Analyze only the head token on hyphenated compound
             # words.
-            parts = [x for x in orth.split('-') if x]
+            parts = [x for x in orth.rsplit('-', 1) if x]
             if parts:
                 orth = parts[-1]
         else:
