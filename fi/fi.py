@@ -11,7 +11,7 @@ from spacy.lookups import Lookups, load_lookups
 from spacy.pipeline.pipe import Pipe
 from spacy.scorer import Scorer
 from spacy.symbols import ADJ, ADP, ADV, AUX, CCONJ, INTJ, NOUN, NUM, PROPN
-from spacy.symbols import PRON, PUNCT, SCONJ, SYM, VERB, X
+from spacy.symbols import PRON, PUNCT, SCONJ, SPACE, SYM, VERB, X
 from spacy.symbols import acl, aux, cc, conj, cop, obj
 from spacy.tokens import Doc, Span, Token
 from spacy.training import Example, validate_examples
@@ -62,8 +62,9 @@ class MorphologizerLemmatizer(Pipe):
         PRON:  frozenset(["asemosana", "nimisana", "nimisana_laatusana"]),
         PROPN: frozenset(["nimi", "etunimi", "sukunimi", "paikannimi"]),
         SCONJ: frozenset(["sidesana"]),
-        VERB:  frozenset([]), # "teonsana" but it's more complicated than
-                             # that, see _analysis_has_compatible_pos()
+        VERB:  frozenset([]), # Would be "teonsana" but
+                              # MINEN-infinitives are treated as noun.
+                              # See _analysis_has_compatible_pos()
         SYM:   frozenset([]),
         X:     frozenset([])
     }
@@ -220,7 +221,7 @@ class MorphologizerLemmatizer(Pipe):
         error_handler = self.get_error_handler()
         try:
             for token in doc:
-                if token.pos == PUNCT:
+                if token.pos in (PUNCT, SPACE):
                     if self.overwrite_lemma or token.lemma == 0:
                         token.lemma = token.orth
                 else:
