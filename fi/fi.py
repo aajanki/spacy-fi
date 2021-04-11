@@ -612,7 +612,7 @@ class MorphologizerLemmatizer(Pipe):
                      self._last_aux_is_negative(t for t in token.head.children if t.i < token.i))
             ):
                 analysis["CONNEGATIVE"] = True
-                if analysis["MOOD"] == "imperative":
+                if analysis.get("MOOD") == "imperative":
                     analysis["MOOD"] = "indicative"
                 if "PERSON" in analysis and analysis["PERSON"] != "4":
                     del analysis["PERSON"]
@@ -643,7 +643,8 @@ class MorphologizerLemmatizer(Pipe):
                     analysis["FOCUS"] = "ka"
 
                 # UD doesn't assign a mood for the negative verb
-                del analysis["MOOD"]
+                if "MOOD" in analysis:
+                    del analysis["MOOD"]
 
         if token.pos in (NUM, ADJ):
             if analysis.get("CLASS") == "lukusana":
@@ -808,12 +809,12 @@ class MorphologizerLemmatizer(Pipe):
 
             or
 
-            (tpos == NOUN and vclass == "teonsana" and analysis["MOOD"] == "MINEN-infinitive")
+            (tpos == NOUN and vclass == "teonsana" and analysis.get("MOOD") == "MINEN-infinitive")
 
             or
 
             (tpos == VERB and (
-                (vclass == "teonsana" and analysis["MOOD"] != "MINEN-infinitive") or
+                (vclass == "teonsana" and analysis.get("MOOD") != "MINEN-infinitive") or
                 ("PARTICIPLE" in analysis and (
                     # agent participle
                     (vclass == "nimisana" and analysis["PARTICIPLE"] == "agent") or
@@ -823,8 +824,9 @@ class MorphologizerLemmatizer(Pipe):
 
             or
 
-            (tpos == ADV and (
-                vclass in ("laatusana", "lukusana") and analysis["SIJAMUOTO"] == "kerrontosti"))
+            (tpos == ADV and
+             vclass in ("laatusana", "lukusana") and
+             analysis.get("SIJAMUOTO") == "kerrontosti")
         )
 
     def _prefer_infinite_form(self, analyses):
