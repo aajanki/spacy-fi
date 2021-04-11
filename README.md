@@ -1,6 +1,6 @@
 # Experimental Finnish language model for spaCy
 
-Finnish language model for [spaCy](https://spacy.io/). The model contains POS tagger, dependency parser, word vectors, noun phrase extraction, token frequencies and a lemmatizer (libvoikko). See below for notes about NER.
+Finnish language model for [spaCy](https://spacy.io/). The model does POS tagging, dependency parsing, word vectors, noun phrase extraction, token frequencies, morphological features and lemmatization. The morphological features and lemmatization are based on [Voikko](https://voikko.puimula.org/).
 
 ## Install the Finnish language model
 
@@ -63,10 +63,11 @@ for t in doc:
     print(f'{t.lemma_}\t{t.pos_}')
 ```
 
-### Notes about the NER model
+### What about named entity recognizer (NER)?
 
-* The model is trained on a very specific domain (technology news) and its out-of-domain generalization is quite poor.
-* Distributing the NER model might not be possible because the training data license (CC BY-ND-NC) is incompatible with the lemmatizer license (GPL).
+An earlier version of this script optinally trained a NER model, but
+the current version does not. Mostly because the model was never very
+good and the training data potentially has licensing issues.
 
 ### Packaging and publishing
 
