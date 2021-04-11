@@ -1,3 +1,4 @@
+import pytest
 from itertools import chain
 from fi.fi import create_lookups_from_json_reader, FinnishMorphologizer
 from pathlib import Path
@@ -6,6 +7,7 @@ from spacy.tokens import Doc
 from spacy.vocab import Vocab
 
 
+XFAIL = 1
 testcases = {
     'NOUN': [
         ('tila', ['tila']),
@@ -84,7 +86,7 @@ testcases = {
         ('markkinavalvonnalla', ['markkinavalvonta']),
         ('yökerhossa', ['yökerho']),
         ('lähtökohdiltaan', ['lähtökohta']),
-        ('voimakeinoja', ['voimakeino']),
+        ('voimakeinoja', ['voimakeino'], XFAIL),
         ('keskiluokkaa', ['keskiluokka']),
         ('kirjoitusasulla', ['kirjoitusasu']),
         ('kansalaisuuskäsitteenä', ['kansalaisuuskäsite']),
@@ -170,7 +172,7 @@ testcases = {
         ('pinositte', ['pinota']),
         ('valaistuivat', ['valaistua']),
         ('jäi', ['jäädä']),
-        ('möksähti', ['möksähtää']),
+        ('möksähti', ['möksähtää'], XFAIL),
         ('pelastuimme', ['pelastua']),
 
         # past perfect
@@ -219,7 +221,7 @@ testcases = {
         ('neuvotelleet', ['neuvotella']),
 
         # VA-participle
-        ('valittava', ['valittaa']),
+        ('valittava', ['valittaa'], XFAIL),
         ('lapioiva', ['lapioida']),
         ('kestävä', ['kestää']),
         ('häiritsevät', ['häiritä']),
@@ -238,7 +240,7 @@ testcases = {
         ('ilkutte', ['ilkkua']),
         # av2
         ('lobbaatte', ['lobata']),
-        ('diggaavat', ['digata']),
+        ('diggaavat', ['digata'], XFAIL),
         # av3
         ('hyljit', ['hylkiä']),
         # av4
@@ -298,7 +300,7 @@ testcases = {
         ('kohta', ['kohta']),
         ('piankin', ['pian']),
         ('nopeasti', ['nopeasti']),
-        ('nopeammin', ['nopeasti']),
+        ('nopeammin', ['nopeasti'], XFAIL),
         ('useasti', ['useasti']),
         ('fyysisestikin', ['fyysisesti']),
         ('luonnollisestikaan', ['luonnollisesti']),
@@ -397,16 +399,26 @@ testcases = {
 }
 
 
-def check(cases, accept_less_common=True):
+def check(cases, case_filter=None, accept_less_common=True):
     nlp = Finnish()
     lemmatizer = FinnishMorphologizer(nlp.vocab)
     lemmatizer.initialize(
         lookups = create_lookups_from_json_reader(Path(__file__).parent.parent / 'fi' / 'lookups'))
-    expanded = list(chain.from_iterable(
-        [(word, lemmas, pos) for word, lemmas in words]
-        for pos, words in cases.items()
-    ))
-    
+
+    expanded = []
+    for pos, tokens in cases.items():
+        for test_case in tokens:
+            if (
+                    (case_filter is None and len(test_case) == 2)
+                    or
+                    (case_filter is not None and len(test_case) == 3 and test_case[2] == case_filter)
+            ):
+                word, lemmas = test_case[:2]
+                expanded.append((word, lemmas, pos))
+
+    if len(expanded) == 0:
+        return 0, 0.0
+
     failed = []
     for (word, lemmas, univ_pos) in expanded:
         if not accept_less_common:
@@ -422,14 +434,14 @@ def check(cases, accept_less_common=True):
     return failed, failed_proportion
 
 
-def test_lemmas(capsys):
+def test_lemmas():
     failed, failed_prop = check(testcases)
 
-    with capsys.disabled():
-        if failed_prop > 0:
-            print(f'Failure rate: {failed_prop*100:.1f} % ')
+    assert len(failed) == 0
 
-            for fail in failed:
-                print(f'{fail[0]} ({fail[1]})\t\tobserved: {fail[2]}\texpected: {fail[3][0]}')
 
-    assert failed_prop < 0.02
+@pytest.mark.xfail
+def test_lemmas_xfail():
+    failed, failed_prop = check(testcases, case_filter=XFAIL)
+
+    assert len(failed) == 0
