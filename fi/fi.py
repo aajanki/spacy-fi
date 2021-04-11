@@ -21,8 +21,8 @@ from voikko import libvoikko
 from zipfile import ZipFile
 
 
-class FinnishMorphologizer(Pipe):
-    """Pipeline component that assigns morphological features and a lemma to Docs.
+class MorphologizerLemmatizer(Pipe):
+    """Pipeline component that assigns morphological features and lemmas to Docs.
 
     The actual morphological analysis is done by libvoikko.
     """
@@ -957,7 +957,7 @@ class FinnishMorphologizer(Pipe):
         def morph_key_getter(token, attr):
             return getattr(token, attr).key
 
-        validate_examples(examples, "FinnishMorphologizer.score")
+        validate_examples(examples, "MorphologizerLemmatizer.score")
         results = {}
         results.update(Scorer.score_token_attr(examples, "morph", getter=morph_key_getter, **kwargs))
         results.update(Scorer.score_token_attr_per_feat(examples,
@@ -973,7 +973,7 @@ class FinnishMorphologizer(Pipe):
 
     def from_disk(
         self, path: Union[str, Path], *, exclude: Iterable[str] = SimpleFrozenList()
-    ) -> "FinnishMorphologizer":
+    ) -> "MorphologizerLemmatizer":
         deserialize = {"lookups": lambda p: self.lookups.from_disk(p)}
         util.from_disk(path, deserialize, exclude)
         return self
@@ -984,24 +984,24 @@ class FinnishMorphologizer(Pipe):
 
     def from_bytes(
         self, bytes_data: bytes, *, exclude: Iterable[str] = SimpleFrozenList()
-    ) -> "FinnishMorphologizer":
+    ) -> "MorphologizerLemmatizer":
         deserialize = {"lookups": lambda b: self.lookups.from_bytes(b)}
         util.from_bytes(bytes_data, deserialize, exclude)
         return self
 
 
 @Finnish.factory(
-    "morphologizer",
+    "morphologizer_lemmatizer",
     assigns=["token.morph", "token.lemma"],
     requires=["token.pos", "token.dep"],
     default_score_weights={"morph_acc": 1.0, "morph_per_feat": None, "lemma_acc": 0.0},
 )
-def make_morphologizer(
+def make_morphologizer_lemmatizer(
     nlp: Language,
     name: str,
     overwrite_lemma: bool = False
 ):
-    return FinnishMorphologizer(nlp.vocab, name, overwrite_lemma=overwrite_lemma)
+    return MorphologizerLemmatizer(nlp.vocab, name, overwrite_lemma=overwrite_lemma)
 
 
 class VrtZipCorpus:
