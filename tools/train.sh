@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-if [ "$1" == "--pretrain" ]; then
+if [ "${1:-}" == "--pretrain" ]; then
     DO_PRETRAIN=1
 else
     DO_PRETRAIN=0
