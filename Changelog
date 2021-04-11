@@ -1,5 +1,12 @@
 Finnish language model for spaCy
 
+Version 0.6.0, 2021-04-11
+
+* Improved tagging and parsing accuracy by pretraining
+* Improved lemmatization accuracy by better handling of ambiguous inflections
+* Morphological features (case, verb tense, person, etc.)
+* Properly set POS SPACE on whitespace tokens
+
 Version 0.5.0, 2021-03-14
 
 * Ported to spaCy 3.0. Does not support SpaCy 2.0 anymore.

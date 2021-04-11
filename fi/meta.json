@@ -1,9 +1,9 @@
 {
     "lang": "fi",
     "name": "experimental_web_md",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "requirements": ["voikko>=0.5"],
-    "description": "Finnish language model: POS tagger, dependency parser, lemmatizer",
+    "description": "Finnish language model: POS tagger, dependency parser, lemmatizer, morphological features",
     "author": "Antti Ajanki",
     "email": "antti.ajanki@iki.fi",
     "url": "https://github.com/aajanki/spacy-fi",
