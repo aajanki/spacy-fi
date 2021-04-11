@@ -1,1 +1,1 @@
-from .fi import FinnishExtended, FinnishMorphologizer
+from .fi import FinnishExtended, MorphologizerLemmatizer
