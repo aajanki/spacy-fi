@@ -192,6 +192,8 @@ class FinnishMorphologizer(Pipe):
         "te":         "2",
         "he":         "3"
     }
+    infinite_moods = frozenset([
+        "A-infinitive", "E-infinitive", "MA-infinitive", "MAINEN-infinitive"])
 
     def __init__(
             self,
@@ -404,10 +406,7 @@ class FinnishMorphologizer(Pipe):
                 morphology.append(self.voikko_tense[analysis["TENSE"]])
 
             # VerbForm
-            if mood in ("A-infinitive",
-                        "E-infinitive",
-                        "MA-infinitive",
-                        "MAINEN-infinitive"):
+            if mood in self.infinite_moods:
                 morphology.append("VerbForm=Inf")
             elif participle is not None:
                 morphology.append("VerbForm=Part")
@@ -830,7 +829,7 @@ class FinnishMorphologizer(Pipe):
 
     def _prefer_infinite_form(self, analyses):
         infinite = [x for x in analyses
-                    if "MOOD" in x and x["MOOD"] in ("A-infinitive", "E-infinitive", "MA-infinitive")]
+                    if "MOOD" in x and x["MOOD"] in self.infinite_moods]
         return infinite or analyses
 
     def _prefer_indicative_form(self, analyses):
