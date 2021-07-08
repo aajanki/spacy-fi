@@ -24,6 +24,8 @@ from zipfile import ZipFile
 class MorphologizerLemmatizer(Pipe):
     """Pipeline component that assigns morphological features and lemmas to Docs.
 
+    POS tags must have been assigned prior to this pipeline component.
+
     The actual morphological analysis is done by libvoikko.
     """
     compound_re = re.compile(r"\+(\w+)(?:\(\+?[\w=]+\))?")
@@ -156,7 +158,7 @@ class MorphologizerLemmatizer(Pipe):
         "kuinka":     "Int",
         "miksi":      "Int",
 
-        # The relative "joka" will be handled else where. Here "joka"
+        # The relative "joka" will be handled elsewhere. Here "joka"
         # is Voikko's lemmatization of jotakin, jollekin, jostakin, ...
         "joka":       "Ind",
         "kaikki":     "Ind",
@@ -536,10 +538,9 @@ class MorphologizerLemmatizer(Pipe):
             if "SIJAMUOTO" in analysis:
                 morphology.append(self.voikko_cases[analysis["SIJAMUOTO"]])
             
-        elif token.pos == X:
+        elif token.tag == self.foreign_tag:
             # Foreign
-            if token.tag == self.foreign_tag:
-                morphology.append('Foreign=Yes')
+            morphology.append('Foreign=Yes')
 
         return "|".join(morphology) if morphology else None
 
@@ -831,12 +832,11 @@ class MorphologizerLemmatizer(Pipe):
         )
 
     def _prefer_infinite_form(self, analyses):
-        infinite = [x for x in analyses
-                    if "MOOD" in x and x["MOOD"] in self.infinite_moods]
+        infinite = [x for x in analyses if x.get("MOOD") in self.infinite_moods]
         return infinite or analyses
 
     def _prefer_indicative_form(self, analyses):
-        indicative = [x for x in analyses if "MOOD" in x and x["MOOD"] == "indicative"]
+        indicative = [x for x in analyses if x.get("MOOD") == "indicative"]
         return indicative or analyses
 
     def _prefer_active(self, analyses):
