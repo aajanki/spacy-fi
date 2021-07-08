@@ -790,6 +790,11 @@ class MorphologizerLemmatizer(Pipe):
                     if x.get("SIJAMUOTO") in ("kohdanto", "omanto", "osanto")
                 ] or analyses
 
+            elif token.pos == NOUN:
+                # Prefer non-compound words.
+                # e.g. "asemassa" will be lemmatized as "asema", not "ase#massa"
+                analyses = sorted(analyses, key=self._is_compound_word)
+
             elif token.pos == ADJ:
                 # Prefer laatusana over nimisana_laatusana
                 analyses = [x for x in analyses if x.get("CLASS") == "laatusana"] or analyses
@@ -955,6 +960,10 @@ class MorphologizerLemmatizer(Pipe):
             word = word + "n"
 
         return word
+
+    def _is_compound_word(self, analysis):
+        structure = analysis.get('STRUCTURE', '')
+        return structure.count('=') > 1
 
     def score(self, examples, **kwargs):
         def morph_key_getter(token, attr):
