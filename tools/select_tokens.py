@@ -65,7 +65,7 @@ def select_vectors(vectors_loc, selected_tokens):
     print(f'Number of tokens without a vector: {n}')
 
     selected_wv = KeyedVectors(wv.vector_size)
-    selected_wv.add(tokens, vectors)
+    selected_wv.add_vectors(tokens, vectors)
     return selected_wv
 
 
