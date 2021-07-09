@@ -27,9 +27,13 @@ for t in doc:
 
 ### Setup a development environment
 
-Install [the libvoikko native library with Finnish morphology data files](https://voikko.puimula.org/python.html).
-
 ```sh
+# Install the libvoikko native library with Finnish morphology data.
+#
+# This will install Voikko on Debian/Ubuntu.
+# For other distros and operating systems, see https://voikko.puimula.org/python.html
+sudo apt install libvoikko1 voikko-fi
+
 python3 -m venv .venv
 source .venv/bin/activate
 pip install wheel
@@ -42,6 +46,12 @@ tools/download_data.sh
 
 ```sh
 tools/train.sh
+```
+
+To perform full pretraining (slow!), append the `--pretrain` option:
+
+```sh
+tools/train.sh --pretrain
 ```
 
 ### Tests
