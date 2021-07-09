@@ -74,7 +74,7 @@ spacy debug data fi.cfg --code-path fi/fi.py
 
 if [ $DO_PRETRAIN -ne 0 ]; then
     echo "Pretrain"
-    rm -r models/pretrain
+    rm -rf models/pretrain
     spacy pretrain fi.cfg models/pretrain --code fi/fi.py
 
     cp models/pretrain/models300.bin pretrain/weights.bin
