@@ -1,5 +1,10 @@
 Finnish language model for spaCy
 
+Version 0.7.0, 2021-07-12
+
+* Compatibility with spaCy v3.1
+* Minor improvements to analysis: prefer non-compound words
+
 Version 0.6.0, 2021-04-11
 
 * Improved tagging and parsing accuracy by pretraining

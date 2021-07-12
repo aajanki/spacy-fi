@@ -11,6 +11,15 @@ Next, install the model by running:
 pip install spacy_fi_experimental_web_md
 ```
 
+Compatibility with spaCy versions:
+
+| spacy-fi version | Compatible with spaCy version |
+| ---------------- | ----------------------------- |
+| 0.7.0            | 3.0.x, 3.1.x                  |
+| 0.6.0            | 3.0.x                         |
+| 0.5.0            | 3.0.x                         |
+| 0.4.x            | 2.3.x                         |
+
 ## Usage
 
 ```python

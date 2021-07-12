@@ -1,6 +1,6 @@
 # Packaging
 
-Remember to change the version in meta.json!
+Remember to change the version in [fi/meta.json](fi/meta.json)!
 
 ```sh
 tools/package_model.sh models/taggerparser/model-best
