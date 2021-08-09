@@ -4,11 +4,7 @@ set -eu
 
 mkdir -p data/raw
 
-echo "Downloading UD_Finnish-TDT"
-git clone --branch r2.7 --single-branch --depth 1 https://github.com/UniversalDependencies/UD_Finnish-TDT data/raw/UD_Finnish-TDT
-
-echo "Downloading finer-data"
-git clone https://github.com/mpsilfve/finer-data.git data/raw/finer-data
+git submodule update --init
 
 echo "Downloading word vectors"
 mkdir -p data/raw/word2vec

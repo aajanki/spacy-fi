@@ -21,7 +21,7 @@ for dataset in train dev test
 do
     mkdir -p data/train/parser/$dataset
     python tools/preprocess_UD-TDT.py \
-	   < data/raw/UD_Finnish-TDT/fi_tdt-ud-$dataset.conllu \
+	   < submodules/UD_Finnish-TDT/fi_tdt-ud-$dataset.conllu \
 	   > data/preprocessed/UD_Finnish-TDT/fi_tdt-ud-$dataset.conllu
 
     spacy convert --lang fi -n 6 data/preprocessed/UD_Finnish-TDT/fi_tdt-ud-$dataset.conllu data/train/parser/$dataset
@@ -30,7 +30,7 @@ done
 echo "Convert NER data"
 for f in digitoday.2014.train.csv digitoday.2014.dev.csv digitoday.2015.test.csv wikipedia.test.csv
 do
-    python tools/preprocess_finer.py < data/raw/finer-data/data/$f > data/preprocessed/finer-data/$f
+    python tools/preprocess_finer.py < submodules/finer-data/data/$f > data/preprocessed/finer-data/$f
 done
 
 rm -rf data/train/ner/*
