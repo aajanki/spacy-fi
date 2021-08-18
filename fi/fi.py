@@ -559,8 +559,9 @@ class MorphologizerLemmatizer(Pipe):
             return self._participle_lemma(analysis)
         elif token.pos == NOUN and analysis.get("MOOD") == "MINEN-infinitive":
             return self._minen_noun_lemma(analysis)
-        elif token.pos in (NOUN, NUM, PROPN) and (colon_i := token.orth_.find(":")) > 0:
-            # Lemma of inflected abbreviations: BBC:n, EU:ssa
+        elif token.pos in (NOUN, NUM, PROPN) and ':' in token.orth_:
+            # Lemma of an inflected abbreviation: BBC:n -> BCC, EU:ssa -> EU
+            colon_i = token.orth_.find(":")
             return token.orth_[:colon_i]
         elif token.pos == ADV:
             cached_lower = cached_lower or token.orth_.lower()
