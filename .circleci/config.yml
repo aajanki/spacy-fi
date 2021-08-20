@@ -29,4 +29,6 @@ jobs:
           pkg-manager: pip
       - run:
           name: Run tests
-          command: python -m pytest tests
+          command: python -m pytest tests --junit-xml=test-results/report.xml
+      - store_test_results:
+          path: test-results
