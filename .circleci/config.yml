@@ -1,0 +1,32 @@
+version: 2.1
+
+orbs:
+  python: circleci/python@1.4
+
+workflows:
+  main:
+    jobs:
+      - test:
+          matrix:
+            parameters:
+              pyversion: ["3.7", "3.8", "3.9"]
+
+jobs:
+  test:
+    parameters:
+        pyversion:
+            type: string
+    docker:
+      - image: cimg/python:<< parameters.pyversion >>
+    steps:
+      - run:
+          name: Install Voikko
+          command: |
+            sudo apt update
+            sudo apt install libvoikko1 voikko-fi
+      - checkout
+      - python/install-packages:
+          pkg-manager: pip
+      - run:
+          name: Run tests
+          command: python -m pytest tests
