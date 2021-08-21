@@ -5,7 +5,6 @@ import json
 import math
 import sys
 import typer
-from itertools import islice
 from pathlib import Path
 
 

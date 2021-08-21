@@ -48,7 +48,7 @@ class MorphologizerLemmatizer(Pipe):
         "vajanto":     "Case=Abe",
         "seuranto":    "Case=Com",
         "keinonto":    "Case=Ins",
-        "kerrontosti": "Case=Nom"  # Should never occur. "kerrontosti"
+        "kerrontosti": "Case=Nom"  # Should not occur. "kerrontosti"
                                    # should only appear on ADVs, which
                                    # don't have cases.
     }
@@ -64,9 +64,9 @@ class MorphologizerLemmatizer(Pipe):
         PRON:  frozenset(["asemosana", "nimisana", "nimisana_laatusana"]),
         PROPN: frozenset(["nimi", "etunimi", "sukunimi", "paikannimi"]),
         SCONJ: frozenset(["sidesana"]),
-        VERB:  frozenset([]), # Would be "teonsana" but
-                              # MINEN-infinitives are treated as noun.
-                              # See _analysis_has_compatible_pos()
+        VERB:  frozenset([]),  # Would be "teonsana" except that
+                               # MINEN-infinitives are treated as nouns.
+                               # See _analysis_has_compatible_pos()
         SYM:   frozenset([]),
         X:     frozenset([])
     }
@@ -355,7 +355,7 @@ class MorphologizerLemmatizer(Pipe):
             # Clitic
             if morph_clitic is not None:
                 morphology.append(morph_clitic)
-            
+
             # Connegative
             if "CONNEGATIVE" in analysis:
                 morphology.append("Connegative=Yes")
@@ -463,7 +463,7 @@ class MorphologizerLemmatizer(Pipe):
             # Degree
             if "COMPARISON" in analysis:
                 morphology.append(self.voikko_degree[analysis["COMPARISON"]])
-            
+
             # Number
             if morph_number is not None:
                 morphology.append(morph_number)
@@ -507,7 +507,7 @@ class MorphologizerLemmatizer(Pipe):
             # Clitic
             if morph_clitic is not None:
                 morphology.append(morph_clitic)
-                
+
             # Number
             if morph_number is not None:
                 morphology.append(morph_number)
@@ -537,7 +537,7 @@ class MorphologizerLemmatizer(Pipe):
             # Case
             if "SIJAMUOTO" in analysis:
                 morphology.append(self.voikko_cases[analysis["SIJAMUOTO"]])
-            
+
         elif token.tag == self.foreign_tag:
             # Foreign
             morphology.append('Foreign=Yes')
@@ -568,7 +568,7 @@ class MorphologizerLemmatizer(Pipe):
             return self._adv_lemma(analysis, cached_lower)
         elif token.pos == ADP:
             return cached_lower or token.orth_.lower()
-        elif not "BASEFORM" in analysis:
+        elif "BASEFORM" not in analysis:
             if token.pos in (PROPN, INTJ, SYM, X):
                 return token.orth_
             else:
@@ -704,7 +704,7 @@ class MorphologizerLemmatizer(Pipe):
         if token.pos in (NOUN, NUM, PROPN) and "SIJAMUOTO" not in analysis:
             i = token.orth_.find(":")
             if i > 0:
-                affix = token.orth_[(i+1):]
+                affix = token.orth_[(i + 1):]
                 sijamuoto = self.affix_to_sijamuoto.get(affix)
                 if sijamuoto:
                     analysis["SIJAMUOTO"] = sijamuoto
@@ -775,7 +775,7 @@ class MorphologizerLemmatizer(Pipe):
                     analyses = [x for x in analyses if "j" in x.get("STRUCTURE")]
 
             elif token.pos in (NOUN, PRON) and \
-                 ((token.dep in self.nsubj_labels) or \
+                 ((token.dep in self.nsubj_labels) or
                   (token.dep == conj and token.head.dep in self.nsubj_labels)):
                 # Subject is usually nominative, genetive or partitive
                 analyses = [
@@ -1073,7 +1073,6 @@ class VrtZipCorpus:
                     i += 1
                     if self.limit >= 1 and i >= self.limit:
                         return
-
 
     def vrt_extract_documents(self, fileobj):
         tokens = []

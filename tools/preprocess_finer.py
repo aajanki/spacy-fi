@@ -3,7 +3,7 @@ import sys
 
 def main():
     keep_tags = ['B-ORG', 'I-ORG', 'B-LOC', 'I-LOC', 'B-PER', 'I-PER', 'O']
-    
+
     sentence_boundary = True
     for line in sys.stdin:
         if line == '\n' or line == '\t\t\n':
@@ -18,7 +18,7 @@ def main():
             cols = line.split('\t')
             tag = cols[1] if cols[1] in keep_tags else 'O'
             outcols = [cols[0], tag]
-            
+
             sys.stdout.write('\t'.join(outcols))
             sys.stdout.write('\n')
 
