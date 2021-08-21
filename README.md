@@ -1,3 +1,5 @@
+[![CI status](https://circleci.com/gh/aajanki/spacy-fi/tree/master.svg?style=shield)](https://circleci.com/gh/aajanki/spacy-fi/tree/master)
+
 # Experimental Finnish language model for spaCy
 
 Finnish language model for [spaCy](https://spacy.io/). The model does POS tagging, dependency parsing, word vectors, noun phrase extraction, token frequencies, morphological features and lemmatization. The morphological features and lemmatization are based on [Voikko](https://voikko.puimula.org/).
@@ -15,7 +17,7 @@ Compatibility with spaCy versions:
 
 | spacy-fi version | Compatible with spaCy version |
 | ---------------- | ----------------------------- |
-| 0.7.0            | 3.0.x, 3.1.x                  |
+| 0.7.x            | 3.0.x, 3.1.x                  |
 | 0.6.0            | 3.0.x                         |
 | 0.5.0            | 3.0.x                         |
 | 0.4.x            | 2.3.x                         |
@@ -84,9 +86,10 @@ for t in doc:
 
 ### What about named entity recognizer (NER)?
 
-An earlier version of this script optinally trained a NER model, but
-the current version does not. Mostly because the model was never very
-good and the training data potentially has licensing issues.
+The [feature branch
+feature/ner](https://github.com/aajanki/spacy-fi/tree/feature/ner) has
+training scripts for a NER model. It's not merged in the main branch
+because the accuracy is quite poor.
 
 ### Packaging and publishing
 

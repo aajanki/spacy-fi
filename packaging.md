@@ -6,6 +6,13 @@ Remember to change the version in [fi/meta.json](fi/meta.json)!
 tools/package_model.sh models/taggerparser/model-best
 ```
 
+To override the default spaCy compatibility specification, add a new
+spec as the second paramter:
+
+```sh
+tools/package_model.sh models/taggerparser/model-best ">=3.0.0,<3.2.0"
+```
+
 ## Publishing
 
 ```sh

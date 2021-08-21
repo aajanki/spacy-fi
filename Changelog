@@ -1,5 +1,9 @@
 Finnish language model for spaCy
 
+Version 0.7.1, 2021-08-21
+
+* Works on Python 3.7 again
+
 Version 0.7.0, 2021-07-12
 
 * Compatibility with spaCy v3.1
