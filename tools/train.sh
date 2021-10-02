@@ -45,14 +45,14 @@ spacy convert --lang fi -n 6 -c ner data/preprocessed/finer-data/wikipedia.test.
 echo "Preparing vectors"
 mkdir -p data/train/frequencies
 mkdir -p data/train/word2vec
-python tools/select_tokens.py --num-tokens 500000 \
+python tools/select_tokens.py --num-tokens 1000000 \
        data/raw/frequencies/finnish_vocab.txt.gz \
        data/raw/word2vec/finnish_4B_parsebank_skgram.bin \
-       data/train/frequencies/finnish_vocab_500k.txt.gz \
-       data/train/word2vec/finnish_500k_parsebank.txt.gz
+       data/train/frequencies/finnish_vocab_1M.txt.gz \
+       data/train/word2vec/finnish_1M_parsebank.txt.gz
 
 spacy init vectors fi \
-      data/train/word2vec/finnish_500k_parsebank.txt.gz \
+      data/train/word2vec/finnish_1M_parsebank.txt.gz \
       data/train/vectors \
       --prune 20000 \
       --name fi_exp_web_md.vectors
@@ -62,7 +62,7 @@ mkdir -p data/train/vocab
 rm -rf data/train/vocab/*
 python tools/create_lexdata.py \
        data/raw/frequencies/finnish_vocab.txt.gz \
-       data/train/frequencies/finnish_vocab_500k.txt.gz \
+       data/train/frequencies/finnish_vocab_1M.txt.gz \
        > data/train/vocab/vocab-data.jsonl
 
 echo "Validating tagger and parser training and dev data"
