@@ -197,6 +197,11 @@ class MorphologizerLemmatizer(Pipe):
     }
     infinite_moods = frozenset([
         "A-infinitive", "E-infinitive", "MA-infinitive", "MAINEN-infinitive"])
+    cardinal_number_tokens = frozenset([
+        "yksi", "kaksi", "kolme", "neljä", "viisi", "kuusi", "seitsemän",
+        "kahdeksan", "yhdeksän", "kymmenen", "sata", "tuhat", "miljoona",
+        "pari", "puoli"
+    ])
 
     def __init__(
             self,
@@ -649,21 +654,30 @@ class MorphologizerLemmatizer(Pipe):
                 if "MOOD" in analysis:
                     del analysis["MOOD"]
 
-        if token.pos in (NUM, ADJ):
-            if analysis.get("CLASS") == "lukusana":
-                # NumType
-                base = analysis.get("BASEFORM", "")
-                if (base.endswith(".") or
-                    base.endswith("s") or
-                    base.endswith("stoista") or
-                    base in ["ensimmäinen", "toinen"] or
-                    # A hack for recognizing ordinal numbers("1.", "2.",
-                    # "3.", ...) until the tokenizer is fixed.
-                    (base.isdigit() and token.i < len(token.doc) - 1 and token.nbor(1).orth_ == ".")
-                ):
-                    analysis["NUMTYPE"] = "Ord"
-                elif base:
-                    analysis["NUMTYPE"] = "Card"
+        if token.pos == NUM:
+            # NumType
+            base = analysis.get("BASEFORM", "")
+            is_roman_numeral = "j" in analysis.get("STRUCTURE", "")
+            if (base.endswith(".") or
+                base.endswith("s") or
+                base.endswith("stoista") or
+                base in ["ensimmäinen", "toinen"] or
+                is_roman_numeral or
+                # A hack for recognizing ordinal numbers("1.", "2.",
+                # "3.", ...) until the tokenizer is fixed.
+                (base.isdigit() and token.i < len(token.doc) - 1 and token.nbor(1).orth_ == ".")
+            ):
+                analysis["NUMTYPE"] = "Ord"
+            elif (base.isdigit() or
+                  base in self.cardinal_number_tokens or
+                  base.endswith("toista") or
+                  base.endswith("kymmentä") or
+                  base.endswith("sataa") or
+                  base.endswith("tuhatta") or
+                  token.orth_ == "½" or
+                  re.match(r'^\d+[-–.,/]\d+$', token.orth_)
+            ):
+                analysis["NUMTYPE"] = "Card"
 
         elif token.pos == ADP:
             # adpositions: pre- or postposition?
