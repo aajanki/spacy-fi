@@ -3,9 +3,9 @@ import re
 import typer
 from itertools import islice
 from pathlib import Path
-from spacy.lang.fi import Finnish
 from gensim.models import KeyedVectors
 from tqdm import tqdm
+from fi import FinnishExtended
 
 
 def main(freqs_loc: Path = typer.Argument(..., help='Path to the input word frequencies'),
@@ -14,7 +14,7 @@ def main(freqs_loc: Path = typer.Argument(..., help='Path to the input word freq
          vectors_output_loc: Path = typer.Argument(..., help='Output path for the word2vec text file'),
          num_tokens: int = typer.Option(100000, help='Maximum number of vectors to include')):
     print(f'Selecting {num_tokens} most frequent tokens')
-    selected_tokens = select_tokens(freqs_loc, num_tokens)
+    selected_tokens = collect_frequencies(freqs_loc, num_tokens)
     save_frequencies(freqs_output_loc, selected_tokens)
 
     print('Collecting vectors')
@@ -26,11 +26,27 @@ def main(freqs_loc: Path = typer.Argument(..., help='Path to the input word freq
     output_wv.save_word2vec_format(vectors_output_loc, binary=False)
 
 
-def select_tokens(freqs_loc, num_tokens):
-    tokenizer = Finnish().tokenizer
-    freqs = (x.strip().split(' ', 1) for x in gzip.open(freqs_loc, 'rt', encoding='utf-8').readlines())
-    freqs2 = (x for x in freqs if is_valid_token(tokenizer, x[1]))
-    return list(tqdm(islice(freqs2, num_tokens), total=num_tokens))
+def collect_frequencies(freqs_loc, num_tokens):
+    tokenizer = FinnishExtended().tokenizer
+    freqs = {}
+    with gzip.open(freqs_loc, 'rt', encoding='utf-8') as infile:
+        for line in tqdm(infile):
+            freq_str, text = line.strip().split(' ', 1)
+            f = int(freq_str)
+
+            if f < 5:
+                break
+
+            doc = tokenizer(text)
+            if len(text) == 1:
+                tokens = [doc[0].text]
+            else:
+                tokens = [t.text for t in doc if len(t) > 1]
+
+            for t in tokens:
+                freqs[t] = freqs.get(t, 0) + f
+
+    return [(x[1], x[0]) for x in sorted(freqs.items(), key=lambda x: x[1], reverse=True)[:num_tokens]]
 
 
 def save_frequencies(freqs_output_loc, freqs):

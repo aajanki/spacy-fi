@@ -45,7 +45,7 @@ spacy convert --lang fi -n 6 -c ner data/preprocessed/finer-data/wikipedia.test.
 echo "Preparing vectors"
 mkdir -p data/train/frequencies
 mkdir -p data/train/word2vec
-python tools/select_tokens.py --num-tokens 1000000 \
+python -m tools.select_tokens --num-tokens 1000000 \
        data/raw/frequencies/finnish_vocab.txt.gz \
        data/raw/word2vec/finnish_4B_parsebank_skgram.bin \
        data/train/frequencies/finnish_vocab_1M.txt.gz \
