@@ -1,6 +1,3 @@
 [submodule "submodules/UD_Finnish-TDT"]
 	path = submodules/UD_Finnish-TDT
 	url = https://github.com/UniversalDependencies/UD_Finnish-TDT
-[submodule "submodules/finer-data"]
-	path = submodules/finer-data
-	url = https://github.com/mpsilfve/finer-data.git

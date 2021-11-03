@@ -11,7 +11,6 @@ fi
 ## Preparing the training data ##
 
 mkdir -p data/preprocessed/UD_Finnish-TDT
-mkdir -p data/preprocessed/finer-data
 mkdir -p data/train
 mkdir -p models
 
@@ -26,21 +25,6 @@ do
 
     spacy convert --lang fi -n 6 data/preprocessed/UD_Finnish-TDT/fi_tdt-ud-$dataset.conllu data/train/parser/$dataset
 done
-
-echo "Convert NER data"
-for f in digitoday.2014.train.csv digitoday.2014.dev.csv digitoday.2015.test.csv wikipedia.test.csv
-do
-    python tools/preprocess_finer.py < submodules/finer-data/data/$f > data/preprocessed/finer-data/$f
-done
-
-rm -rf data/train/ner/*
-mkdir -p data/train/ner/train
-mkdir -p data/train/ner/dev
-mkdir -p data/train/ner/test
-spacy convert --lang fi -n 6 -c ner data/preprocessed/finer-data/digitoday.2014.train.csv data/train/ner/train
-spacy convert --lang fi -n 6 -c ner data/preprocessed/finer-data/digitoday.2014.dev.csv data/train/ner/dev
-spacy convert --lang fi -n 6 -c ner data/preprocessed/finer-data/digitoday.2015.test.csv data/train/ner/test
-spacy convert --lang fi -n 6 -c ner data/preprocessed/finer-data/wikipedia.test.csv data/train/ner/test
 
 echo "Preparing vectors"
 mkdir -p data/train/frequencies
