@@ -1,6 +1,6 @@
 import pytest
 from itertools import chain
-from fi.fi import create_lookups_from_json_reader, MorphologizerLemmatizer
+from fi.fi import create_lookups_from_json_reader, VoikkoLemmatizer
 from pathlib import Path
 from spacy.lang.fi import Finnish
 from spacy.tokens import Doc
@@ -401,9 +401,9 @@ testcases = {
 
 def check(cases, case_filter=None, accept_less_common=True):
     nlp = Finnish()
-    lemmatizer = MorphologizerLemmatizer(nlp.vocab)
+    lemmatizer = VoikkoLemmatizer(nlp.vocab)
     lemmatizer.initialize(lookups = create_lookups_from_json_reader(
-        Path(__file__).parent.parent / 'fi' / 'lookups' / 'morphologizer_lemmatizer'))
+        Path(__file__).parent.parent / 'fi' / 'lookups' / 'lemmatizer'))
 
     expanded = []
     for pos, tokens in cases.items():
