@@ -36,9 +36,9 @@ python -m tools.select_tokens --num-tokens 1000000 \
        data/train/word2vec/finnish_1M_parsebank.txt.gz
 
 spacy init vectors fi \
-      data/train/word2vec/finnish_1M_parsebank.txt.gz \
+      data/train/floret/fi-300-50k-minn3-maxn5.floret \
       data/train/vectors \
-      --prune 20000 \
+      --mode floret \
       --name fi_exp_web_md.vectors
 
 echo "Preparing lexical data"
