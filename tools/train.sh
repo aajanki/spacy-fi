@@ -28,12 +28,9 @@ done
 
 echo "Preparing vectors"
 mkdir -p data/train/frequencies
-mkdir -p data/train/word2vec
-python -m tools.select_tokens --num-tokens 1000000 \
+python -m tools.most_frequent_tokens --num-tokens 1000000 \
        data/raw/frequencies/finnish_vocab.txt.gz \
-       data/raw/word2vec/finnish_4B_parsebank_skgram.bin \
-       data/train/frequencies/finnish_vocab_1M.txt.gz \
-       data/train/word2vec/finnish_1M_parsebank.txt.gz
+       data/train/frequencies/finnish_vocab_1M.txt.gz
 
 spacy init vectors fi \
       data/train/floret/fi-300-50k-minn3-maxn5.floret \
