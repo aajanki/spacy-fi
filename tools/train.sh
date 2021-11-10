@@ -68,5 +68,8 @@ spacy train fi.cfg --output models/taggerparser --code fi/fi.py --paths.init_tok
 
 
 ## Evaluate ##
-echo "Evaluating"
-spacy evaluate models/taggerparser/model-best data/train/parser/dev --code fi/fi.py
+echo "Evaluating on the dev set"
+spacy evaluate models/taggerparser/model-best data/train/parser/dev --code fi/fi.py --output metrics/dev.json
+
+echo "Evaluating on the test set"
+spacy evaluate models/taggerparser/model-best data/train/parser/test --code fi/fi.py --output metrics/test.json
