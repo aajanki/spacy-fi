@@ -33,7 +33,7 @@ python -m tools.most_frequent_tokens --num-tokens 1000000 \
        data/train/frequencies/finnish_vocab_1M.txt.gz
 
 spacy init vectors fi \
-      data/train/floret/fi-300-50k-minn3-maxn5.floret \
+      data/train/floret/fi-300-50k-minn3-maxn5-epoch5.floret.gz \
       data/train/vectors \
       --mode floret \
       --name fi_exp_web_md.vectors
