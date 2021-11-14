@@ -1,7 +1,7 @@
 {
     "lang": "fi",
     "name": "experimental_web_md",
-    "version": "0.7.1",
+    "version": "0.8.0",
     "requirements": ["voikko>=0.5"],
     "description": "Finnish language model: POS tagger, dependency parser, lemmatizer, morphological features",
     "author": "Antti Ajanki",

@@ -2,7 +2,7 @@
 
 # Experimental Finnish language model for spaCy
 
-Finnish language model for [spaCy](https://spacy.io/). The model does POS tagging, dependency parsing, word vectors, noun phrase extraction, token frequencies, morphological features and lemmatization. The morphological features and lemmatization are based on [Voikko](https://voikko.puimula.org/).
+Finnish language model for [spaCy](https://spacy.io/). The model does POS tagging, dependency parsing, word vectors, noun phrase extraction, token frequencies, morphological features and lemmatization. The lemmatization is based on [Voikko](https://voikko.puimula.org/).
 
 ## Install the Finnish language model
 
@@ -17,6 +17,7 @@ Compatibility with spaCy versions:
 
 | spacy-fi version | Compatible with spaCy version |
 | ---------------- | ----------------------------- |
+| 0.8.x            | 3.2.x                         |
 | 0.7.x            | 3.0.x, 3.1.x                  |
 | 0.6.0            | 3.0.x                         |
 | 0.5.0            | 3.0.x                         |
