@@ -169,51 +169,7 @@ class VoikkoLemmatizer(Pipe):
         if len(analyses) > 1:
             # Disambiguate among multiple possible analyses
 
-            if token.pos == VERB:
-                if token.dep == conj:
-                    coord_head = token.head
-                else:
-                    coord_head = token
-                negative = any(
-                    t.dep == aux and "Neg" in t.morph.get("Polarity")
-                    for t in coord_head.lefts)
-                if negative:
-                    analyses = [x for x in analyses if x.get("NEGATIVE") != "false"] or analyses
-                else:
-                    analyses = [x for x in analyses if x.get("NEGATIVE") != "true"] or analyses
-
-                if (any(t.dep == aux or t.dep == cop for t in coord_head.lefts) and
-                    any(x.get("PARTICIPLE") == "past_active" for x in analyses)):
-                    # "olen haaveillut"
-                    analyses = self._prefer_active(analyses)
-                elif token.dep in self.ccomp_labels or \
-                     token.dep == acl or \
-                     any(t.dep == aux and "Neg" not in t.morph.get("Polarity") for t in coord_head.lefts):
-                    # verbiketjut: "saa [nähdä]", "osaat [uida]", "voi [veistää]"
-                    analyses = self._prefer_infinite_form(analyses)
-                elif token.dep == conj and token.head.morph.get("InfForm"):
-                    # If we are coordinated with an infinite form we
-                    # should also have the same (TODO) infinitive form.
-                    #
-                    # "tarkoitus on tutkia ja todistaa"
-                    analyses = self._prefer_infinite_form(analyses)
-                else:
-                    analyses = self._prefer_indicative_form(analyses)
-
-            elif token.pos == AUX:
-                negative = any(
-                    t.dep == aux and "Neg" in t.morph.get("Polarity")
-                    for t in token.head.lefts)
-                if negative:
-                    analyses = [x for x in analyses if x.get("NEGATIVE") != "false"] or analyses
-                else:
-                    analyses = [x for x in analyses if x.get("NEGATIVE") != "true"] or analyses
-
-                if any(x.get("PARTICIPLE") == "past_active" for x in analyses):
-                    # "olen ollut", "ei ollut käyty"
-                    analyses = self._prefer_active(analyses)
-
-            elif token.pos == NUM:
+            if token.pos == NUM:
                 # For numbers like 1,5 prefer the analysis without
                 # SIJAMUOTO and NUMBER because UD doesn't have them,
                 # either.
@@ -245,10 +201,6 @@ class VoikkoLemmatizer(Pipe):
                 # Prefer non-compound words.
                 # e.g. "asemassa" will be lemmatized as "asema", not "ase#massa"
                 analyses = sorted(analyses, key=self._is_compound_word)
-
-            elif token.pos == ADJ:
-                # Prefer laatusana over nimisana_laatusana
-                analyses = [x for x in analyses if x.get("CLASS") == "laatusana"] or analyses
 
         if analyses:
             return analyses[0]
@@ -286,18 +238,6 @@ class VoikkoLemmatizer(Pipe):
              vclass in ("laatusana", "lukusana") and
              analysis.get("SIJAMUOTO") == "kerrontosti")
         )
-
-    def _prefer_infinite_form(self, analyses):
-        infinite = [x for x in analyses if x.get("MOOD") in self.infinite_moods]
-        return infinite or analyses
-
-    def _prefer_indicative_form(self, analyses):
-        indicative = [x for x in analyses if x.get("MOOD") == "indicative"]
-        return indicative or analyses
-
-    def _prefer_active(self, analyses):
-        active = [x for x in analyses if x.get("PARTICIPLE") == "past_active"]
-        return active or analyses
 
     def _minen_noun_lemma(self, analysis):
         fstoutput = analysis.get("FSTOUTPUT")
