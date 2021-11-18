@@ -949,6 +949,7 @@ class MorphologizerLemmatizer(Pipe):
                 word = word[:-2]
 
         if "POSSESSIVE" in analysis and analysis["POSSESSIVE"] != "3":
+            # "kanssani", "vierestäni"
             word = self._remove_possessive_suffix(word, analysis)
 
         return word
@@ -959,7 +960,7 @@ class MorphologizerLemmatizer(Pipe):
         Example: "kanssamme" -> "kanssa"
         """
         suffixes = self.possessive_suffixes[analysis["POSSESSIVE"]]
-        suffix = next((s for s in suffixes if word.endswith(s)))
+        suffix = next((s for s in suffixes if word.endswith(s)), None)
         if not suffix:
             return word
 
