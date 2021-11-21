@@ -12,7 +12,7 @@ from spacy.pipeline.pipe import Pipe
 from spacy.scorer import Scorer
 from spacy.symbols import ADJ, ADP, ADV, AUX, CCONJ, INTJ, NOUN, NUM, PROPN
 from spacy.symbols import PRON, PUNCT, SCONJ, SPACE, SYM, VERB, X
-from spacy.symbols import acl, aux, cc, conj, cop, obj
+from spacy.symbols import acl, aux, conj, cop, obj
 from spacy.tokens import Doc, Span, Token
 from spacy.training import Example, validate_examples
 from spacy.util import SimpleFrozenList
@@ -21,37 +21,15 @@ from voikko import libvoikko
 from zipfile import ZipFile
 
 
-class MorphologizerLemmatizer(Pipe):
-    """Pipeline component that assigns morphological features and lemmas to Docs.
+class VoikkoLemmatizer(Pipe):
+    """Pipeline component that assigns lemmas to Docs.
 
-    POS tags must have been assigned prior to this pipeline component.
-
-    The actual morphological analysis is done by libvoikko.
+    Lemmatization is done by libvoikko.
     """
     compound_re = re.compile(r"\+(\w+)(?:\(\+?[\w=]+\))?")
     minen_re = re.compile(r"\b(\w+)\[Tn4\]mi")
     ny_re = re.compile(r"\[X\]\[\w+\]\[Ny\](\w+)")
     roman_numeral_structure_re = re.compile(r"=j+|=q+")
-    voikko_cases = {
-        "nimento":     "Case=Nom",
-        "omanto":      "Case=Gen",
-        "kohdanto":    "Case=Acc",
-        "olento":      "Case=Ess",
-        "osanto":      "Case=Par",
-        "tulento":     "Case=Tra",
-        "sisaolento":  "Case=Ine",
-        "sisaeronto":  "Case=Ela",
-        "sisatulento": "Case=Ill",
-        "ulkoolento":  "Case=Ade",
-        "ulkoeronto":  "Case=Abl",
-        "ulkotulento": "Case=All",
-        "vajanto":     "Case=Abe",
-        "seuranto":    "Case=Com",
-        "keinonto":    "Case=Ins",
-        "kerrontosti": "Case=Nom"  # Should not occur. "kerrontosti"
-                                   # should only appear on ADVs, which
-                                   # don't have cases.
-    }
     voikko_classes_by_pos = {
         ADJ:   frozenset(["laatusana", "nimisana_laatusana"]),
         ADP:   frozenset(["nimisana", "seikkasana", "suhdesana"]),
@@ -70,32 +48,6 @@ class MorphologizerLemmatizer(Pipe):
         SYM:   frozenset([]),
         X:     frozenset([])
     }
-    affix_to_sijamuoto = {
-        "n":    "omanto",
-        "na":   "olento",
-        "nä":   "olento",
-        "a":    "osanto",
-        "ä":    "osanto",
-        "ta":   "osanto",
-        "tä":   "osanto",
-        "ksi":  "tulento",
-        "ssa":  "sisaolento",
-        "ssä":  "sisaolento",
-        "sta":  "sisaeronto",
-        "stä":  "sisaeronto",
-        "han":  "sisatulento",
-        "hin":  "sisatulento",
-        "hun":  "sisatulento",
-        "seen": "sisatulento",
-        "siin": "sisatulento",
-        "lla":  "ulkoolento",
-        "llä":  "ulkoolento",
-        "lta":  "ulkoeronto",
-        "ltä":  "ulkoeronto",
-        "lle":  "ulkotulento",
-        "tta":  "vajanto",
-        "ttä":  "vajanto",
-    }
     possessive_suffixes = {
         "1s": ["ni"],
         "2s": ["si"],
@@ -103,110 +55,13 @@ class MorphologizerLemmatizer(Pipe):
         "2p": ["nne"],
         "3": ["nsa", "nsä", "an", "en", "in" "on", "un", "yn", "än", "ön"],
     }
-    voikko_degree = {
-        "positive":    "Degree=Pos",
-        "comparative": "Degree=Cmp",
-        "superlative": "Degree=Sup"
-    }
-    voikko_mood = {
-        "A-infinitive":  "InfForm=1",
-        "E-infinitive":  "InfForm=2",
-        "MA-infinitive": "InfForm=3",
-        "indicative":    "Mood=Ind",
-        "conditional":   "Mood=Cnd",
-        "potential":     "Mood=Pot",
-        "imperative":    "Mood=Imp"
-    }
-    voikko_part_form = {
-        "past_active":     "PartForm=Past",
-        "past_passive":    "PartForm=Past",
-        "present_active":  "PartForm=Pres",
-        "present_passive": "PartForm=Pres",
-        "agent":           "PartForm=Agt"
-    }
-    voikko_tense = {
-        "present_active":    "Tense=Pres",
-        "present_passive":   "Tense=Pres",
-        "present_simple":    "Tense=Pres",
-        "past_active":       "Tense=Past",
-        "past_passive":      "Tense=Past",
-        "past_imperfective": "Tense=Past"
-    }
-    pron_types = {
-        "minä":       "Prs",
-        "sinä":       "Prs",
-        "hän":        "Prs",
-        "me":         "Prs",
-        "te":         "Prs",
-        "he":         "Prs",
-
-        "tämä":       "Dem",
-        "tuo":        "Dem",
-        "se":         "Dem",
-        "nämä":       "Dem",
-        "nuo":        "Dem",
-        "ne":         "Dem",
-
-        # The relative "mikä" will be handled as a special case
-        # separately so here we label all occurences of "mikä" as
-        # interrogative.
-        "mikä":       "Int",
-        "kuka":       "Int",
-        "ken":        "Int",  # ketä
-        "kumpi":      "Int",
-        "millainen":  "Int",
-        "kuinka":     "Int",
-        "miksi":      "Int",
-
-        # The relative "joka" will be handled elsewhere. Here "joka"
-        # is Voikko's lemmatization of jotakin, jollekin, jostakin, ...
-        "joka":       "Ind",
-        "kaikki":     "Ind",
-        "jokainen":   "Ind",
-        "koko":       "Ind",
-        "harva":      "Ind",
-        "muutama":    "Ind",
-        "jokunen":    "Ind",
-        "yksi":       "Ind",
-        "ainoa":      "Ind",
-        "eräs":       "Ind",
-        "muuan":      "Ind",
-        "joku":       "Ind",
-        "jokin":      "Ind",
-        "kukin":      "Ind",
-        "moni":       "Ind",
-        "usea":       "Ind",
-        "molempi":    "Ind",
-        "kumpikin":   "Ind",
-        "kumpikaan":  "Ind",
-        "jompikumpi": "Ind",
-        "sama":       "Ind",
-        "muu":        "Ind",
-        "kukaan":     "Ind",
-        "mikään":     "Ind",
-
-        "toinen":     "Rcp"
-    }
-    pron_persons = {
-        "minä":       "1",
-        "sinä":       "2",
-        "hän":        "3",
-        "me":         "1",
-        "te":         "2",
-        "he":         "3"
-    }
     infinite_moods = frozenset([
         "A-infinitive", "E-infinitive", "MA-infinitive", "MAINEN-infinitive"])
-    cardinal_number_tokens = frozenset([
-        "yksi", "kaksi", "kolme", "neljä", "viisi", "kuusi", "seitsemän",
-        "kahdeksan", "yhdeksän", "kymmenen", "sata", "tuhat", "miljoona",
-        "pari", "puoli"
-    ])
 
     def __init__(
             self,
             vocab: Vocab,
-            name: str = "morphologizer",
+            name: str = "lemmatizer",
             *,
             overwrite_lemma: bool = False,
     ) -> None:
@@ -232,11 +87,8 @@ class MorphologizerLemmatizer(Pipe):
                     if self.overwrite_lemma or token.lemma == 0:
                         token.lemma = token.orth
                 else:
-                    analysis = self._analyze(token)
-                    morph = self.voikko_morph(token, analysis)
-                    if morph:
-                        token.set_morph(morph)
                     if self.overwrite_lemma or token.lemma == 0:
+                        analysis = self._analyze(token)
                         token.lemma_ = self.lemmatize(token, analysis)
             return doc
         except Exception as e:
@@ -249,305 +101,16 @@ class MorphologizerLemmatizer(Pipe):
         nlp: Optional[Language] = None,
         lookups: Optional[Lookups] = None,
     ):
-        """Initialize the morphologizer and load in data.
+        """Initialize the lemmatizer and load in data.
         get_examples (Callable[[], Iterable[Example]]): Function that
             returns a representative sample of gold-standard Example objects.
         nlp (Language): The current nlp object the component is part of.
         lookups (Lookups): The lookups object containing the (optional) tables
-            such as "lemma_exc" and "morphologizer_exc". Defaults to None.
+            such as "lemma_exc". Defaults to None.
         """
         if lookups is None:
-            lookups = load_lookups(lang=self.vocab.lang,
-                                   tables=["lemma_exc", "morphologizer_exc"])
+            lookups = load_lookups(lang=self.vocab.lang, tables=["lemma_exc"])
         self.lookups = lookups
-
-    def voikko_morph(self, token: Token, analysis: dict) -> Optional[str]:
-        # Run Voikko's analysis and convert the result to morph
-        # features.
-        exc_table = self.lookups.get_table("morphologizer_exc", {}).get(token.pos)
-        if exc_table is not None:
-            exc = exc_table.get(token.orth_.lower())
-            if exc:
-                return exc
-
-        # Pre-compute some frequent morphs to avoid code duplication.
-        # (Functions are not an option because the function call
-        # overhead is too high.)
-
-        # Clitic
-        morph_clitic = None
-        if "FOCUS" in analysis:
-            focus = analysis["FOCUS"]
-            if focus == "kin":
-                morph_clitic = "Clitic=Kin"
-            elif focus == "kaan":
-                morph_clitic = "Clitic=Kaan"
-            elif focus == "ka":
-                morph_clitic = "Clitic=Ka"
-        elif "KYSYMYSLIITE" in analysis:
-            morph_clitic = "Clitic=Ko"
-
-        morph_number = None
-        morph_number_psor = None
-        morph_person_psor = None
-        if token.pos in (ADJ, ADP, ADV, AUX, NOUN, NUM, PRON, PROPN, VERB):
-            # Number
-            if "NUMBER" in analysis:
-                number = analysis["NUMBER"]
-                if number == "singular":
-                    morph_number = "Number=Sing"
-                elif number == "plural":
-                    morph_number = "Number=Plur"
-
-            # Number[psor] and Person[psor]
-            if "POSSESSIVE" in analysis:
-                possessive = analysis["POSSESSIVE"]
-                if possessive == "1s":
-                    morph_number_psor = "Number[psor]=Sing"
-                    morph_person_psor = "Person[psor]=1"
-                elif possessive == "1p":
-                    morph_number_psor = "Number[psor]=Plur"
-                    morph_person_psor = "Person[psor]=1"
-                elif possessive == "3":
-                    morph_person_psor = "Person[psor]=3"
-
-        # Set morphs per POS
-        morphology = []
-        if token.pos in (ADJ, NOUN, PROPN):
-            # Abbr
-            if "CLASS" in analysis and analysis["CLASS"] == "lyhenne":
-                morphology.append("Abbr=Yes")
-
-            # Case
-            if "SIJAMUOTO" in analysis:
-                morphology.append(self.voikko_cases[analysis["SIJAMUOTO"]])
-
-            # Clitic
-            if morph_clitic is not None:
-                morphology.append(morph_clitic)
-
-            # Degree
-            if token.pos == ADJ and "COMPARISON" in analysis:
-                morphology.append(self.voikko_degree[analysis["COMPARISON"]])
-
-            # Number
-            if morph_number is not None:
-                morphology.append(morph_number)
-
-            # Number[psor]
-            if morph_number_psor is not None:
-                morphology.append(morph_number_psor)
-
-            # NumType
-            if token.pos == ADJ and "NUMTYPE" in analysis:
-                morphology.append(f'NumType={analysis["NUMTYPE"]}')
-
-            # Person[psor]
-            if morph_person_psor is not None:
-                morphology.append(morph_person_psor)
-
-        elif token.pos in (AUX, VERB):
-            vclass = analysis.get("CLASS")
-
-            # Abbr
-            if vclass == "lyhenne":
-                morphology.append("Abbr=Yes")
-
-            # Case
-            if "SIJAMUOTO" in analysis:
-                morphology.append(self.voikko_cases[analysis["SIJAMUOTO"]])
-
-            # Clitic
-            if morph_clitic is not None:
-                morphology.append(morph_clitic)
-
-            # Connegative
-            if "CONNEGATIVE" in analysis:
-                morphology.append("Connegative=Yes")
-
-            # Degree
-            if "COMPARISON" in analysis:
-                morphology.append(self.voikko_degree[analysis["COMPARISON"]])
-
-            # InfForm and Mood
-            # These are mutually exclusive and both are based on MOOD
-            mood = None
-            if "MOOD" in analysis:
-                mood = analysis["MOOD"]
-                morph_inf_form_or_mood = self.voikko_mood.get(mood)
-                if morph_inf_form_or_mood is not None:
-                    morphology.append(morph_inf_form_or_mood)
-
-            # Number
-            if morph_number is not None:
-                morphology.append(morph_number)
-
-            # Number[psor]
-            if morph_number_psor is not None:
-                morphology.append(morph_number_psor)
-
-            # PartForm
-            participle = None
-            if "PARTICIPLE" in analysis:
-                participle = analysis["PARTICIPLE"]
-                morph_part_form = self.voikko_part_form.get(participle)
-                if morph_part_form:
-                    morphology.append(morph_part_form)
-
-            # Person
-            person = None
-            if "PERSON" in analysis:
-                person = analysis["PERSON"]
-                if person in ("0", "1", "2", "3"):
-                    morphology.append(f"Person={person}")
-
-            # Person[psor]
-            if morph_person_psor is not None:
-                morphology.append(morph_person_psor)
-
-            # Polarity
-            if vclass == "kieltosana":
-                morphology.append("Polarity=Neg")
-
-            # Tense
-            if "TENSE" in analysis:
-                morphology.append(self.voikko_tense[analysis["TENSE"]])
-
-            # VerbForm
-            if mood in self.infinite_moods:
-                morphology.append("VerbForm=Inf")
-            elif participle is not None:
-                morphology.append("VerbForm=Part")
-            else:
-                morphology.append("VerbForm=Fin")
-
-            # Voice
-            if person in ("0", "1", "2", "3"):
-                morphology.append("Voice=Act")
-            elif person == "4":
-                morphology.append("Voice=Pass")
-            elif "VOICE" in analysis:
-                morphology.append(f"Voice={analysis['VOICE']}")
-            elif participle == "past_passive":
-                morphology.append("Voice=Pass")
-            elif participle in ("present_active", "past_active", "present_passive"):
-                morphology.append("Voice=Act")
-
-        elif token.pos == ADV:
-            # Abbr
-            if "CLASS" in analysis and analysis["CLASS"] == "lyhenne":
-                morphology.append("Abbr=Yes")
-
-            # Clitic
-            if morph_clitic is not None:
-                morphology.append(morph_clitic)
-
-            # Degree
-            if "COMPARISON" in analysis:
-                degree = analysis["COMPARISON"]
-                if degree in ("comparative", "superlative"):
-                    morphology.append(self.voikko_degree[degree])
-
-            # Number[psor]
-            if morph_number_psor is not None:
-                morphology.append(morph_number_psor)
-
-            # Person[psor]
-            if morph_person_psor is not None:
-                morphology.append(morph_person_psor)
-
-        elif token.pos == PRON:
-            # Case
-            if "SIJAMUOTO" in analysis:
-                morphology.append(self.voikko_cases[analysis["SIJAMUOTO"]])
-
-            # Clitic
-            if morph_clitic is not None:
-                morphology.append(morph_clitic)
-
-            # Degree
-            if "COMPARISON" in analysis:
-                morphology.append(self.voikko_degree[analysis["COMPARISON"]])
-
-            # Number
-            if morph_number is not None:
-                morphology.append(morph_number)
-
-            # Number[psor]
-            if morph_number_psor is not None:
-                morphology.append(morph_number_psor)
-
-            # Person
-            if "PERSON" in analysis:
-                person = analysis["PERSON"]
-                if person in ("0", "1", "2", "3"):
-                    morphology.append(f"Person={person}")
-
-            # Person[psor]
-            if morph_person_psor is not None:
-                morphology.append(morph_person_psor)
-
-            # PronType
-            if "PRONTYPE" in analysis:
-                morphology.append(f"PronType={analysis['PRONTYPE']}")
-
-            # Reflex
-            if "BASEFORM" in analysis and analysis["BASEFORM"] == "itse":
-                morphology.append("Reflex=Yes")
-
-        elif token.pos in (CCONJ, SCONJ):
-            # Clitic
-            if morph_clitic is not None:
-                morphology.append(morph_clitic)
-
-        elif token.pos == NUM:
-            # Abbr
-            if "CLASS" in analysis and analysis["CLASS"] == "lyhenne":
-                morphology.append("Abbr=Yes")
-
-            # Case
-            if "SIJAMUOTO" in analysis:
-                morphology.append(self.voikko_cases[analysis["SIJAMUOTO"]])
-
-            # Clitic
-            if morph_clitic is not None:
-                morphology.append(morph_clitic)
-
-            # Number
-            if morph_number is not None:
-                morphology.append(morph_number)
-
-            # NumType
-            if "NUMTYPE" in analysis:
-                morphology.append(f'NumType={analysis["NUMTYPE"]}')
-
-        elif token.pos == ADP:
-            # AdpType
-            if "ADPTYPE" in analysis:
-                morphology.append(f"AdpType={analysis['ADPTYPE']}")
-
-            # Clitic
-            if morph_clitic is not None:
-                morphology.append(morph_clitic)
-
-            # Number[psor]
-            if morph_number_psor is not None:
-                morphology.append(morph_number_psor)
-
-            # Person[psor]
-            if morph_person_psor is not None:
-                morphology.append(morph_person_psor)
-
-        elif token.pos == SYM:
-            # Case
-            if "SIJAMUOTO" in analysis:
-                morphology.append(self.voikko_cases[analysis["SIJAMUOTO"]])
-
-        elif token.tag == self.foreign_tag:
-            # Foreign
-            morphology.append('Foreign=Yes')
-
-        return "|".join(morphology) if morphology else None
 
     def lemmatize(self, token: Token, analysis: dict) -> str:
         cached_lower = None
@@ -596,133 +159,6 @@ class MorphologizerLemmatizer(Pipe):
         analysis = self._disambiguate_analyses(token, analyses)
         if len(parts) > 1 and "BASEFORM" in analysis:
             analysis["BASEFORM"] = parts[0] + "-" + analysis["BASEFORM"]
-        return self._enrich_voikko_analysis(token, analysis)
-
-    def _enrich_voikko_analysis(self, token, analysis):
-        # Enrich Voikko's analysis with extra features
-
-        if token.pos in (AUX, VERB):
-            # connegative
-            if analysis.get("TENSE") == "present_simple" and (
-                    # "en [ole]", "et [halua]", "ei [maksaisi]"
-                    self._last_aux_is_negative(token.lefts)
-
-                    or
-
-                    # "et [ole] nähnyt", "emme [ehdi] tutustua"
-                    (token.dep in self.aux_labels and
-                     self._last_aux_is_negative(t for t in token.head.lefts if t.i < token.i))
-
-                    or
-
-                    # "minulla ei [ole] autoa", "tietoja ei [ole] saatu"
-                    (token.dep in self.cop_labels and
-                     self._last_aux_is_negative(t for t in token.head.children if t.i < token.i))
-            ):
-                analysis["CONNEGATIVE"] = True
-                if analysis.get("MOOD") == "imperative":
-                    analysis["MOOD"] = "indicative"
-                if "PERSON" in analysis and analysis["PERSON"] != "4":
-                    del analysis["PERSON"]
-                if "NUMBER" in analysis:
-                    del analysis["NUMBER"]
-
-            # correlated voice in verb chains
-            if "PERSON" not in analysis and "CONNEGATIVE" not in analysis:
-                corr_person = None
-                auxs = [t for t in token.lefts if t.dep == aux]
-                if auxs:
-                    # voimme [haluta]
-                    corr_person = auxs[-1].morph.get("Person")
-                elif token.head.pos == VERB:
-                    # lähdimme [kävelemään]
-                    corr_person = token.head.morph.get("Person")
-
-                if corr_person:
-                    person = corr_person[0]
-                    if person in ("1", "2", "3"):
-                        analysis["VOICE"] = "Act"
-                    elif person == "4":
-                        analysis["VOICE"] = "Pass"
-
-            # "eikä" has the clitic "ka"
-            if analysis.get("CLASS") == "kieltosana":
-                if token.orth_.lower().endswith("kä"):
-                    analysis["FOCUS"] = "ka"
-
-                # UD doesn't assign a mood for the negative verb
-                if "MOOD" in analysis:
-                    del analysis["MOOD"]
-
-        if token.pos == NUM:
-            # NumType
-            base = analysis.get("BASEFORM", "")
-            is_roman_numeral = "j" in analysis.get("STRUCTURE", "")
-            if (base.endswith(".") or
-                base.endswith("s") or
-                base.endswith("stoista") or
-                base in ["ensimmäinen", "toinen"] or
-                is_roman_numeral or
-                # A hack for recognizing ordinal numbers("1.", "2.",
-                # "3.", ...) until the tokenizer is fixed.
-                (base.isdigit() and token.i < len(token.doc) - 1 and token.nbor(1).orth_ == ".")
-            ):
-                analysis["NUMTYPE"] = "Ord"
-            elif (base.isdigit() or
-                  base in self.cardinal_number_tokens or
-                  base.endswith("toista") or
-                  base.endswith("kymmentä") or
-                  base.endswith("sataa") or
-                  base.endswith("tuhatta") or
-                  token.orth_ == "½" or
-                  re.match(r'^\d+[-–.,/]\d+$', token.orth_)
-            ):
-                analysis["NUMTYPE"] = "Card"
-
-        elif token.pos == ADP:
-            # adpositions: pre- or postposition?
-            if token.head.i < token.i:
-                analysis["ADPTYPE"] = "Post"
-            else:
-                analysis["ADPTYPE"] = "Prep"
-
-            if "NUMBER" in analysis:
-                del analysis["NUMBER"]
-
-        elif token.pos == PRON:
-            # Pronoun types
-            base = analysis.get("BASEFORM")
-            if self._is_relative_pronoun(token, base):
-                analysis["PRONTYPE"] = "Rel"
-            else:
-                pron_type = self.pron_types.get(base)
-                if pron_type:
-                    analysis["PRONTYPE"] = pron_type
-                if pron_type == "Prs":
-                    person = self.pron_persons.get(base)
-                    if person:
-                        analysis["PERSON"] = person
-
-        elif token.pos == PROPN:
-            # Detecting plural suffix. Might not work properly on
-            # foreign names...
-            if "NUMBER" not in analysis and not token.orth_.endswith("t"):
-                analysis["NUMBER"] = "singular"
-
-        elif token.pos in (ADV, CCONJ, SCONJ, SYM, INTJ, X):
-            # Cleanup extra features not in UD
-            if "NUMBER" in analysis:
-                del analysis["NUMBER"]
-
-        # Abbreviation cases: YK:n, BKT:stä
-        if token.pos in (NOUN, NUM, PROPN) and "SIJAMUOTO" not in analysis:
-            i = token.orth_.find(":")
-            if i > 0:
-                affix = token.orth_[(i + 1):]
-                sijamuoto = self.affix_to_sijamuoto.get(affix)
-                if sijamuoto:
-                    analysis["SIJAMUOTO"] = sijamuoto
-
         return analysis
 
     def _disambiguate_analyses(self, token, analyses):
@@ -733,51 +169,7 @@ class MorphologizerLemmatizer(Pipe):
         if len(analyses) > 1:
             # Disambiguate among multiple possible analyses
 
-            if token.pos == VERB:
-                if token.dep == conj:
-                    coord_head = token.head
-                else:
-                    coord_head = token
-                negative = any(
-                    t.dep == aux and "Neg" in t.morph.get("Polarity")
-                    for t in coord_head.lefts)
-                if negative:
-                    analyses = [x for x in analyses if x.get("NEGATIVE") != "false"] or analyses
-                else:
-                    analyses = [x for x in analyses if x.get("NEGATIVE") != "true"] or analyses
-
-                if (any(t.dep == aux or t.dep == cop for t in coord_head.lefts) and
-                    any(x.get("PARTICIPLE") == "past_active" for x in analyses)):
-                    # "olen haaveillut"
-                    analyses = self._prefer_active(analyses)
-                elif token.dep in self.ccomp_labels or \
-                     token.dep == acl or \
-                     any(t.dep == aux and "Neg" not in t.morph.get("Polarity") for t in coord_head.lefts):
-                    # verbiketjut: "saa [nähdä]", "osaat [uida]", "voi [veistää]"
-                    analyses = self._prefer_infinite_form(analyses)
-                elif token.dep == conj and token.head.morph.get("InfForm"):
-                    # If we are coordinated with an infinite form we
-                    # should also have the same (TODO) infinitive form.
-                    #
-                    # "tarkoitus on tutkia ja todistaa"
-                    analyses = self._prefer_infinite_form(analyses)
-                else:
-                    analyses = self._prefer_indicative_form(analyses)
-
-            elif token.pos == AUX:
-                negative = any(
-                    t.dep == aux and "Neg" in t.morph.get("Polarity")
-                    for t in token.head.lefts)
-                if negative:
-                    analyses = [x for x in analyses if x.get("NEGATIVE") != "false"] or analyses
-                else:
-                    analyses = [x for x in analyses if x.get("NEGATIVE") != "true"] or analyses
-
-                if any(x.get("PARTICIPLE") == "past_active" for x in analyses):
-                    # "olen ollut", "ei ollut käyty"
-                    analyses = self._prefer_active(analyses)
-
-            elif token.pos == NUM:
+            if token.pos == NUM:
                 # For numbers like 1,5 prefer the analysis without
                 # SIJAMUOTO and NUMBER because UD doesn't have them,
                 # either.
@@ -809,10 +201,6 @@ class MorphologizerLemmatizer(Pipe):
                 # Prefer non-compound words.
                 # e.g. "asemassa" will be lemmatized as "asema", not "ase#massa"
                 analyses = sorted(analyses, key=self._is_compound_word)
-
-            elif token.pos == ADJ:
-                # Prefer laatusana over nimisana_laatusana
-                analyses = [x for x in analyses if x.get("CLASS") == "laatusana"] or analyses
 
         if analyses:
             return analyses[0]
@@ -851,18 +239,6 @@ class MorphologizerLemmatizer(Pipe):
              analysis.get("SIJAMUOTO") == "kerrontosti")
         )
 
-    def _prefer_infinite_form(self, analyses):
-        infinite = [x for x in analyses if x.get("MOOD") in self.infinite_moods]
-        return infinite or analyses
-
-    def _prefer_indicative_form(self, analyses):
-        indicative = [x for x in analyses if x.get("MOOD") == "indicative"]
-        return indicative or analyses
-
-    def _prefer_active(self, analyses):
-        active = [x for x in analyses if x.get("PARTICIPLE") == "past_active"]
-        return active or analyses
-
     def _minen_noun_lemma(self, analysis):
         fstoutput = analysis.get("FSTOUTPUT")
         ny_match = self.ny_re.search(fstoutput)
@@ -879,31 +255,6 @@ class MorphologizerLemmatizer(Pipe):
             return "".join(compounds[:-1]) + stem + "minen"
         else:
             return stem + "minen"
-
-    def _is_relative_pronoun(self, token, baseform):
-        if baseform in ("joka", "kuka", "mikä"):
-            relcl_head = self._relative_clause_head(token)
-            if relcl_head is not None:
-                i = relcl_head.left_edge.i
-                return ((i == token.i) or
-                        ((i + 1 == token.i) and token.nbor(-1).orth_ == ",") or
-                        (token.i > 0 and token.nbor(-1).dep == cc))
-
-        # FIXME: independent relative clauses: "Maksan mitä pyydät."
-
-        return False
-
-    def _relative_clause_head(self, token):
-        t = token
-        while t.head != t:
-            if t.dep in self.relcl_labels:
-                return t
-            t = t.head
-        return None
-
-    def _last_aux_is_negative(self, tokens):
-        auxs = [t for t in tokens if t.dep in self.aux_labels]
-        return bool(auxs and ("Neg" in auxs[-1].morph.get("Polarity")))
 
     def _participle_lemma(self, analysis):
         wordbases = analysis.get("WORDBASES")
@@ -982,14 +333,8 @@ class MorphologizerLemmatizer(Pipe):
         return structure.count('=') > 1
 
     def score(self, examples, **kwargs):
-        def morph_key_getter(token, attr):
-            return getattr(token, attr).key
-
-        validate_examples(examples, "MorphologizerLemmatizer.score")
+        validate_examples(examples, "VoikkoLemmatizer.score")
         results = {}
-        results.update(Scorer.score_token_attr(examples, "morph", getter=morph_key_getter, **kwargs))
-        results.update(Scorer.score_token_attr_per_feat(examples,
-            "morph", getter=morph_key_getter, **kwargs))
         results.update(Scorer.score_token_attr(examples, "lemma", **kwargs))
         return results
 
@@ -1001,7 +346,7 @@ class MorphologizerLemmatizer(Pipe):
 
     def from_disk(
         self, path: Union[str, Path], *, exclude: Iterable[str] = SimpleFrozenList()
-    ) -> "MorphologizerLemmatizer":
+    ) -> "VoikkoLemmatizer":
         deserialize = {"lookups": lambda p: self.lookups.from_disk(p)}
         util.from_disk(path, deserialize, exclude)
         return self
@@ -1012,24 +357,24 @@ class MorphologizerLemmatizer(Pipe):
 
     def from_bytes(
         self, bytes_data: bytes, *, exclude: Iterable[str] = SimpleFrozenList()
-    ) -> "MorphologizerLemmatizer":
+    ) -> "VoikkoLemmatizer":
         deserialize = {"lookups": lambda b: self.lookups.from_bytes(b)}
         util.from_bytes(bytes_data, deserialize, exclude)
         return self
 
 
 @Finnish.factory(
-    "morphologizer_lemmatizer",
-    assigns=["token.morph", "token.lemma"],
-    requires=["token.pos", "token.dep"],
-    default_score_weights={"morph_acc": 1.0, "morph_per_feat": None, "lemma_acc": 0.0},
+    "voikko_lemmatizer",
+    assigns=["token.lemma"],
+    requires=[],
+    default_score_weights={"lemma_acc": 0.0},
 )
-def make_morphologizer_lemmatizer(
+def make_voikko_lemmatizer(
     nlp: Language,
     name: str,
     overwrite_lemma: bool = False
 ):
-    return MorphologizerLemmatizer(nlp.vocab, name, overwrite_lemma=overwrite_lemma)
+    return VoikkoLemmatizer(nlp.vocab, name, overwrite_lemma=overwrite_lemma)
 
 
 class VrtZipCorpus:

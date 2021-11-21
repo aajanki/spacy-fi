@@ -28,17 +28,14 @@ done
 
 echo "Preparing vectors"
 mkdir -p data/train/frequencies
-mkdir -p data/train/word2vec
-python -m tools.select_tokens --num-tokens 1000000 \
+python -m tools.most_frequent_tokens --num-tokens 1000000 \
        data/raw/frequencies/finnish_vocab.txt.gz \
-       data/raw/word2vec/finnish_4B_parsebank_skgram.bin \
-       data/train/frequencies/finnish_vocab_1M.txt.gz \
-       data/train/word2vec/finnish_1M_parsebank.txt.gz
+       data/train/frequencies/finnish_vocab_1M.txt.gz
 
 spacy init vectors fi \
-      data/train/word2vec/finnish_1M_parsebank.txt.gz \
+      data/train/floret/fi-300-50k-minn3-maxn5-epoch5.floret.gz \
       data/train/vectors \
-      --prune 20000 \
+      --mode floret \
       --name fi_exp_web_md.vectors
 
 echo "Preparing lexical data"
@@ -61,7 +58,7 @@ if [ $DO_PRETRAIN -ne 0 ]; then
     rm -rf models/pretrain
     spacy pretrain fi.cfg models/pretrain --code fi/fi.py
 
-    cp models/pretrain/models300.bin pretrain/weights.bin
+    cp models/pretrain/models400.bin pretrain/weights.bin
     #cp models/pretrain/config.cfg pretrain
     #cp models/pretrain/log.jsonl pretrain
 fi
@@ -71,5 +68,8 @@ spacy train fi.cfg --output models/taggerparser --code fi/fi.py --paths.init_tok
 
 
 ## Evaluate ##
-echo "Evaluating"
-spacy evaluate models/taggerparser/model-best data/train/parser/dev --code fi/fi.py
+echo "Evaluating on the dev set"
+spacy evaluate models/taggerparser/model-best data/train/parser/dev --code fi/fi.py --output metrics/dev.json
+
+echo "Evaluating on the test set"
+spacy evaluate models/taggerparser/model-best data/train/parser/test --code fi/fi.py --output metrics/test.json
