@@ -28,9 +28,9 @@ done
 
 echo "Preparing vectors"
 mkdir -p data/train/frequencies
-python -m tools.most_frequent_tokens --num-tokens 1000000 \
+python -m tools.most_frequent_tokens --num-tokens 500000 \
        data/raw/frequencies/finnish_vocab.txt.gz \
-       data/train/frequencies/finnish_vocab_1M.txt.gz
+       data/train/frequencies/finnish_vocab_500k.txt.gz
 
 spacy init vectors fi \
       data/train/floret/fi-300-50k-minn3-maxn5-epoch5.floret.gz \
@@ -43,7 +43,7 @@ mkdir -p data/train/vocab
 rm -rf data/train/vocab/*
 python tools/create_lexdata.py \
        data/raw/frequencies/finnish_vocab.txt.gz \
-       data/train/frequencies/finnish_vocab_1M.txt.gz \
+       data/train/frequencies/finnish_vocab_500k.txt.gz \
        > data/train/vocab/vocab-data.jsonl
 
 echo "Validating tagger and parser training and dev data"
