@@ -58,7 +58,7 @@ if [ $DO_PRETRAIN -ne 0 ]; then
     rm -rf models/pretrain
     spacy pretrain fi.cfg models/pretrain --code fi/fi.py
 
-    cp models/pretrain/models400.bin pretrain/weights.bin
+    cp models/pretrain/models600.bin pretrain/weights.bin
     #cp models/pretrain/config.cfg pretrain
     #cp models/pretrain/log.jsonl pretrain
 fi
