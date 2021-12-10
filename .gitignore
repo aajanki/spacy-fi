@@ -1,6 +1,10 @@
 .venv/
+assets/
+corpus/
 data/
 models/
+training/
 packages/
 metrics/
 __pycache__/
+project.lock

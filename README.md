@@ -50,20 +50,25 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install wheel
 pip install -r requirements.txt
-
-tools/download_data.sh
 ```
 
 ### Train the model
 
 ```sh
-tools/train.sh
+spacy project run all
 ```
 
-To perform full pretraining (slow!), append the `--pretrain` option:
+Optional steps (slow!) for training model components. These steps are
+not required because the results of have been stored in git.
 
+Train floret embeddings:
 ```sh
-tools/train.sh --pretrain
+spacy project run train-floret
+```
+
+Pretrain the model:
+```sh
+spacy project run pretrain
 ```
 
 ### Tests

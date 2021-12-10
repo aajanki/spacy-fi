@@ -10,16 +10,17 @@ from pathlib import Path
 
 def main(
     full_vocabulary_path: Path = typer.Argument(..., help='Path to the full vocabulary'),
-    input_vocabulary_path: Path = typer.Argument(..., help='Path to the input vocabulary')
+    input_vocabulary_path: Path = typer.Argument(..., help='Path to the input vocabulary'),
+    output_file: Path = typer.Argument(..., help='Name of the output file')
 ):
     probs, oov_prob = read_freqs(full_vocabulary_path, input_vocabulary_path)
-    out = sys.stdout
 
-    header = {'lang': 'fi', 'settings': {'oov_prob': oov_prob}}
-    write_json_line(header, out)
-    for orth, p in probs.items():
-        word_data = {'orth': orth, 'prob': p}
-        write_json_line(word_data, out)
+    with open(output_file, 'w') as out:
+        header = {'lang': 'fi', 'settings': {'oov_prob': oov_prob}}
+        write_json_line(header, out)
+        for orth, p in probs.items():
+            word_data = {'orth': orth, 'prob': p}
+            write_json_line(word_data, out)
 
 
 def read_freqs(full_loc, freq_loc):

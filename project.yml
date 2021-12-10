@@ -1,0 +1,151 @@
+title: "Finnish model"
+description: "Train spaCy model for Finnish on UD Finnish TDT"
+spacy_version: ">=3.2.0,<4.0.0"
+vars:
+  vector_size: 50000
+  vector_dim: 300
+  minn: 3
+  maxn: 5
+  max_steps: 20000
+  pretrain_max_steps: 600
+  treebank: "UD_Finnish-TDT"
+  train_name: "fi_tdt-ud-train"
+  dev_name: "fi_tdt-ud-dev"
+  test_name: "fi_tdt-ud-test"
+  n_threads: 16
+  gpu_id: -1
+
+directories: ["assets", "corpus", "data", "metrics", "training"]
+
+assets:
+  - dest: "assets/${vars.treebank}"
+    git:
+      repo: "https://github.com/UniversalDependencies/${vars.treebank}"
+      branch: "r2.9"
+      path: ""
+  - dest: "assets/word_frequencies/finnish_vocab.txt.gz"
+    url: "http://bionlp-www.utu.fi/.jmnybl/finnish_vocab.txt.gz"
+  - dest: "assets/wikipedia-fi-2017/wikipedia-fi-2017-src.zip"
+    url: "https://korp.csc.fi/download/wikipedia-fi/wikipedia-fi-2017-src/wikipedia-fi-2017-src.zip"
+
+workflows:
+  train-floret:
+    - download-cc100
+    - tokenize-cc100
+    - train-floret-cc100
+  pretrain:
+    - pretrain-wikipedia
+  all:
+    - init-lexdata
+    - init-floret-vectors
+    - convert
+    - train
+    - evaluate
+
+commands:
+  - name: "download-cc100"
+    help: "Download the Finnish CC-100 dataset"
+    script:
+      - "mkdir -p assets/cc-100"
+      - "wget --directory-prefix assets/cc-100 http://data.statmt.org/cc-100/fi.txt.xz"
+    outputs:
+      - "assets/cc-100/fi.txt.xz"
+
+  - name: "tokenize-cc100"
+    help: "Tokenize the CC-100 corpus"
+    script:
+      - "xzcat assets/cc-100/fi.txt.xz | python -m scripts.tokenize_fi > corpus/cc-100/fi-tokenized.txt"
+    deps:
+      - "assets/cc-100/fi.txt.xz"
+    outputs:
+      - "corpus/cc-100/fi-tokenized.txt"
+
+  - name: "train-floret-cc100"
+    help: "Train floret vectors on CC-100 corpus"
+    script:
+      - "floret skipgram -mode floret -hashCount 2 -bucket ${vars.vector_size} -minn ${vars.minn} -maxn ${vars.maxn} -minCount 50 -dim ${vars.vector_dim} -epoch 5 -thread ${vars.n_threads} -input corpus/cc-100/fi-tokenized.txt -output vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}"
+      - "gzip vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}.floret"
+    deps:
+      - "corpus/cc-100/fi-tokenized.txt"
+    outputs:
+      - "vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}.floret.gz"
+
+  - name: "pretrain-wikipedia"
+    help: "Pretrain the tok2vec component"
+    script:
+      - "mkdir -p training/pretrain"
+      - "rm -rf training/pretrain/*"
+      - "python -m spacy pretrain fi.cfg training/pretrain --code fi/fi.py --pretraining.max_epochs ${vars.pretrain_max_steps} --gpu-id ${vars.gpu_id}"
+      - "cp training/pretrain/models${vars.pretrain_max_steps}.bin pretrain/weights.bin"
+    deps:
+      - "fi.cfg"
+      - "assets/wikipedia-fi-2017/wikipedia-fi-2017-src.zip"
+    outputs:
+      - "pretrain/weights.bin"
+
+  - name: "init-lexdata"
+    script:
+      - "mkdir -p data/word_frequencies data/vocab"
+      - "python -m tools.most_frequent_tokens --num-tokens 500000 assets/word_frequencies/finnish_vocab.txt.gz data/word_frequencies/finnish_vocab_500k.txt.gz"
+      - "python -m tools.create_lexdata assets/word_frequencies/finnish_vocab.txt.gz data/word_frequencies/finnish_vocab_500k.txt.gz data/vocab/vocab-data.jsonl"
+    deps:
+      - "assets/word_frequencies/finnish_vocab.txt.gz"
+    outputs:
+      - "data/vocab/vocab-data.jsonl"
+
+  - name: "init-floret-vectors"
+    help: "Create floret embeddings"
+    script:
+      - "python -m spacy init vectors fi vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}.floret.gz data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --mode floret --name fi_web_floret.vectors"
+    deps:
+      - "vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}.floret.gz"
+    outputs:
+      - "data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret"
+
+  - name: "convert"
+    help: "Convert the data to spaCy's format"
+    script:
+      - "mkdir -p corpus/${vars.treebank}/preprocessed corpus/${vars.treebank}/spacy"
+      - "python tools/preprocess_UD-TDT.py assets/${vars.treebank}/${vars.train_name}.conllu corpus/${vars.treebank}/preprocessed/${vars.train_name}.conllu"
+      - "python -m spacy convert corpus/${vars.treebank}/preprocessed/${vars.train_name}.conllu corpus/${vars.treebank}/spacy --n-sents 6"
+      - "mv corpus/${vars.treebank}/spacy/${vars.train_name}.spacy corpus/${vars.treebank}/spacy/train.spacy"
+      - "python tools/preprocess_UD-TDT.py assets/${vars.treebank}/${vars.dev_name}.conllu corpus/${vars.treebank}/preprocessed/${vars.dev_name}.conllu"
+      - "python -m spacy convert corpus/${vars.treebank}/preprocessed/${vars.dev_name}.conllu corpus/${vars.treebank}/spacy --n-sents 6"
+      - "mv corpus/${vars.treebank}/spacy/${vars.dev_name}.spacy corpus/${vars.treebank}/spacy/dev.spacy"
+      - "python tools/preprocess_UD-TDT.py assets/${vars.treebank}/${vars.test_name}.conllu corpus/${vars.treebank}/preprocessed/${vars.test_name}.conllu"
+      - "python -m spacy convert corpus/${vars.treebank}/preprocessed/${vars.test_name}.conllu corpus/${vars.treebank}/spacy --n-sents 6"
+      - "mv corpus/${vars.treebank}/spacy/${vars.test_name}.spacy corpus/${vars.treebank}/spacy/test.spacy"
+    deps:
+      - "assets/${vars.treebank}/"
+    outputs:
+      - "corpus/${vars.treebank}/spacy/train.spacy"
+      - "corpus/${vars.treebank}/spacy/dev.spacy"
+      - "corpus/${vars.treebank}/spacy/test.spacy"
+
+  - name: "train"
+    help: "Train the model"
+    script:
+      - "python -m spacy train fi.cfg --output training/${vars.treebank}/ --paths.init_tok2vec pretrain/weights.bin --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --code fi/fi.py --gpu-id ${vars.gpu_id} --training.max_steps ${vars.max_steps}"
+    deps:
+      - "fi.cfg"
+      - "corpus/${vars.treebank}/spacy/train.spacy"
+      - "corpus/${vars.treebank}/spacy/dev.spacy"
+      - "pretrain/weights.bin"
+      - "data/vocab/vocab-data.jsonl"
+      - "data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret"
+    outputs:
+      - "training/${vars.treebank}/model-best"
+
+  - name: "evaluate"
+    help: "Evaluate the models and export metrics"
+    script:
+      - "mkdir -p metrics/${vars.treebank}"
+      - "python -m spacy evaluate training/${vars.treebank}/model-best corpus/${vars.treebank}/spacy/dev.spacy --output metrics/${vars.treebank}/dev.json --code fi/fi.py --gpu-id ${vars.gpu_id}"
+      - "python -m spacy evaluate training/${vars.treebank}/model-best corpus/${vars.treebank}/spacy/test.spacy --output metrics/${vars.treebank}/test.json --code fi/fi.py --gpu-id ${vars.gpu_id}"
+    deps:
+      - "corpus/${vars.treebank}/spacy/dev.spacy"
+      - "corpus/${vars.treebank}/spacy/test.spacy"
+      - "training/${vars.treebank}/model-best"
+    outputs:
+      - "metrics/${vars.treebank}/dev.json"
+      - "metrics/${vars.treebank}/test.json"
