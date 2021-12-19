@@ -151,7 +151,7 @@ commands:
       - "mkdir -p corpus/${vars.corpus_ner}/spacy"
       - "python -m spacy convert assets/${vars.corpus_ner}/data/conll/train.tsv corpus/${vars.corpus_ner}/spacy --converter ner --n-sents 10"
       - "python -m spacy convert assets/${vars.corpus_ner}/data/conll/dev.tsv corpus/${vars.corpus_ner}/spacy --converter ner --n-sents 10"
-      - "python -m spacy convert assets/${vars.corpus_ner}/data/conll/test.tsv corpus/${vars.corpus_ner}/spacy --converter ner ner --n-sents 10"
+      - "python -m spacy convert assets/${vars.corpus_ner}/data/conll/test.tsv corpus/${vars.corpus_ner}/spacy --converter ner --n-sents 10"
     deps:
       - "assets/${vars.corpus_ner}/"
     outputs:
