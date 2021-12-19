@@ -2,7 +2,7 @@
 
 # Experimental Finnish language model for spaCy
 
-Finnish language model for [spaCy](https://spacy.io/). The model does POS tagging, dependency parsing, word vectors, noun phrase extraction, token frequencies, morphological features and lemmatization. The lemmatization is based on [Voikko](https://voikko.puimula.org/).
+Finnish language model for [spaCy](https://spacy.io/). The model does POS tagging, dependency parsing, word vectors, noun phrase extraction, token frequencies, morphological features, lemmatization and named entity recognition (NER). The lemmatization is based on [Voikko](https://voikko.puimula.org/).
 
 ## Install the Finnish language model
 
@@ -83,19 +83,12 @@ Loading the trained model locally without packaging it as a module:
 import spacy
 import fi
 
-nlp = spacy.load('models/taggerparser/model-best/')
+nlp = spacy.load(training/merged')
 
 doc = nlp('Hän ajoi punaisella autolla.')
 for t in doc:
     print(f'{t.lemma_}\t{t.pos_}')
 ```
-
-### What about named entity recognizer (NER)?
-
-The [feature branch
-feature/ner](https://github.com/aajanki/spacy-fi/tree/feature/ner) has
-training scripts for a NER model. It's not merged in the main branch
-because the accuracy is quite poor.
 
 ### Packaging and publishing
 
@@ -109,4 +102,5 @@ See [packaging.md](packaging.md).
 
 The data sets downloaded by the tools/download_data.sh script are licensed as follows:
 * [UD_Finnish-TDT](https://github.com/UniversalDependencies/UD_Finnish-TDT): Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+* [turku-one](https://github.com/TurkuNLP/turku-one): Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
 * Word vectors and frequencies at [Finnish Internet Parsebank](https://turkunlp.org/finnish_nlp.html#parsebank): CC BY-SA
