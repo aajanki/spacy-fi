@@ -134,7 +134,7 @@ commands:
   - name: "train"
     help: "Train the model"
     script:
-      - "python -m spacy train configs/fi.cfg --output training/${vars.treebank}/ --paths.init_tok2vec pretrain/weights.bin --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --code fi/fi.py --gpu-id ${vars.gpu_id} --training.max_steps ${vars.max_steps}"
+      - "python -m spacy train configs/fi.cfg --output training/${vars.treebank}/ --paths.train corpus/${vars.treebank}/spacy/train.spacy --paths.dev corpus/${vars.treebank}/spacy/dev.spacy --paths.init_tok2vec pretrain/weights.bin --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --code fi/fi.py --gpu-id ${vars.gpu_id} --training.max_steps ${vars.max_steps}"
     deps:
       - "configs/fi.cfg"
       - "corpus/${vars.treebank}/spacy/train.spacy"
@@ -162,7 +162,7 @@ commands:
   - name: "train-ner"
     help: "Train the NER model"
     script:
-      - "python -m spacy train configs/fi-ner.cfg --output training/${vars.corpus_ner}/ --paths.init_tok2vec pretrain/weights.bin --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --code fi/fi.py --gpu-id ${vars.gpu_id} --training.max_steps ${vars.max_steps}"
+      - "python -m spacy train configs/fi-ner.cfg --output training/${vars.corpus_ner}/ --paths.train corpus/${vars.corpus_ner}/spacy/train.spacy --paths.dev corpus/${vars.corpus_ner}/spacy/dev.spacy --paths.init_tok2vec pretrain/weights.bin --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --code fi/fi.py --gpu-id ${vars.gpu_id} --training.max_steps ${vars.max_steps}"
     deps:
       - "configs/fi-ner.cfg"
       - "corpus/${vars.corpus_ner}/spacy/train.spacy"
