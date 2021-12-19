@@ -1,9 +1,11 @@
 import copy
+import filecmp
 import json
 import re
 import shutil
 import typer
 from pathlib import Path
+from spacy import util
 
 
 def main(
@@ -14,19 +16,30 @@ def main(
     if merged_path.exists():
         shutil.rmtree(merged_path)
 
+    assert filecmp.cmp(tagger_path / 'tokenizer', ner_path / 'tokenizer', shallow=False), \
+        'Tokenizers differ!'
+
+    _, mismatch, errors = \
+        filecmp.cmpfiles(tagger_path / 'vocab',
+                         ner_path / 'vocab',
+                         ['key2row', 'lookups.bin', 'vectors', 'vectors.cfg'],
+                         shallow=False)
+    assert not mismatch, 'Vocab files differ!'
+    assert not errors, 'Some vocab files could not be compared!'
+
     shutil.copytree(tagger_path, merged_path)
     shutil.copytree(ner_path / 'ner', merged_path / 'ner')
 
-    merged_meta = merge_meta(json.load(open(tagger_path / 'meta.json')),
-                             json.load(open(ner_path / 'meta.json')))
-    json.dump(merged_meta, open(merged_path / 'meta.json', 'w'), indent=4)
+    with open(merged_path / 'meta.json', 'w') as meta_out:
+        json.dump(merge_meta(tagger_path, ner_path), meta_out, indent=4)
 
-    open(merged_path / 'config.cfg', 'w').write(
-        merge_configs(open(tagger_path / 'config.cfg').read()))
+    with open(merged_path / 'config.cfg', 'w') as config_out:
+        config_out.write(merge_configs(tagger_path, ner_path).to_str())
 
 
-def merge_meta(tagger_meta, ner_meta):
-    merged_meta = copy.deepcopy(tagger_meta)
+def merge_meta(tagger_path, ner_path):
+    ner_meta = json.load(open(ner_path / 'meta.json'))
+    merged_meta = json.load(open(tagger_path / 'meta.json'))
     merged_meta['pipeline'] = merged_meta['pipeline'] + ['ner']
     merged_meta['components'] = merged_meta['components'] + ['ner']
     merged_meta['performance']['ents_p'] = ner_meta['performance']['ents_p']
@@ -37,33 +50,13 @@ def merge_meta(tagger_meta, ner_meta):
     return merged_meta
 
 
-def merge_configs(tagger_config):
-    config = tagger_config + """
+def merge_configs(tagger_path, ner_path):
+    cfg = util.load_config(tagger_path / 'config.cfg')
+    cfg_ner = util.load_config(ner_path / 'config.cfg')
 
-[components.ner]
-factory = "ner"
-incorrect_spans_key = null
-moves = null
-scorer = {"@scorers":"spacy.ner_scorer.v1"}
-update_with_oracle_cut_size = 100
-
-[components.ner.model]
-@architectures = "spacy.TransitionBasedParser.v2"
-state_type = "ner"
-extra_state_tokens = false
-hidden_width = 64
-maxout_pieces = 2
-use_upper = true
-nO = null
-
-[components.ner.model.tok2vec]
-@architectures = "spacy.Tok2VecListener.v1"
-width = ${components.tok2vec.model.encode.width}
-upstream = "*"
-"""
-
-    config = re.sub(r'(pipeline = \[.+)]', r'\1,"ner"]', config, re.MULTILINE)
-    return config
+    cfg['nlp']['pipeline'] = cfg['nlp']['pipeline'] + ['ner']
+    cfg['components']['ner'] = cfg_ner['components']['ner']
+    return cfg
 
 
 if __name__ == '__main__':
