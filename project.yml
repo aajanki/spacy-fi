@@ -9,6 +9,7 @@ vars:
   max_steps: 20000
   pretrain_max_steps: 600
   treebank: "UD_Finnish-TDT"
+  corpus_ner: "turku-one"
   train_name: "fi_tdt-ud-train"
   dev_name: "fi_tdt-ud-dev"
   test_name: "fi_tdt-ud-test"
@@ -22,6 +23,11 @@ assets:
     git:
       repo: "https://github.com/UniversalDependencies/${vars.treebank}"
       branch: "r2.9"
+      path: ""
+  - dest: "assets/${vars.corpus_ner}"
+    git:
+      repo: "https://github.com/TurkuNLP/turku-one.git"
+      branch: "main"
       path: ""
   - dest: "assets/word_frequencies/finnish_vocab.txt.gz"
     url: "http://bionlp-www.utu.fi/.jmnybl/finnish_vocab.txt.gz"
@@ -39,7 +45,10 @@ workflows:
     - init-lexdata
     - init-floret-vectors
     - convert
+    - convert-ner
     - train
+    - train-ner
+    - merge-parser-and-ner
     - evaluate
 
 commands:
@@ -75,10 +84,10 @@ commands:
     script:
       - "mkdir -p training/pretrain"
       - "rm -rf training/pretrain/*"
-      - "python -m spacy pretrain fi.cfg training/pretrain --code fi/fi.py --pretraining.max_epochs ${vars.pretrain_max_steps} --gpu-id ${vars.gpu_id}"
+      - "python -m spacy pretrain configs/fi.cfg training/pretrain --code fi/fi.py --pretraining.max_epochs ${vars.pretrain_max_steps} --gpu-id ${vars.gpu_id}"
       - "cp training/pretrain/models${vars.pretrain_max_steps}.bin pretrain/weights.bin"
     deps:
-      - "fi.cfg"
+      - "configs/fi.cfg"
       - "assets/wikipedia-fi-2017/wikipedia-fi-2017-src.zip"
     outputs:
       - "pretrain/weights.bin"
@@ -125,9 +134,9 @@ commands:
   - name: "train"
     help: "Train the model"
     script:
-      - "python -m spacy train fi.cfg --output training/${vars.treebank}/ --paths.init_tok2vec pretrain/weights.bin --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --code fi/fi.py --gpu-id ${vars.gpu_id} --training.max_steps ${vars.max_steps}"
+      - "python -m spacy train configs/fi.cfg --output training/${vars.treebank}/ --paths.init_tok2vec pretrain/weights.bin --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --code fi/fi.py --gpu-id ${vars.gpu_id} --training.max_steps ${vars.max_steps}"
     deps:
-      - "fi.cfg"
+      - "configs/fi.cfg"
       - "corpus/${vars.treebank}/spacy/train.spacy"
       - "corpus/${vars.treebank}/spacy/dev.spacy"
       - "pretrain/weights.bin"
@@ -136,16 +145,58 @@ commands:
     outputs:
       - "training/${vars.treebank}/model-best"
 
+  - name: "convert-ner"
+    help: "Convert the NER corpus to spaCy's format"
+    script:
+      - "mkdir -p corpus/${vars.corpus_ner}/spacy"
+      - "python -m spacy convert assets/${vars.corpus_ner}/data/conll/train.tsv corpus/${vars.corpus_ner}/spacy --converter ner --n-sents 10"
+      - "python -m spacy convert assets/${vars.corpus_ner}/data/conll/dev.tsv corpus/${vars.corpus_ner}/spacy --converter ner --n-sents 10"
+      - "python -m spacy convert assets/${vars.corpus_ner}/data/conll/test.tsv corpus/${vars.corpus_ner}/spacy --converter ner ner --n-sents 10"
+    deps:
+      - "assets/${vars.corpus_ner}/"
+    outputs:
+      - "corpus/${vars.corpus_ner}/spacy/train.spacy"
+      - "corpus/${vars.corpus_ner}/spacy/dev.spacy"
+      - "corpus/${vars.corpus_ner}/spacy/test.spacy"
+
+  - name: "train-ner"
+    help: "Train the NER model"
+    script:
+      - "python -m spacy train configs/fi-ner.cfg --output training/${vars.corpus_ner}/ --paths.init_tok2vec pretrain/weights.bin --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --code fi/fi.py --gpu-id ${vars.gpu_id} --training.max_steps ${vars.max_steps}"
+    deps:
+      - "configs/fi-ner.cfg"
+      - "corpus/${vars.corpus_ner}/spacy/train.spacy"
+      - "corpus/${vars.corpus_ner}/spacy/dev.spacy"
+      - "pretrain/weights.bin"
+      - "data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret"
+    outputs:
+      - "training/${vars.corpus_ner}/model-best"
+
+  - name: "merge-parser-and-ner"
+    help: "Merge the parser and NER models into one model"
+    script:
+      - "python -m tools.mergemodels training/${vars.treebank}/model-best training/${vars.corpus_ner}/model-best training/merged"
+    deps:
+      - "training/${vars.treebank}/model-best"
+      - "training/${vars.corpus_ner}/model-best"
+    outputs:
+      - "training/merged"
+
   - name: "evaluate"
-    help: "Evaluate the models and export metrics"
+    help: "Evaluate the NER model"
     script:
       - "mkdir -p metrics/${vars.treebank}"
-      - "python -m spacy evaluate training/${vars.treebank}/model-best corpus/${vars.treebank}/spacy/dev.spacy --output metrics/${vars.treebank}/dev.json --code fi/fi.py --gpu-id ${vars.gpu_id}"
-      - "python -m spacy evaluate training/${vars.treebank}/model-best corpus/${vars.treebank}/spacy/test.spacy --output metrics/${vars.treebank}/test.json --code fi/fi.py --gpu-id ${vars.gpu_id}"
+      - "mkdir -p metrics/${vars.corpus_ner}"
+      - "python -m spacy evaluate training/merged corpus/${vars.treebank}/spacy/dev.spacy --output metrics/${vars.treebank}/dev.json --code fi/fi.py --gpu-id ${vars.gpu_id}"
+      - "python -m spacy evaluate training/merged corpus/${vars.treebank}/spacy/test.spacy --output metrics/${vars.treebank}/test.json --code fi/fi.py --gpu-id ${vars.gpu_id}"
+      - "python -m spacy evaluate training/merged corpus/${vars.corpus_ner}/spacy/dev.spacy --output metrics/${vars.corpus_ner}/dev.json --code fi/fi.py --gpu-id ${vars.gpu_id}"
+      - "python -m spacy evaluate training/merged corpus/${vars.corpus_ner}/spacy/test.spacy --output metrics/${vars.corpus_ner}/test.json --code fi/fi.py --gpu-id ${vars.gpu_id}"
     deps:
       - "corpus/${vars.treebank}/spacy/dev.spacy"
       - "corpus/${vars.treebank}/spacy/test.spacy"
-      - "training/${vars.treebank}/model-best"
+      - "corpus/${vars.corpus_ner}/spacy/dev.spacy"
+      - "corpus/${vars.corpus_ner}/spacy/test.spacy"
+      - "training/merged"
     outputs:
-      - "metrics/${vars.treebank}/dev.json"
-      - "metrics/${vars.treebank}/test.json"
+      - "metrics/${vars.corpus_ner}/dev.json"
+      - "metrics/${vars.corpus_ner}/test.json"
