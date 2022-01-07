@@ -9,6 +9,7 @@ vars:
   maxn: 5
   max_steps: 20000
   pretrain_max_steps: 600
+  pretrain_max_texts: 100000
   treebank: "UD_Finnish-TDT"
   corpus_ner: "turku-one"
   train_name: "fi_tdt-ud-train"
@@ -34,8 +35,6 @@ assets:
       path: ""
   - dest: "assets/word_frequencies/finnish_vocab.txt.gz"
     url: "http://bionlp-www.utu.fi/.jmnybl/finnish_vocab.txt.gz"
-  - dest: "assets/wikipedia-fi-2017/wikipedia-fi-2017-src.zip"
-    url: "https://korp.csc.fi/download/wikipedia-fi/wikipedia-fi-2017-src/wikipedia-fi-2017-src.zip"
 
 workflows:
   train-floret:
@@ -43,7 +42,8 @@ workflows:
     - tokenize-oscar
     - train-floret-oscar
   pretrain:
-    - pretrain-wikipedia
+    - convert-oscar-jsonl
+    - pretrain-oscar
   all:
     - init-lexdata
     - init-floret-vectors
@@ -82,16 +82,25 @@ commands:
     outputs:
       - "vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}.floret.gz"
 
-  - name: "pretrain-wikipedia"
+  - name: "convert-oscar-jsonl"
+    help: "Convert the OSCAR corpus to JSONL format"
+    script:
+      - "python -m tools.raw_text_to_jsonl --limit ${vars.pretrain_max_texts} corpus/oscar/unshuffled_deduplicated_fi.txt corpus/oscar/unshuffled_deduplicated_fi_${vars.pretrain_max_texts}.jsonl"
+    deps:
+      - "corpus/oscar/unshuffled_deduplicated_fi.txt"
+    outputs:
+      - "corpus/oscar/unshuffled_deduplicated_fi_${vars.pretrain_max_texts}.jsonl"
+
+  - name: "pretrain-oscar"
     help: "Pretrain the tok2vec component"
     script:
-      - "mkdir -p training/pretrain"
-      - "rm -rf training/pretrain/*"
-      - "python -m spacy pretrain configs/fi.cfg training/pretrain --code fi/fi.py --pretraining.max_epochs ${vars.pretrain_max_steps} --gpu-id ${vars.gpu_id}"
-      - "cp training/pretrain/models${vars.pretrain_max_steps}.bin pretrain/weights.bin"
+      - "mkdir -p training/pretrain_oscar"
+      - "rm -rf training/pretrain_oscar/*"
+      - "python -m spacy pretrain configs/fi.cfg training/pretrain_oscar --code fi/fi.py --paths.pretrain corpus/oscar/unshuffled_deduplicated_fi_${vars.pretrain_max_texts}.jsonl --pretraining.max_epochs ${vars.pretrain_max_steps} --gpu-id ${vars.gpu_id}"
+      - "cp training/pretrain_oscar/models${vars.pretrain_max_steps}.bin pretrain/weights_oscar.bin"
     deps:
       - "configs/fi.cfg"
-      - "assets/wikipedia-fi-2017/wikipedia-fi-2017-src.zip"
+      - "corpus/oscar/unshuffled_deduplicated_fi_${vars.pretrain_max_texts}.jsonl"
     outputs:
       - "pretrain/weights.bin"
 

@@ -1,6 +1,5 @@
 import re
 import srsly
-from io import TextIOWrapper
 from pathlib import Path
 from typing import Callable, Iterable, Iterator, Optional, Union
 from spacy import util
@@ -12,13 +11,12 @@ from spacy.pipeline.pipe import Pipe
 from spacy.scorer import Scorer
 from spacy.symbols import ADJ, ADP, ADV, AUX, CCONJ, INTJ, NOUN, NUM, PROPN
 from spacy.symbols import PRON, PUNCT, SCONJ, SPACE, SYM, VERB, X
-from spacy.symbols import acl, aux, conj, cop, obj
+from spacy.symbols import conj, obj
 from spacy.tokens import Doc, Span, Token
 from spacy.training import Example, validate_examples
 from spacy.util import SimpleFrozenList
 from spacy.vocab import Vocab
 from voikko import libvoikko
-from zipfile import ZipFile
 
 
 class VoikkoLemmatizer(Pipe):
@@ -377,130 +375,6 @@ def make_voikko_lemmatizer(
     return VoikkoLemmatizer(nlp.vocab, name, overwrite_lemma=overwrite_lemma)
 
 
-class VrtZipCorpus:
-    """Iterate Doc objects from a ZIP file that contains VRT files.
-
-    path (Path): The ZIP filename to read from.
-    min_length (int): Minimum document length (in tokens). Shorter documents
-        will be skipped. Defaults to 0, which indicates no limit.
-    max_length (int): Maximum document length (in tokens). Longer documents will
-        be skipped. Defaults to 0, which indicates no limit.
-    limit (int): Limit corpus to a subset of examples, e.g. for debugging.
-        Defaults to 0, which indicates no limit.
-    """
-
-    def __init__(
-            self,
-            path: Union[str, Path],
-            *,
-            limit: int = 0,
-            min_length: int = 0,
-            max_length: int = 0,
-    ) -> None:
-        self.path = util.ensure_path(path)
-        self.limit = limit
-        self.min_length = min_length
-        self.max_length = max_length
-
-    def __call__(self, nlp: "Language") -> Iterator[Example]:
-        """Yield examples from the data.
-
-        nlp (Language): The current nlp object.
-        YIELDS (Example): The example objects.
-
-        DOCS: https://spacy.io/api/corpus#jsonlcorpus-call
-        """
-        i = 0
-        zf = ZipFile(self.path)
-        vrt_names = [p for p in zf.namelist() if p.endswith('.VRT')]
-        for nested in vrt_names:
-            with zf.open(nested) as f:
-                ftext = TextIOWrapper(f, encoding='utf-8')
-                for text in self.vrt_extract_documents(ftext):
-                    text = self.skip_title_line(text)
-                    doc = nlp.make_doc(text)
-                    if self.min_length >= 1 and len(doc) < self.min_length:
-                        continue
-                    elif self.max_length >= 1 and len(doc) >= self.max_length:
-                        continue
-                    else:
-                        words = [w.text for w in doc]
-                        spaces = [bool(w.whitespace_) for w in doc]
-                        # We don't *need* an example here, but it seems nice to
-                        # make it match the Corpus signature.
-                        yield Example(doc, Doc(nlp.vocab, words=words, spaces=spaces))
-
-                    i += 1
-                    if self.limit >= 1 and i >= self.limit:
-                        return
-
-    def vrt_extract_documents(self, fileobj):
-        tokens = []
-        quote_active = False
-        paragraph_break = False
-        for line in fileobj:
-            if line.startswith('</doc'):
-                # end of document
-                yield ''.join(tokens)
-
-                tokens = []
-                quote_active = False
-                paragraph_break = False
-
-            elif line.startswith('</paragraph'):
-                # paragraph break
-                quote_active = False
-                paragraph_break = True
-
-            elif line.startswith('<'):
-                # ignored document structure
-                pass
-
-            else:
-                # content
-                fields = line.split('\t')
-                term = fields[1]
-
-                if not tokens:
-                    pass
-                elif paragraph_break:
-                    tokens.append('\n\n')
-                elif not (self.char_is_in(term, '"”') and quote_active) \
-                     and not (term == '’') \
-                     and not (term.isdigit() and len(tokens) >= 2 and tokens[-2].isdigit() and self.char_is_in(tokens[-1], '.,')) \
-                     and not self.char_is_in(term, '.,:;)]}') \
-                     and not self.char_is_in(tokens[-1], '([{’') \
-                     and not (self.char_is_in(tokens[-1], '"”') and quote_active):
-                    tokens.append(' ')
-
-                tokens.append(term)
-
-                paragraph_break = False
-                if self.char_is_in(term, '"”'):
-                    quote_active = not quote_active
-                elif not quote_active and len(term) > 1 and self.char_is_in(term[0], '"”'):
-                    # Sometimes the starting quote is not tokenized as a
-                    # separate token
-                    quote_active = True
-
-        if tokens:
-            # We end up here if the last document wasn't terminated
-            # properly with </doc>
-            yield ''.join(tokens)
-
-    def skip_title_line(self, text):
-        # The first line is the title, the second line is empty
-        parts = text.split('\n', 2)
-        if len(parts) < 3:
-            return text
-        else:
-            assert len(parts[1]) == 0
-            return parts[-1]
-
-    def char_is_in(self, x, chars):
-        return len(x) == 1 and any(x == c for c in chars)
-
-
 def noun_chunks(doclike: Union[Doc, Span]) -> Iterator[Span]:
     """Detect base noun phrases from a dependency parse. Works on both Doc and Span."""
     labels = [
@@ -584,21 +458,6 @@ def create_lookups_from_json_reader(path: Path) -> Lookups:
         data = srsly.read_json(p)
         lookups.add_table(table_name, data)
     return lookups
-
-
-@util.registry.readers("spacyfi.VrtZipCorpus.v1")
-def create_vrt_zip_reader(
-        path: Optional[Path], min_length: int = 0, max_length: int = 0, limit: int = 0
-) -> Callable[["Language"], Iterable[Doc]]:
-    if path is None:
-        raise ValueError(Errors.E913)
-
-    return VrtZipCorpus(
-        path,
-        limit=limit,
-        min_length=min_length,
-        max_length=max_length,
-    )
 
 
 class FinnishExDefaults(FinnishDefaults):
