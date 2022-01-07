@@ -103,4 +103,6 @@ See [packaging.md](packaging.md).
 The data sets downloaded by the tools/download_data.sh script are licensed as follows:
 * [UD_Finnish-TDT](https://github.com/UniversalDependencies/UD_Finnish-TDT): Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
 * [turku-one](https://github.com/TurkuNLP/turku-one): Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+* [Finnish Wikipedia 2017](https://korp.csc.fi/download/wikipedia-fi/wikipedia-fi-2017-src/): CC BY 4.0
+* [OSCAR](https://oscar-corpus.com/): CC0
 * Word vectors and frequencies at [Finnish Internet Parsebank](https://turkunlp.org/finnish_nlp.html#parsebank): CC BY-SA

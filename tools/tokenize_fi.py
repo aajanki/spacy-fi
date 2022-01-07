@@ -1,9 +1,12 @@
 import sys
+import typer
+from pathlib import Path
 from spacy.lang.fi import FinnishDefaults
 from spacy.lang.char_classes import LIST_PUNCT, LIST_ELLIPSES, LIST_QUOTES, LIST_ICONS
 from spacy.lang.char_classes import LIST_HYPHENS, CURRENCY, UNITS
 from spacy.lang.char_classes import CONCAT_QUOTES, ALPHA, ALPHA_LOWER, ALPHA_UPPER, PUNCT
 from spacy.language import Language
+from tqdm import tqdm
 
 QUOTES2 = CONCAT_QUOTES.replace("'", "")
 DASHES = "|".join(x for x in LIST_HYPHENS if len(x) == 1 and x != "-")
@@ -45,18 +48,25 @@ class FinnishCustomTokenizer(Language):
     lang = 'fi'
     Defaults = FinnishCustomTokenizerDefaults
 
+
+def main(input_file: Path, output_file: Path):
+    tokenizer = create_tokenizer()
+
+    with input_file.open() as inf, output_file.open('w') as outf:
+        for i, line in enumerate(tqdm(inf)):
+            outf.write(' '.join(x.text for x in tokenizer(line.rstrip('\n'))))
+            outf.write('\n')
+
+            if i % 200000 == 0:
+                # This will leak memory unless the tokenizer is re-created
+                # periodically
+                del tokenizer
+                tokenizer = create_tokenizer()
+
+
 def create_tokenizer():
     return FinnishCustomTokenizer().tokenizer
 
+
 if __name__ == '__main__':
-    tokenizer = create_tokenizer()
-
-    for i, line in enumerate(sys.stdin):
-        sys.stdout.write(' '.join(x.text for x in tokenizer(line.rstrip('\n'))))
-        sys.stdout.write('\n')
-
-        if i % 100000 == 0:
-            # This will leak memory unless the tokenizer is re-created
-            # periodically
-            del tokenizer
-            tokenizer = create_tokenizer()
+    typer.run(main)

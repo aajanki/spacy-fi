@@ -4,6 +4,7 @@ spacy_version: ">=3.2.0,<4.0.0"
 vars:
   vector_size: 50000
   vector_dim: 300
+  max_texts: 1000000
   minn: 3
   maxn: 5
   max_steps: 20000
@@ -15,6 +16,8 @@ vars:
   test_name: "fi_tdt-ud-test"
   n_threads: 16
   gpu_id: -1
+  floret_epochs: 20
+  floret_min_count: 100
 
 directories: ["assets", "corpus", "data", "metrics", "training"]
 
@@ -36,9 +39,9 @@ assets:
 
 workflows:
   train-floret:
-    - download-cc100
-    - tokenize-cc100
-    - train-floret-cc100
+    - download-oscar
+    - tokenize-oscar
+    - train-floret-oscar
   pretrain:
     - pretrain-wikipedia
   all:
@@ -52,30 +55,30 @@ workflows:
     - evaluate
 
 commands:
-  - name: "download-cc100"
-    help: "Download the Finnish CC-100 dataset"
+  - name: "download-oscar"
+    help: "Download a subset of the OSCAR corpus"
     script:
-      - "mkdir -p assets/cc-100"
-      - "wget --directory-prefix assets/cc-100 http://data.statmt.org/cc-100/fi.txt.xz"
+      - "mkdir -p corpus/oscar/"
+      - "python -m tools.download_oscar unshuffled_deduplicated_fi ${vars.max_texts} corpus/oscar/unshuffled_deduplicated_fi.txt"
     outputs:
-      - "assets/cc-100/fi.txt.xz"
+      - "corpus/oscar/unshuffled_deduplicated_fi.txt"
 
-  - name: "tokenize-cc100"
-    help: "Tokenize the CC-100 corpus"
+  - name: "tokenize-oscar"
+    help: "Tokenize the OSCAR corpus"
     script:
-      - "xzcat assets/cc-100/fi.txt.xz | python -m scripts.tokenize_fi > corpus/cc-100/fi-tokenized.txt"
+      - "python -m tools.tokenize_fi corpus/oscar/unshuffled_deduplicated_fi.txt corpus/oscar/unshuffled_deduplicated_fi_tokenized.txt"
     deps:
-      - "assets/cc-100/fi.txt.xz"
+      - "corpus/oscar/unshuffled_deduplicated_fi.txt"
     outputs:
-      - "corpus/cc-100/fi-tokenized.txt"
+      - "corpus/oscar/unshuffled_deduplicated_fi_tokenized.txt"
 
-  - name: "train-floret-cc100"
-    help: "Train floret vectors on CC-100 corpus"
+  - name: "train-floret-oscar"
+    help: "Train floret vectors on the OSCAR corpus"
     script:
-      - "floret skipgram -mode floret -hashCount 2 -bucket ${vars.vector_size} -minn ${vars.minn} -maxn ${vars.maxn} -minCount 50 -dim ${vars.vector_dim} -epoch 5 -thread ${vars.n_threads} -input corpus/cc-100/fi-tokenized.txt -output vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}"
-      - "gzip vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}.floret"
+      - "floret skipgram -mode floret -hashCount 2 -bucket ${vars.vector_size} -minn ${vars.minn} -maxn ${vars.maxn} -minCount ${vars.floret_min_count} -dim ${vars.vector_dim} -epoch ${vars.floret_epochs} -thread ${vars.n_threads} -input corpus/oscar/unshuffled_deduplicated_fi_tokenized.txt -output vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}"
+      - "gzip -f vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}.floret"
     deps:
-      - "corpus/cc-100/fi-tokenized.txt"
+      - "corpus/oscar/unshuffled_deduplicated_fi_tokenized.txt"
     outputs:
       - "vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}.floret.gz"
 
