@@ -94,8 +94,8 @@ commands:
   - name: "pretrain-oscar"
     help: "Pretrain the tok2vec component"
     script:
+      - "rm -rf training/pretrain"
       - "mkdir -p training/pretrain"
-      - "rm -rf training/pretrain/*"
       - "python -m spacy pretrain configs/fi.cfg training/pretrain --code fi/fi.py --paths.pretrain corpus/oscar/unshuffled_deduplicated_fi_${vars.pretrain_max_texts}.jsonl --pretraining.max_epochs ${vars.pretrain_max_steps} --gpu-id ${vars.gpu_id}"
       - "cp training/pretrain/models${vars.pretrain_max_steps}.bin pretrain/weights_oscar.bin"
     deps:
