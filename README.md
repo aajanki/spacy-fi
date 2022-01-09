@@ -55,7 +55,7 @@ pip install -r requirements.txt
 ### Train the model
 
 ```sh
-spacy project run all
+spacy project run train-pipeline
 ```
 
 Optional steps (slow!) for training model components. These steps are
@@ -63,10 +63,10 @@ not required because the results of have been stored in git.
 
 Train floret embeddings:
 ```sh
-spacy project run train-floret
+spacy project run floret-vectors
 ```
 
-Pretrain the model:
+Pretrain tok2vec weights:
 ```sh
 spacy project run pretrain
 ```

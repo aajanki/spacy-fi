@@ -37,14 +37,15 @@ assets:
     url: "http://bionlp-www.utu.fi/.jmnybl/finnish_vocab.txt.gz"
 
 workflows:
-  train-floret:
+  floret-vectors:
     - download-oscar
     - tokenize-oscar
     - train-floret-oscar
   pretrain:
+    - init-floret-vectors
     - convert-oscar-jsonl
     - pretrain-oscar
-  all:
+  train-pipeline:
     - init-lexdata
     - init-floret-vectors
     - convert
@@ -96,11 +97,12 @@ commands:
     script:
       - "rm -rf training/pretrain"
       - "mkdir -p training/pretrain"
-      - "python -m spacy pretrain configs/fi.cfg training/pretrain --code fi/fi.py --paths.pretrain corpus/oscar/unshuffled_deduplicated_fi_${vars.pretrain_max_texts}.jsonl --pretraining.max_epochs ${vars.pretrain_max_steps} --gpu-id ${vars.gpu_id}"
+      - "python -m spacy pretrain configs/fi.cfg training/pretrain --code fi/fi.py --paths.pretrain corpus/oscar/unshuffled_deduplicated_fi_${vars.pretrain_max_texts}.jsonl --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --pretraining.max_epochs ${vars.pretrain_max_steps} --gpu-id ${vars.gpu_id}"
       - "cp training/pretrain/models${vars.pretrain_max_steps}.bin pretrain/weights_oscar.bin"
     deps:
       - "configs/fi.cfg"
       - "corpus/oscar/unshuffled_deduplicated_fi_${vars.pretrain_max_texts}.jsonl"
+      - "data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret"
     outputs:
       - "pretrain/weights.bin"
 
