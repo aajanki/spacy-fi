@@ -6,7 +6,7 @@ Finnish language model for [spaCy](https://spacy.io/). The model does POS taggin
 
 ## Install the Finnish language model
 
-First, install [the libvoikko native library with Finnish morphology data files](https://voikko.puimula.org/python.html).
+First, install [the libvoikko native library and the Finnish morphology data files](https://voikko.puimula.org/python.html).
 
 Next, install the model by running:
 ```
@@ -58,8 +58,9 @@ pip install -r requirements.txt
 spacy project run train-pipeline
 ```
 
-Optional steps (slow!) for training model components. These steps are
-not required because the results of have been stored in git.
+Optional steps (slow!) for training certain model components. These
+steps are not necessarily required because the results of have been
+pre-computed and stored in git.
 
 Train floret embeddings:
 ```sh
@@ -77,13 +78,14 @@ spacy project run pretrain
 python -m pytest tests
 ```
 
-Loading the trained model locally without packaging it as a module:
+Importing the trained model directly from the file system without
+packaging it as a module:
 
 ```python
 import spacy
 import fi
 
-nlp = spacy.load(training/merged')
+nlp = spacy.load('training/merged')
 
 doc = nlp('Hän ajoi punaisella autolla.')
 for t in doc:
@@ -102,6 +104,6 @@ See [packaging.md](packaging.md).
 
 The data sets downloaded by the tools/download_data.sh script are licensed as follows:
 * [UD_Finnish-TDT](https://github.com/UniversalDependencies/UD_Finnish-TDT): Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
-* [turku-one](https://github.com/TurkuNLP/turku-one): Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+* [TurkuONE](https://github.com/TurkuNLP/turku-one): Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
 * [OSCAR](https://oscar-corpus.com/): CC0
-* Word vectors and frequencies at [Finnish Internet Parsebank](https://turkunlp.org/finnish_nlp.html#parsebank): CC BY-SA
+* Word frequencies at [Finnish Internet Parsebank](https://turkunlp.org/finnish_nlp.html#parsebank): CC BY-SA
