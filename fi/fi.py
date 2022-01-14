@@ -53,8 +53,6 @@ class VoikkoLemmatizer(Pipe):
         "2p": ["nne"],
         "3": ["nsa", "nsä", "an", "en", "in" "on", "un", "yn", "än", "ön"],
     }
-    infinite_moods = frozenset([
-        "A-infinitive", "E-infinitive", "MA-infinitive", "MAINEN-infinitive"])
 
     def __init__(
             self,
@@ -70,12 +68,7 @@ class VoikkoLemmatizer(Pipe):
         self.voikko = libvoikko.Voikko("fi")
         self.lookups = Lookups()
         self.overwrite_lemma = overwrite_lemma
-        self.aux_labels = [vocab.strings.add(x) for x in ["aux", "aux:pass"]]
-        self.cop_labels = [vocab.strings.add(x) for x in ["cop", "cop:own"]]
         self.nsubj_labels = [vocab.strings.add(x) for x in ["nsubj", "nsubj:cop"]]
-        self.ccomp_labels = [vocab.strings.add(x) for x in ["csubj", "csubj:cop", "xcomp", "xcomp:ds"]]
-        self.relcl_labels = [vocab.strings.add(x) for x in ["acl:relcl", "ccomp"]]
-        self.foreign_tag = vocab.strings.add('Foreign')
 
     def __call__(self, doc: Doc) -> Doc:
         error_handler = self.get_error_handler()
