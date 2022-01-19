@@ -197,7 +197,7 @@ commands:
       - "training/merged"
 
   - name: "evaluate"
-    help: "Evaluate the NER model"
+    help: "Evaluate the full model"
     script:
       - "mkdir -p metrics/${vars.treebank}"
       - "mkdir -p metrics/${vars.corpus_ner}"

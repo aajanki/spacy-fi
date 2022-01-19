@@ -1,9 +1,9 @@
 {
     "lang": "fi",
     "name": "experimental_web_md",
-    "version": "0.8.0",
+    "version": "0.9.0",
     "requirements": ["voikko>=0.5"],
-    "description": "Finnish language model: POS tagger, dependency parser, lemmatizer, morphological features",
+    "description": "Finnish language model: POS tagger, dependency parser, lemmatizer, morphological features, NER",
     "author": "Antti Ajanki",
     "email": "antti.ajanki@iki.fi",
     "url": "https://github.com/aajanki/spacy-fi",
@@ -14,10 +14,15 @@
             "url": "https://github.com/UniversalDependencies/UD_Finnish-TDT",
             "license": "CC BY-SA 4.0"
         },
-        {
-            "name": "Finnish Internet Parsebank",
-            "url": "https://turkunlp.org/finnish_nlp.html#parsebank",
-            "license": "CC BY-SA"
+	{
+	    "name": "OSCAR",
+	    "url": "https://oscar-corpus.com/",
+	    "license": "CC0"
+	},
+	{
+	    "name": "TurkuONE",
+	    "url": "https://github.com/TurkuNLP/turku-one",
+	    "license": "CC BY-SA 4.0"
         }
     ]
 }
