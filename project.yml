@@ -210,7 +210,7 @@ commands:
       - "corpus/${vars.treebank}/spacy/test.spacy"
       - "corpus/${vars.corpus_ner}/spacy/dev.spacy"
       - "corpus/${vars.corpus_ner}/spacy/test.spacy"
-      - "training/merged"
+      - "training/merged/meta.json"
     outputs:
       - "metrics/${vars.corpus_ner}/dev.json"
       - "metrics/${vars.corpus_ner}/test.json"
