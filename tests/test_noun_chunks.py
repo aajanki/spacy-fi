@@ -27,7 +27,7 @@ FI_NP_TEST_EXAMPLES = [
         ['NOUN', 'ADJ', 'NOUN', 'VERB', 'PROPN', 'NOUN', 'ADP'],
         ['nsubj', 'amod', 'nmod', 'ROOT', 'nmod:poss', 'obl', 'case'],
         [3, 1, -2, 0, 1, -2, -1],
-        ['Leijona raidallisine tassuineen', 'Porin kaupungin lähellä'],
+        ['Leijona raidallisine tassuineen', 'Porin kaupungin'],
     ),
     (
         'Lounaalla nautittiin salaattia, maukasta kanaa ja raikasta vettä',
@@ -39,16 +39,16 @@ FI_NP_TEST_EXAMPLES = [
     (
         'Minua houkuttaa maalle muuttaminen talven jälkeen',
         ['PRON', 'VERB', 'NOUN', 'NOUN', 'NOUN', 'ADP'],
-        ['obj', 'ROOT', 'nmod', 'nsubj', 'nmod', 'case'],
-        [1, 0, 1, -2, -1, -1],
-        ['maalle muuttaminen talven jälkeen'],
+        ['obj', 'ROOT', 'nmod', 'nsubj', 'obl', 'case'],
+        [1, 0, 1, -2, -3, -1],
+        ['maalle muuttaminen', 'talven'],
     ),
     (
         'Päivän kohokohta oli vierailu museossa kummilasten kanssa',
         ['NOUN', 'NOUN', 'AUX', 'NOUN', 'NOUN', 'NOUN', 'ADP'],
-        ['nmod:poss', 'nsubj:cop', 'cop', 'ROOT', 'nmod', 'nmod', 'case'],
-        [1, 2, 1, 0, -1, -1, -1],
-        ['Päivän kohokohta', 'vierailu museossa kummilasten kanssa'],
+        ['nmod:poss', 'nsubj:cop', 'cop', 'ROOT', 'nmod', 'obl', 'case'],
+        [1, 2, 1, 0, -1, -2, -1],
+        ['Päivän kohokohta', 'vierailu museossa', 'kummilasten'],
     ),
     (
         'Yrittäjät maksoivat tuomioistuimen määräämät korvaukset',
@@ -69,7 +69,7 @@ FI_NP_TEST_EXAMPLES = [
         ['PRON', 'AUX', 'ADJ', 'NOUN', 'PRON', 'NOUN', 'PUNCT', 'ADV', 'NOUN'],
         ['nsubj:cop', 'cop', 'amod', 'ROOT', 'det', 'nmod', 'punct', 'advmod', 'appos'],
         [3, 2, 1, 0, 1, -2, 2, 1, -3],
-        ['ala-arvoista käytöstä kaikilta oppilailta , myös valvojaoppilailta'],
+        ['ala-arvoista käytöstä kaikilta oppilailta', 'valvojaoppilailta'],
     ),
     (
         'Isä souti veneellä, jonka hän oli vuokrannut',
@@ -98,7 +98,6 @@ FI_NP_TEST_EXAMPLES = [
         ['nmod:gobj', 'nsubj:cop', 'cop', 'ROOT', 'nmod:poss', 'amod', 'nmod'],
         [1, 2, 1, 0, 2, 1, -3],
         ['Liikkuvuuden lisääminen', 'korkeakoulutuksen keskeisistä kehittämiskohteista'],
-
     ),
     (
         'Kaupalliset palvelut jätetään yksityisten palveluntarjoajien tarjottavaksi',
@@ -140,11 +139,11 @@ FI_NP_TEST_EXAMPLES = [
         ['NOUN', 'ADP', 'NOUN', 'AUX', 'ADJ', 'NOUN'],
         ['obl', 'case', 'nsubj:cop', 'cop', 'amod', 'ROOT'],
         [5, -1, 3, 2, 1, 0],
-        ['Lain mukaan', 'varhaiskasvatus', 'suunnitelmallista toimintaa'],
+        ['Lain', 'varhaiskasvatus', 'suunnitelmallista toimintaa'],
     ),
 ]
 
-FI_NP_TEST_EXAMPLES_APPOS = [
+FI_NP_TEST_XFAIL_EXAMPLES = [
     (
         'Terveyden ja hyvinvoinnin laitos (THL) johtaa hanketta',
         ['NOUN', 'CCONJ', 'NOUN', 'NOUN', 'PUNCT', 'PROPN', 'PUNCT', 'VERB', 'NOUN'],
@@ -183,7 +182,7 @@ def test_fi_noun_chunks(text, pos, deps, heads, expected_noun_chunks):
 
 @pytest.mark.xfail
 @pytest.mark.parametrize(
-    "text,pos,deps,heads,expected_noun_chunks", FI_NP_TEST_EXAMPLES_APPOS
+    "text,pos,deps,heads,expected_noun_chunks", FI_NP_TEST_XFAIL_EXAMPLES
 )
 def test_fi_noun_chunks_appos(text, pos, deps, heads, expected_noun_chunks):
     doc = get_doc_from_text(text, fi_tokenizer, pos=pos, heads=heads, deps=deps)

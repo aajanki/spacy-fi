@@ -1,5 +1,9 @@
 Finnish language model for spaCy
 
+<unreleased>
+
+* Noun chunker now splits off appositions as independent phrases
+
 Version 0.9.0, 2022-01-19
 
 * The pipeline now includes a named-entity recognizer (NER)

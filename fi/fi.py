@@ -1,7 +1,7 @@
 import re
 import srsly
 from pathlib import Path
-from typing import Callable, Iterable, Iterator, Optional, Union
+from typing import Callable, Iterable, Iterator, Optional, Tuple, Union
 from spacy import util
 from spacy.errors import Errors
 from spacy.lang.fi import Finnish, FinnishDefaults
@@ -368,9 +368,10 @@ def make_voikko_lemmatizer(
     return VoikkoLemmatizer(nlp.vocab, name, overwrite_lemma=overwrite_lemma)
 
 
-def noun_chunks(doclike: Union[Doc, Span]) -> Iterator[Span]:
+def noun_chunks(doclike: Union[Doc, Span]) -> Iterator[Tuple[int, int, int]]:
     """Detect base noun phrases from a dependency parse. Works on both Doc and Span."""
     labels = [
+        "appos",
         "nsubj",
         "nsubj:cop",
         "obj",
@@ -378,10 +379,7 @@ def noun_chunks(doclike: Union[Doc, Span]) -> Iterator[Span]:
         "ROOT",
     ]
     extend_labels = [
-        "advmod",
         "amod",
-        "appos",
-        "case",
         "compound",
         "compound:nn",
         "flat:name",
@@ -421,7 +419,7 @@ def noun_chunks(doclike: Union[Doc, Span]) -> Iterator[Span]:
             # modifiers, compound words etc.
             lbracket = word.i
             for ldep in word.lefts:
-                if ldep.pos in (NOUN, PROPN, NUM, ADJ) and ldep.dep in extend_deps:
+                if ldep.dep in extend_deps:
                     lbracket = ldep.left_edge.i
                     break
 
@@ -430,14 +428,11 @@ def noun_chunks(doclike: Union[Doc, Span]) -> Iterator[Span]:
                 continue
 
             rbracket = word.i
-            # Try to extend the span to the right to capture close
+            # Try to extend the span to the right to capture
             # appositions and noun modifiers
             for rdep in word.rights:
                 if rdep.dep in extend_deps:
                     rbracket = rdep.i
-                    for j in range(rdep.i + 1, rdep.right_edge.i + 1):
-                        if doc[j].dep in extend_deps:
-                            rbracket = j
             prev_end = rbracket
 
             yield lbracket, rbracket + 1, np_label
