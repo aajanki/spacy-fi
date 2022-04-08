@@ -1,6 +1,6 @@
 title: "Finnish model"
 description: "Train spaCy model for Finnish on UD Finnish TDT"
-spacy_version: ">=3.2.0,<4.0.0"
+spacy_version: ">=3.3.0.dev0,<=3.4.0"
 vars:
   vector_size: 50000
   vector_dim: 300

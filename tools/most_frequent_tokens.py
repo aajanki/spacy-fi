@@ -2,7 +2,7 @@ import gzip
 import typer
 from pathlib import Path
 from tqdm import tqdm
-from fi import FinnishExtended
+from spacy.lang.fi import Finnish
 
 
 def main(freqs_loc: Path = typer.Argument(..., help='Path to the input word frequencies'),
@@ -14,7 +14,7 @@ def main(freqs_loc: Path = typer.Argument(..., help='Path to the input word freq
 
 
 def collect_frequencies(freqs_loc, num_tokens):
-    tokenizer = FinnishExtended().tokenizer
+    tokenizer = Finnish().tokenizer
     freqs = {}
     with gzip.open(freqs_loc, 'rt', encoding='utf-8') as infile:
         for line in tqdm(infile):

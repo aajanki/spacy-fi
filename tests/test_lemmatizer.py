@@ -1,10 +1,8 @@
 import pytest
-from itertools import chain
 from fi.fi import create_lookups_from_json_reader, VoikkoLemmatizer
 from pathlib import Path
 from spacy.lang.fi import Finnish
 from spacy.tokens import Doc
-from spacy.vocab import Vocab
 
 
 XFAIL = 1
