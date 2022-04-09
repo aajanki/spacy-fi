@@ -1,7 +1,8 @@
 Finnish language model for spaCy
 
-<unreleased>
+Version 0.10.0b1, 2022-04-09
 
+* Ported to spaCy 3.3.0.dev0. Older spacy versions are not supported anymore.
 * Noun chunker now splits off appositions as independent phrases
 
 Version 0.9.0, 2022-01-19
