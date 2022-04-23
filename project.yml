@@ -4,8 +4,8 @@ spacy_version: ">=3.3.0.dev0,<=3.4.0"
 vars:
   vector_size: 50000
   vector_dim: 300
-  max_texts: 1000000
-  minn: 3
+  max_texts: 2000000
+  minn: 4
   maxn: 5
   max_steps: 20000
   pretrain_max_steps: 200
@@ -17,7 +17,7 @@ vars:
   test_name: "fi_tdt-ud-test"
   n_threads: 16
   gpu_id: -1
-  floret_epochs: 20
+  floret_epochs: 10
   floret_min_count: 100
 
 directories: ["assets", "corpus", "data", "metrics", "training"]
@@ -38,13 +38,13 @@ assets:
 
 workflows:
   floret-vectors:
-    - download-oscar
-    - tokenize-oscar
-    - train-floret-oscar
+    - download-mc4-fi
+    - tokenize-mc4
+    - train-floret-mc4
   pretrain:
     - init-floret-vectors
-    - convert-oscar-jsonl
-    - pretrain-oscar
+    - convert-mc4-jsonl
+    - pretrain-mc4
   train-pipeline:
     - init-lexdata
     - init-floret-vectors
@@ -56,52 +56,52 @@ workflows:
     - evaluate
 
 commands:
-  - name: "download-oscar"
-    help: "Download a subset of the OSCAR corpus"
+  - name: "download-mc4-fi"
+    help: "Download a subset of the MC4 corpus"
     script:
-      - "mkdir -p corpus/oscar/"
-      - "python -m tools.download_oscar unshuffled_deduplicated_fi ${vars.max_texts} corpus/oscar/unshuffled_deduplicated_fi.txt"
+      - "mkdir -p corpus/mc4/"
+      - "python -m tools.download_huggingface Finnish-NLP/mc4_fi_cleaned Finnish-NLP--mc4_fi_cleaned ${vars.max_texts} corpus/mc4/mc4_fi_cleaned.txt"
     outputs:
-      - "corpus/oscar/unshuffled_deduplicated_fi.txt"
+      - "corpus/mc4/mc4_fi_cleaned.txt"
 
-  - name: "tokenize-oscar"
-    help: "Tokenize the OSCAR corpus"
+  - name: "tokenize-mc4"
+    help: "Tokenize the MC4 corpus"
     script:
-      - "python -m tools.tokenize_fi corpus/oscar/unshuffled_deduplicated_fi.txt corpus/oscar/unshuffled_deduplicated_fi_tokenized.txt"
+      - "python -m tools.tokenize_fi corpus/mc4/mc4_fi_cleaned.txt corpus/mc4/mc4_fi_cleaned_tokenized.txt"
     deps:
-      - "corpus/oscar/unshuffled_deduplicated_fi.txt"
+      - "corpus/mc4/mc4_fi_cleaned.txt"
     outputs:
-      - "corpus/oscar/unshuffled_deduplicated_fi_tokenized.txt"
+      - "corpus/mc4/mc4_fi_cleaned_tokenized.txt"
 
-  - name: "train-floret-oscar"
-    help: "Train floret vectors on the OSCAR corpus"
+  - name: "train-floret-mc4"
+    help: "Train floret vectors on the MC4 corpus"
     script:
-      - "floret skipgram -mode floret -hashCount 2 -bucket ${vars.vector_size} -minn ${vars.minn} -maxn ${vars.maxn} -minCount ${vars.floret_min_count} -dim ${vars.vector_dim} -epoch ${vars.floret_epochs} -thread ${vars.n_threads} -input corpus/oscar/unshuffled_deduplicated_fi_tokenized.txt -output vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}"
+      - "floret cbow -mode floret -hashCount 2 -bucket ${vars.vector_size} -minn ${vars.minn} -maxn ${vars.maxn} -minCount ${vars.floret_min_count} -dim ${vars.vector_dim} -neg 10 -epoch ${vars.floret_epochs} -thread ${vars.n_threads} -input corpus/mc4/mc4_fi_cleaned_tokenized.txt -output vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}"
       - "gzip -f vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}.floret"
     deps:
-      - "corpus/oscar/unshuffled_deduplicated_fi_tokenized.txt"
+      - "corpus/mc4/mc4_fi_cleaned_tokenized.txt"
     outputs:
       - "vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}.floret.gz"
 
-  - name: "convert-oscar-jsonl"
-    help: "Convert the OSCAR corpus to JSONL format"
+  - name: "convert-mc4-jsonl"
+    help: "Convert the MC4 corpus to JSONL format"
     script:
-      - "python -m tools.raw_text_to_jsonl --limit ${vars.pretrain_max_texts} corpus/oscar/unshuffled_deduplicated_fi.txt corpus/oscar/unshuffled_deduplicated_fi_${vars.pretrain_max_texts}.jsonl"
+      - "python -m tools.raw_text_to_jsonl --limit ${vars.pretrain_max_texts} corpus/mc4/mc4_fi_cleaned.txt corpus/mc4/mc4_fi_cleaned_${vars.pretrain_max_texts}.jsonl"
     deps:
-      - "corpus/oscar/unshuffled_deduplicated_fi.txt"
+      - "corpus/mc4/mc4_fi_cleaned.txt"
     outputs:
-      - "corpus/oscar/unshuffled_deduplicated_fi_${vars.pretrain_max_texts}.jsonl"
+      - "corpus/mc4/mc4_fi_cleaned_${vars.pretrain_max_texts}.jsonl"
 
-  - name: "pretrain-oscar"
+  - name: "pretrain-mc4"
     help: "Pretrain the tok2vec component"
     script:
       - "rm -rf training/pretrain"
       - "mkdir -p training/pretrain"
-      - "python -m spacy pretrain configs/fi.cfg training/pretrain --code fi/fi.py --paths.pretrain corpus/oscar/unshuffled_deduplicated_fi_${vars.pretrain_max_texts}.jsonl --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --pretraining.max_epochs ${vars.pretrain_max_steps} --gpu-id ${vars.gpu_id}"
-      - "cp training/pretrain/models${vars.pretrain_max_steps}.bin pretrain/weights_oscar.bin"
+      - "python -m spacy pretrain configs/fi.cfg training/pretrain --code fi/fi.py --paths.pretrain corpus/mc4/mc4_fi_cleaned_${vars.pretrain_max_texts}.jsonl --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --pretraining.max_epochs ${vars.pretrain_max_steps} --gpu-id ${vars.gpu_id}"
+      - "cp training/pretrain/models${vars.pretrain_max_steps}.bin pretrain/weights.bin"
     deps:
       - "configs/fi.cfg"
-      - "corpus/oscar/unshuffled_deduplicated_fi_${vars.pretrain_max_texts}.jsonl"
+      - "corpus/mc4/mc4_fi_cleaned_${vars.pretrain_max_texts}.jsonl"
       - "data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret"
     outputs:
       - "pretrain/weights.bin"
