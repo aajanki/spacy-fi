@@ -119,6 +119,7 @@ commands:
   - name: "init-floret-vectors"
     help: "Create floret embeddings"
     script:
+      - "mkdir data/vectors"
       - "python -m spacy init vectors fi vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}.floret.gz data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --mode floret --name fi_web_floret.vectors"
     deps:
       - "vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}.floret.gz"

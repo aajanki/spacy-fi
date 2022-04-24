@@ -54,7 +54,9 @@ def main(input_file: Path, output_file: Path):
 
     with input_file.open() as inf, output_file.open('w') as outf:
         for i, line in enumerate(tqdm(inf)):
-            outf.write(' '.join(x.text for x in tokenizer(line.rstrip('\n'))))
+            tokens = (x.text for x in tokenizer(line.rstrip('\n')))
+            cleaned_tokens = (t.lstrip('.') if len(t) > 1 else t for t in tokens)
+            outf.write(' '.join(cleaned_tokens))
             outf.write('\n')
 
             if i % 200000 == 0:
