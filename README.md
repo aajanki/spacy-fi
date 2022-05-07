@@ -4,6 +4,16 @@
 
 Finnish language model for [spaCy](https://spacy.io/). The model does POS tagging, dependency parsing, word vectors, noun phrase extraction, token frequencies, morphological features, lemmatization and named entity recognition (NER). The lemmatization is based on [Voikko](https://voikko.puimula.org/).
 
+The main differences between this model and the [Finnish language model](https://spacy.io/models/fi) in the spaCy core:
+* This model includes a different lemmatizer implementation compared to spaCy core. My model's [lemmatization accuracy](https://github.com/aajanki/finnish-pos-accuracy#results) is considerably better but the execution speed is slightly lower.
+* This model requires libvoikko. The spaCy model core does not need any external dependencies.
+* The training data for this model is partly different, and there are other minor tweaks in the pipeline implementation.
+
+Want a hassle free installation? Install the [spaCy core model](https://spacy.io/models/fi).
+Need the highest possible accuracy especially for lemmatization? Install this model.
+
+I'm planning to continue to experiment with new ideas on this repository and push the useful features to the spaCy core after testing them here.
+
 ## Install the Finnish language model
 
 First, install [the libvoikko native library and the Finnish morphology data files](https://voikko.puimula.org/python.html).
@@ -15,14 +25,15 @@ pip install spacy_fi_experimental_web_md
 
 Compatibility with spaCy versions:
 
-| spacy-fi version | Compatible with spaCy version |
-| ---------------- |-------------------------------|
-| 0.9.0            | >= 3.2.1 and < 3.3.0          |
-| 0.8.x            | 3.2.x                         |
-| 0.7.x            | 3.0.x, 3.1.x                  |
-| 0.6.0            | 3.0.x                         |
-| 0.5.0            | 3.0.x                         |
-| 0.4.x            | 2.3.x                         |
+| spacy-fi version | Compatible with spaCy versions |
+| ---------------- | ------------------------------ |
+| 0.10.0           | 3.3.x                          |
+| 0.9.0            | >= 3.2.1 and < 3.3.0           |
+| 0.8.x            | 3.2.x                          |
+| 0.7.x            | 3.0.x, 3.1.x                   |
+| 0.6.0            | 3.0.x                          |
+| 0.5.0            | 3.0.x                          |
+| 0.4.x            | 2.3.x                          |
 
 ## Usage
 
@@ -38,7 +49,7 @@ for t in doc:
 
 ## Updating the model
 
-### Setup a development environment
+### Setting up a development environment
 
 ```sh
 # Install the libvoikko native library with Finnish morphology data.
@@ -53,7 +64,7 @@ pip install wheel
 pip install -r requirements.txt
 ```
 
-### Train the model
+### Training the model
 
 ```sh
 spacy project run train-pipeline
@@ -73,7 +84,7 @@ Pretrain tok2vec weights:
 spacy project run pretrain
 ```
 
-### Tests
+### Testing
 
 ```
 python -m pytest tests
@@ -106,5 +117,5 @@ See [packaging.md](packaging.md).
 The data sets downloaded by the tools/download_data.sh script are licensed as follows:
 * [UD_Finnish-TDT](https://github.com/UniversalDependencies/UD_Finnish-TDT): Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
 * [TurkuONE](https://github.com/TurkuNLP/turku-one): Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
-* [OSCAR](https://oscar-corpus.com/): CC0
+* [MC4_fi_cleaned](https://huggingface.co/datasets/Finnish-NLP/mc4_fi_cleaned): [ODC-BY](https://opendatacommons.org/licenses/by/1-0/) and [Common Crawl terms of use](https://commoncrawl.org/terms-of-use/)
 * Word frequencies at [Finnish Internet Parsebank](https://turkunlp.org/finnish_nlp.html#parsebank): CC BY-SA

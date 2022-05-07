@@ -1,7 +1,7 @@
 {
     "lang": "fi",
     "name": "experimental_web_md",
-    "version": "0.10.0b1",
+    "version": "0.10.0",
     "requirements": ["voikko>=0.5"],
     "description": "Finnish language model: POS tagger, dependency parser, lemmatizer, morphological features, NER",
     "author": "Antti Ajanki",
@@ -15,9 +15,9 @@
             "license": "CC BY-SA 4.0"
         },
 	{
-	    "name": "OSCAR",
-	    "url": "https://oscar-corpus.com/",
-	    "license": "CC0"
+	    "name": "MC4_fi_cleaned",
+	    "url": "https://huggingface.co/datasets/Finnish-NLP/mc4_fi_cleaned",
+	    "license": "ODC-BY and Common Crawl terms of use"
 	},
 	{
 	    "name": "TurkuONE",

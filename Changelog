@@ -1,5 +1,9 @@
 Finnish language model for spaCy
 
+Version 0.10.0, 2022-05-07
+
+* Floret embedding vectors trained on MC4_fi_cleaned
+
 Version 0.10.0b1, 2022-04-09
 
 * Ported to spaCy 3.3.0.dev0. Older spacy versions are not supported anymore.
