@@ -6,6 +6,7 @@ from pathlib import Path
 def main(rawfile: Path, jsonlfile: Path, limit: int=100000):
     with rawfile.open() as inf, jsonlfile.open('w') as outf:
         for line in islice(inf, limit):
+            line = line.strip()
             json.dump({'text': line}, outf, ensure_ascii=False)
             outf.write('\n')
 

@@ -4,7 +4,7 @@ spacy_version: ">=3.3.0,<3.4.0"
 vars:
   vector_size: 50000
   vector_dim: 300
-  max_texts: 2000000
+  max_texts: 10000000
   minn: 4
   maxn: 5
   max_steps: 20000
@@ -33,8 +33,6 @@ assets:
       repo: "https://github.com/TurkuNLP/turku-one.git"
       branch: "main"
       path: ""
-  - dest: "assets/word_frequencies/finnish_vocab.txt.gz"
-    url: "http://bionlp-www.utu.fi/.jmnybl/finnish_vocab.txt.gz"
 
 workflows:
   floret-vectors:
@@ -46,6 +44,7 @@ workflows:
     - convert-mc4-jsonl
     - pretrain-mc4
   train-pipeline:
+    - count-word-frequencies
     - init-lexdata
     - init-floret-vectors
     - convert
@@ -106,13 +105,21 @@ commands:
     outputs:
       - "pretrain/weights.bin"
 
+  - name: "count-word-frequencies"
+    script:
+      - "mkdir -p data/word_frequencies"
+      - "python -m tools.frequencies corpus/mc4/mc4_fi_cleaned_tokenized.txt data/word_frequencies/finnish_vocab.txt.gz"
+    deps:
+      - "corpus/mc4/mc4_fi_cleaned_tokenized.txt"
+    outputs:
+      - "data/word_frequencies/finnish_vocab.txt.gz"
+
   - name: "init-lexdata"
     script:
-      - "mkdir -p data/word_frequencies data/vocab"
-      - "python -m tools.most_frequent_tokens --num-tokens 500000 assets/word_frequencies/finnish_vocab.txt.gz data/word_frequencies/finnish_vocab_500k.txt.gz"
-      - "python -m tools.create_lexdata assets/word_frequencies/finnish_vocab.txt.gz data/word_frequencies/finnish_vocab_500k.txt.gz data/vocab/vocab-data.jsonl"
+      - "mkdir -p data/vocab"
+      - "python -m tools.create_lexdata data/word_frequencies/finnish_vocab.txt.gz data/vocab/vocab-data.jsonl 500000"
     deps:
-      - "assets/word_frequencies/finnish_vocab.txt.gz"
+      - "data/word_frequencies/finnish_vocab.txt.gz"
     outputs:
       - "data/vocab/vocab-data.jsonl"
 

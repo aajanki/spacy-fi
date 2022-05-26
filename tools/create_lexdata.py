@@ -3,17 +3,17 @@
 import gzip
 import json
 import math
-import sys
 import typer
 from pathlib import Path
+from itertools import islice
 
 
 def main(
     full_vocabulary_path: Path = typer.Argument(..., help='Path to the full vocabulary'),
-    input_vocabulary_path: Path = typer.Argument(..., help='Path to the input vocabulary'),
-    output_file: Path = typer.Argument(..., help='Name of the output file')
+    output_file: Path = typer.Argument(..., help='Name of the output file'),
+    num_tokens: int = typer.Argument(..., help='Number of tokens to include in the output file'),
 ):
-    probs, oov_prob = read_freqs(full_vocabulary_path, input_vocabulary_path)
+    probs, oov_prob = read_freqs(full_vocabulary_path, num_tokens)
 
     with open(output_file, 'w') as out:
         header = {'lang': 'fi', 'settings': {'oov_prob': oov_prob}}
@@ -23,7 +23,7 @@ def main(
             write_json_line(word_data, out)
 
 
-def read_freqs(full_loc, freq_loc):
+def read_freqs(full_loc, num_tokens):
     total = 0
     n = 0
     with gzip.open(full_loc, 'rt', encoding='utf-8') as f:
@@ -36,8 +36,8 @@ def read_freqs(full_loc, freq_loc):
 
     probs = {}
     remaining_freq = total
-    with gzip.open(freq_loc, 'rt', encoding='utf-8') as f:
-        for line in f:
+    with gzip.open(full_loc, 'rt', encoding='utf-8') as f:
+        for line in islice(f, num_tokens):
             freq, token = line.strip().split(' ', 1)
             freq = int(freq)
             probs[token] = math.log(freq) - log_total

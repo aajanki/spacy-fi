@@ -2,3 +2,4 @@ spacy>=3.3.0,<3.4.0
 voikko==0.5
 pytest==7.1.1
 datasets[streaming]>=1.16.1
+tqdm==4.64.0
