@@ -1,4 +1,6 @@
+import bz2
 import re
+import sys
 import typer
 from pathlib import Path
 from spacy.lang.fi import FinnishDefaults
@@ -58,7 +60,7 @@ class FinnishCustomTokenizer(Language):
 def main(input_file: Path, output_file: Path):
     tokenizer = create_tokenizer()
 
-    with input_file.open() as inf, output_file.open('w') as outf:
+    with open_input(input_file) as inf, open_output(output_file) as outf:
         for i, line in enumerate(tqdm(inf)):
             line = line.rstrip('\n')
 
@@ -81,6 +83,24 @@ def main(input_file: Path, output_file: Path):
 
 def create_tokenizer():
     return FinnishCustomTokenizer().tokenizer
+
+
+def open_input(p: Path):
+    if str(p) == '-':
+        return sys.stdin
+    elif p.suffix == '.bz2':
+        return bz2.open(p, 'rt', encoding='utf-8')
+    else:
+        return open(p, 'r')
+
+
+def open_output(p: Path):
+    if str(p) == '-':
+        return sys.stdout
+    elif p.suffix == '.bz2':
+        return bz2.open(p, 'wt', encoding='utf-8')
+    else:
+        return open(p, 'w')
 
 
 if __name__ == '__main__':

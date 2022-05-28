@@ -4,7 +4,7 @@ spacy_version: ">=3.3.0,<3.4.0"
 vars:
   vector_size: 50000
   vector_dim: 300
-  max_texts: 10000000
+  max_texts: 4000000
   minn: 4
   maxn: 5
   max_steps: 20000
@@ -15,10 +15,10 @@ vars:
   train_name: "fi_tdt-ud-train"
   dev_name: "fi_tdt-ud-dev"
   test_name: "fi_tdt-ud-test"
-  n_threads: 16
+  n_threads: 8
   gpu_id: -1
-  floret_epochs: 10
-  floret_min_count: 100
+  floret_epochs: 5
+  floret_min_count: 200
 
 directories: ["assets", "corpus", "data", "metrics", "training"]
 
@@ -59,16 +59,16 @@ commands:
     help: "Download a subset of the MC4 corpus"
     script:
       - "mkdir -p corpus/mc4/"
-      - "python -m tools.download_huggingface Finnish-NLP/mc4_fi_cleaned Finnish-NLP--mc4_fi_cleaned ${vars.max_texts} corpus/mc4/mc4_fi_cleaned.txt"
+      - "python -m tools.download_huggingface Finnish-NLP/mc4_fi_cleaned Finnish-NLP--mc4_fi_cleaned ${vars.max_texts} corpus/mc4/mc4_fi_cleaned.txt.bz2"
     outputs:
-      - "corpus/mc4/mc4_fi_cleaned.txt"
+      - "corpus/mc4/mc4_fi_cleaned.txt.bz2"
 
   - name: "tokenize-mc4"
     help: "Tokenize the MC4 corpus"
     script:
-      - "python -m tools.tokenize_fi corpus/mc4/mc4_fi_cleaned.txt corpus/mc4/mc4_fi_cleaned_tokenized.txt"
+      - "python -m tools.tokenize_fi corpus/mc4/mc4_fi_cleaned.txt.bz2 corpus/mc4/mc4_fi_cleaned_tokenized.txt"
     deps:
-      - "corpus/mc4/mc4_fi_cleaned.txt"
+      - "corpus/mc4/mc4_fi_cleaned.txt.bz2"
     outputs:
       - "corpus/mc4/mc4_fi_cleaned_tokenized.txt"
 
@@ -85,9 +85,9 @@ commands:
   - name: "convert-mc4-jsonl"
     help: "Convert the MC4 corpus to JSONL format"
     script:
-      - "python -m tools.raw_text_to_jsonl --limit ${vars.pretrain_max_texts} corpus/mc4/mc4_fi_cleaned.txt corpus/mc4/mc4_fi_cleaned_${vars.pretrain_max_texts}.jsonl"
+      - "python -m tools.raw_text_to_jsonl --limit ${vars.pretrain_max_texts} corpus/mc4/mc4_fi_cleaned.txt.bz2 corpus/mc4/mc4_fi_cleaned_${vars.pretrain_max_texts}.jsonl"
     deps:
-      - "corpus/mc4/mc4_fi_cleaned.txt"
+      - "corpus/mc4/mc4_fi_cleaned.txt.bz2"
     outputs:
       - "corpus/mc4/mc4_fi_cleaned_${vars.pretrain_max_texts}.jsonl"
 
@@ -126,7 +126,7 @@ commands:
   - name: "init-floret-vectors"
     help: "Create floret embeddings"
     script:
-      - "mkdir data/vectors"
+      - "mkdir -p data/vectors"
       - "python -m spacy init vectors fi vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}.floret.gz data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --mode floret --name fi_web_floret.vectors"
     deps:
       - "vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}.floret.gz"

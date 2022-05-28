@@ -1,4 +1,6 @@
+import bz2
 import re
+import sys
 import typer
 from itertools import islice
 from pathlib import Path
@@ -12,7 +14,7 @@ def main(
     output_file: Path
 ):
     dataset = load_dataset(dataset_name, subset, split="train", streaming=True)
-    with open(output_file, 'w') as outf:
+    with open_output(output_file) as outf:
         first_lines = islice(lines(dataset), max_texts)
         for i, text in enumerate(tqdm(first_lines, total=max_texts, smoothing=0.05)):
             text = re.sub('\s+', ' ', text)
@@ -25,6 +27,15 @@ def lines(dataset):
         text = x['text'].strip()
         if text:
             yield text
+
+
+def open_output(p: Path):
+    if str(p) == '-':
+        return sys.stdout
+    elif p.suffix == '.bz2':
+        return bz2.open(p, 'wt', encoding='utf-8')
+    else:
+        return open(p, 'w')
 
 
 if __name__ == '__main__':
