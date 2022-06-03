@@ -33,7 +33,7 @@ _infixes = (
         r"(?<=[{a}])[,!?](?=[{a}0-9])".format(a=ALPHA),
         r"(?<=[{a}])([{q}\)\]\(\[])(?=[{a}])".format(a=ALPHA, q=_quotes),
         r"(?<=[{a}])(?:{d})(?=[{a}])".format(a=ALPHA, d=DASHES),
-        r"(?<=[{a}0-9])[<>=/](?=[{a}])".format(a=ALPHA),
+        r"(?<=[{a}0-9])[<>()=/](?=[{a}])".format(a=ALPHA),
         r"(?<=[{a}])[()](?=[0-9])".format(a=ALPHA),
     ]
 )
