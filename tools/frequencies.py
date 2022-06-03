@@ -11,8 +11,7 @@ def main(tokenized_file: Path, output_file: Path):
     freqs = Counter()
     with tokenized_file.open() as inf:
         for line in tqdm(inf):
-            tokens = line.strip('\n').split()
-            freqs.update(tokens)
+            freqs.update(line.split())
 
     with gzip.open(output_file, 'wt', encoding='utf-8') as outf:
         for token, freq in freqs.most_common():
