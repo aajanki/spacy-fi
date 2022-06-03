@@ -59,7 +59,7 @@ commands:
     help: "Download a subset of the MC4 corpus"
     script:
       - "mkdir -p corpus/mc4/"
-      - "python -m tools.download_huggingface Finnish-NLP/mc4_fi_cleaned Finnish-NLP--mc4_fi_cleaned ${vars.max_texts} corpus/mc4/mc4_fi_cleaned.txt.bz2"
+      - "tools/download_mc4.sh ${vars.max_texts} corpus/mc4/mc4_fi_cleaned.txt.bz2"
     outputs:
       - "corpus/mc4/mc4_fi_cleaned.txt.bz2"
 

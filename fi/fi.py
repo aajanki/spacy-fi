@@ -17,6 +17,62 @@ from spacy.util import SimpleFrozenList
 from spacy.vocab import Vocab
 from voikko import libvoikko
 
+from spacy.lang.fi import FinnishDefaults
+from spacy.lang.char_classes import LIST_PUNCT, LIST_ELLIPSES, LIST_QUOTES, LIST_ICONS
+from spacy.lang.char_classes import LIST_HYPHENS, CURRENCY, UNITS
+from spacy.lang.char_classes import CONCAT_QUOTES, ALPHA, ALPHA_LOWER, ALPHA_UPPER, PUNCT
+
+
+_quotes = CONCAT_QUOTES.replace("'", "")
+DASHES = "|".join(x for x in LIST_HYPHENS if x != "-")
+_infixes = (
+    LIST_ELLIPSES
+    + LIST_ICONS
+    + [
+        r"(?<=[{al}])\.(?=[{au}])".format(al=ALPHA_LOWER, au=ALPHA_UPPER),
+        r"(?<=[{a}])[,!?](?=[{a}0-9])".format(a=ALPHA),
+        r"(?<=[{a}])([{q}\)\]\(\[])(?=[{a}])".format(a=ALPHA, q=_quotes),
+        r"(?<=[{a}])(?:{d})(?=[{a}])".format(a=ALPHA, d=DASHES),
+        r"(?<=[{a}0-9])[<>=/](?=[{a}])".format(a=ALPHA),
+        r"(?<=[{a}])[()](?=[0-9])".format(a=ALPHA),
+    ]
+)
+
+CURRENCY2 = CURRENCY + "|e"
+_suffixes = (
+    LIST_PUNCT
+    + LIST_ELLIPSES
+    + LIST_QUOTES
+    + LIST_ICONS
+    + ["—", "–"]
+    + [
+        r"(?<=[0-9])\+",
+        r"(?<=°[FfCcKk])\.",
+        r"(?<=[0-9])(?:{c})".format(c=CURRENCY2),
+        r"(?<=[0-9])(?:{u})".format(u=UNITS),
+        r"(?<=[{al}{e}{p}{q}])\.".format(
+            al=ALPHA_LOWER, e=r"%²\-\+", q=CONCAT_QUOTES, p=PUNCT
+        ),
+        r"(?<=[{au}][{au}])\.".format(au=ALPHA_UPPER),
+        r"(?<=[0-9][€e$£¥])\.",
+        r"(?<=[^{a}0-9])-".format(a=ALPHA),
+        r"(?<=[0-9]{3}|[^0-9][0-9]{2}|[^0-9]{2}[0-9])\.",
+        r"(?<=[^0-9][0-9])\.",
+    ]
+)
+
+
+class FinnishExDefaults(FinnishDefaults):
+    infixes = _infixes
+    suffixes = _suffixes
+
+
+@util.registry.languages("fi")
+class FinnishExtended(Language):
+    """Extends the default Finnish language class with custom tokenizer rules."""
+    lang = 'fi'
+    Defaults = FinnishExDefaults
+
 
 class VoikkoLemmatizer(Pipe):
     """Pipeline component that assigns lemmas to Docs.

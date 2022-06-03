@@ -1,3 +1,3 @@
-from .fi import VoikkoLemmatizer
+from .fi import FinnishExtended, FinnishExDefaults, VoikkoLemmatizer
 
-__all__ = ['VoikkoLemmatizer']
+__all__ = ['FinnishExtended', 'FinnishExDefaults', 'VoikkoLemmatizer']
