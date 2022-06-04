@@ -98,8 +98,6 @@ class VoikkoLemmatizer(Pipe):
         VERB:  frozenset([]),  # Would be "teonsana" except that
                                # MINEN-infinitives are treated as nouns.
                                # See _analysis_has_compatible_pos()
-        SYM:   frozenset([]),
-        X:     frozenset([])
     }
     possessive_suffixes = {
         "1s": ["ni"],
@@ -261,7 +259,7 @@ class VoikkoLemmatizer(Pipe):
         vclass = analysis["CLASS"]
 
         return (
-            vclass in self.voikko_classes_by_pos[tpos]
+            vclass in self.voikko_classes_by_pos.get(tpos, [])
 
             or
 
