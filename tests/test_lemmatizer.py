@@ -332,6 +332,7 @@ testcases = {
         ('alkaen', ['alkaen']),
         ('takaa', ['takaa']),
         ('sijaan', ['sijaan']),
+        ('jälkeenkin', ['jälkeen']),
     ],
 
     'NUM': [

@@ -175,11 +175,9 @@ class VoikkoLemmatizer(Pipe):
             # Lemma of an inflected abbreviation: BBC:n -> BCC, EU:ssa -> EU
             colon_i = token.orth_.find(":")
             return token.orth_[:colon_i]
-        elif token.pos == ADV:
+        elif token.pos in (ADV, ADP):
             cached_lower = cached_lower or token.orth_.lower()
             return self._adv_lemma(analysis, cached_lower)
-        elif token.pos == ADP:
-            return cached_lower or token.orth_.lower()
         elif "BASEFORM" not in analysis:
             if token.pos in (PROPN, INTJ, SYM, X):
                 return token.orth_
