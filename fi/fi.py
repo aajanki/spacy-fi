@@ -328,22 +328,17 @@ class VoikkoLemmatizer(Pipe):
         return ''.join(forms)
 
     def _adv_lemma(self, analysis, word):
+        if "KYSYMYSLIITE" in analysis:
+            # "mukanaanko", "pidempäänkö"
+            word = word[:-2]
+
         focus = analysis.get("FOCUS")
-        has_kysymysliite = "KYSYMYSLIITE" in analysis
+        if focus:
+            # "ennenkin", "myöskään"
+            word = word[:-len(focus)]
 
-        if focus and has_kysymysliite:
-            k = 2
-        elif focus or has_kysymysliite:
-            k = 1
-        else:
-            k = 0
-        for _ in range(k):
-            if focus and word.endswith(focus):
-                word = word[:-len(focus)]
-            elif has_kysymysliite and (word.endswith("ko") or word.endswith("kö")):
-                word = word[:-2]
-
-        if "POSSESSIVE" in analysis and analysis["POSSESSIVE"] != "3":
+        possessive = analysis.get("POSSESSIVE")
+        if possessive is not None and possessive != "3":
             # "kanssani", "vierestäni"
             word = self._remove_possessive_suffix(word, analysis)
 
