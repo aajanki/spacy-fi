@@ -288,6 +288,7 @@ testcases = {
         ('Belgiakin', ['Belgia']),
         ('Tampereeltamme', ['Tampere']),
         ('Annan', ['Anna']),
+        ('Vihreät', ['Vihreä']),
     ],
 
     'ADV': [

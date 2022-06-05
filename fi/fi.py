@@ -178,6 +178,11 @@ class VoikkoLemmatizer(Pipe):
         elif token.pos in (ADV, ADP):
             cached_lower = cached_lower or token.orth_.lower()
             return self._adv_lemma(analysis, cached_lower)
+        elif token.pos == PROPN:
+            lemma = analysis.get("BASEFORM", token.orth_)
+            if lemma and lemma[0].islower() and token.orth_[0].isupper():
+                lemma = lemma[0].upper() + lemma[1:]
+            return lemma
         elif token.pos == SYM:
             return token.orth_
         elif "BASEFORM" not in analysis:
