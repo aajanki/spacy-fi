@@ -362,6 +362,7 @@ testcases = {
         ('miljoonalle', ['miljoona']),
         ('4:s', ['4']),
         ('6:teen', ['6']),
+        ('III', ['III']),
     ],
 
     'PRON': [
@@ -394,6 +395,7 @@ testcases = {
     'SYM': [
         (':)', [':)']),
         (':D', [':D']),
+        ('XXX', ['XXX']),
     ]
 }
 
@@ -422,11 +424,10 @@ def check(cases, case_filter=None, accept_less_common=True):
     for (word, lemmas, univ_pos) in expanded:
         if not accept_less_common:
             lemmas = lemmas[:1]
-        lemmas = [x.lower() for x in lemmas]
 
         doc = Doc(vocab=nlp.vocab, words=[word], pos=[univ_pos], deps=["ROOT"])
         observed = lemmatizer(doc)[0].lemma_
-        if observed.lower() not in lemmas:
+        if observed not in lemmas:
             failed.append((word, univ_pos, observed, lemmas))
 
     failed_proportion = len(failed)/len(expanded)
