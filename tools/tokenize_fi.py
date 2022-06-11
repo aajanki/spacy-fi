@@ -1,16 +1,26 @@
-import bz2
-import sys
 import typer
+from multiprocessing import Pool
 from pathlib import Path
-from tqdm import tqdm
+from typing import Optional, Tuple
 from fi import FinnishExtended
+from .io import open_input, open_output
 
 
-def main(input_file: Path, output_file: Path):
-    tokenizer = create_tokenizer()
+def main(input_dir: Path, output_dir: Path, threads: Optional[int] = 4):
+    input_files = input_dir.iterdir()
+    inputs_and_outputs = [(p, output_dir / p.name) for p in input_files]
 
+    with Pool(threads) as pool:
+        for output_file in pool.imap_unordered(tokenize_file, inputs_and_outputs, chunksize=1):
+            print(f'Wrote {output_file}')
+
+
+def tokenize_file(paths: Tuple[Path, Path]):
+    input_file, output_file = paths
     with open_input(input_file) as inf, open_output(output_file) as outf:
-        for i, line in enumerate(tqdm(inf)):
+        tokenizer = create_tokenizer()
+
+        for i, line in enumerate(inf):
             line = line.rstrip('\n')
             tokens = (x.text for x in tokenizer(line))
             outf.write(' '.join(tokens))
@@ -22,27 +32,11 @@ def main(input_file: Path, output_file: Path):
                 del tokenizer
                 tokenizer = create_tokenizer()
 
+    return output_file
+
 
 def create_tokenizer():
     return FinnishExtended().tokenizer
-
-
-def open_input(p: Path):
-    if str(p) == '-':
-        return sys.stdin
-    elif p.suffix == '.bz2':
-        return bz2.open(p, 'rt', encoding='utf-8')
-    else:
-        return open(p, 'r')
-
-
-def open_output(p: Path):
-    if str(p) == '-':
-        return sys.stdout
-    elif p.suffix == '.bz2':
-        return bz2.open(p, 'wt', encoding='utf-8')
-    else:
-        return open(p, 'w')
 
 
 if __name__ == '__main__':

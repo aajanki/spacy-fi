@@ -5,6 +5,7 @@ vars:
   vector_size: 50000
   vector_dim: 300
   max_texts: 4000000
+  texts_per_batch: 250000
   minn: 4
   maxn: 5
   max_steps: 20000
@@ -15,7 +16,7 @@ vars:
   train_name: "fi_tdt-ud-train"
   dev_name: "fi_tdt-ud-dev"
   test_name: "fi_tdt-ud-test"
-  n_threads: 8
+  n_threads: 4
   gpu_id: -1
   floret_epochs: 5
   floret_min_count: 200
@@ -58,36 +59,41 @@ commands:
   - name: "download-mc4-fi"
     help: "Download a subset of the MC4 corpus"
     script:
-      - "mkdir -p corpus/mc4/"
-      - "tools/download_mc4.sh ${vars.max_texts} corpus/mc4/mc4_fi_cleaned.txt.bz2"
+      - "rm -rf corpus/mc4/raw/"
+      - "mkdir -p corpus/mc4/raw"
+      - "python -m tools.download_huggingface --cleanup mc4 fi ${vars.max_texts} ${vars.texts_per_batch} corpus/mc4/raw"
     outputs:
-      - "corpus/mc4/mc4_fi_cleaned.txt.bz2"
+      - "corpus/mc4/raw"
 
   - name: "tokenize-mc4"
     help: "Tokenize the MC4 corpus"
     script:
-      - "python -m tools.tokenize_fi corpus/mc4/mc4_fi_cleaned.txt.bz2 corpus/mc4/mc4_fi_cleaned_tokenized.txt"
+      - "rm -rf corpus/mc4/tokenized/"
+      - "mkdir -p corpus/mc4/tokenized"
+      - "python -m tools.tokenize_fi --threads ${vars.n_threads} corpus/mc4/raw/ corpus/mc4/tokenized"
     deps:
-      - "corpus/mc4/mc4_fi_cleaned.txt.bz2"
+      - "corpus/mc4/raw"
     outputs:
-      - "corpus/mc4/mc4_fi_cleaned_tokenized.txt"
+      - "corpus/mc4/tokenized"
 
   - name: "train-floret-mc4"
     help: "Train floret vectors on the MC4 corpus"
     script:
-      - "floret cbow -mode floret -hashCount 2 -bucket ${vars.vector_size} -minn ${vars.minn} -maxn ${vars.maxn} -minCount ${vars.floret_min_count} -dim ${vars.vector_dim} -neg 10 -epoch ${vars.floret_epochs} -thread ${vars.n_threads} -input corpus/mc4/mc4_fi_cleaned_tokenized.txt -output vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}"
+      - "tools/merge_text_batches.sh corpus/mc4/tokenized corpus/mc4/tokenized/merged.txt"
+      - "floret cbow -mode floret -hashCount 2 -bucket ${vars.vector_size} -minn ${vars.minn} -maxn ${vars.maxn} -minCount ${vars.floret_min_count} -dim ${vars.vector_dim} -neg 10 -epoch ${vars.floret_epochs} -thread ${vars.n_threads} -input corpus/mc4/tokenized/merged.txt -output vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}"
       - "gzip -f vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}.floret"
+      - "rm -f corpus/mc4/tokenized/merged.txt"
     deps:
-      - "corpus/mc4/mc4_fi_cleaned_tokenized.txt"
+      - "corpus/mc4/tokenized"
     outputs:
       - "vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}.floret.gz"
 
   - name: "convert-mc4-jsonl"
     help: "Convert the MC4 corpus to JSONL format"
     script:
-      - "python -m tools.raw_text_to_jsonl --limit ${vars.pretrain_max_texts} corpus/mc4/mc4_fi_cleaned.txt.bz2 corpus/mc4/mc4_fi_cleaned_${vars.pretrain_max_texts}.jsonl"
+      - "tools/raw_text_to_jsonl.sh corpus/mc4/raw corpus/mc4/mc4_fi_cleaned_${vars.pretrain_max_texts}.jsonl ${vars.pretrain_max_texts}"
     deps:
-      - "corpus/mc4/mc4_fi_cleaned.txt.bz2"
+      - "corpus/mc4/raw"
     outputs:
       - "corpus/mc4/mc4_fi_cleaned_${vars.pretrain_max_texts}.jsonl"
 
@@ -108,9 +114,9 @@ commands:
   - name: "count-word-frequencies"
     script:
       - "mkdir -p data/word_frequencies"
-      - "python -m tools.frequencies corpus/mc4/mc4_fi_cleaned_tokenized.txt data/word_frequencies/finnish_vocab.txt.gz"
+      - "tools/frequencies.sh corpus/mc4/tokenized data/word_frequencies/finnish_vocab.txt.gz"
     deps:
-      - "corpus/mc4/mc4_fi_cleaned_tokenized.txt"
+      - "corpus/mc4/tokenized"
     outputs:
       - "data/word_frequencies/finnish_vocab.txt.gz"
 

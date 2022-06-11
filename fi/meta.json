@@ -15,8 +15,8 @@
             "license": "CC BY-SA 4.0"
         },
 	{
-	    "name": "MC4_fi_cleaned",
-	    "url": "https://huggingface.co/datasets/Finnish-NLP/mc4_fi_cleaned",
+	    "name": "MC4",
+	    "url": "https://huggingface.co/datasets/mc4",
 	    "license": "ODC-BY and Common Crawl terms of use"
 	},
 	{

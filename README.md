@@ -117,4 +117,4 @@ See [packaging.md](packaging.md).
 The data sets downloaded by the tools/download_data.sh script are licensed as follows:
 * [UD_Finnish-TDT](https://github.com/UniversalDependencies/UD_Finnish-TDT): Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
 * [TurkuONE](https://github.com/TurkuNLP/turku-one): Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
-* [MC4_fi_cleaned](https://huggingface.co/datasets/Finnish-NLP/mc4_fi_cleaned): [ODC-BY](https://opendatacommons.org/licenses/by/1-0/) and [Common Crawl terms of use](https://commoncrawl.org/terms-of-use/)
+* [MC4](https://huggingface.co/datasets/mc4): [ODC-BY](https://opendatacommons.org/licenses/by/1-0/) and [Common Crawl terms of use](https://commoncrawl.org/terms-of-use/)
