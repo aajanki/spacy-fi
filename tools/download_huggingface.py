@@ -13,10 +13,16 @@ from .io import open_output
 
 spam_words = [
     'seksitreffit', 'sextreffit', 'seksiseuraa', 'seksideitti', 'sex',
-    'suomiporno', 'suomipornovideot', 'seksivideot'
-    'kasino', 'hotelli', 'hotellit',
+    'suomiporno', 'suomipornovideot', 'seksivideot', 'seksiväline',
+    'webcam',
+    'kasino', 'kasinot', 'nettikasino', 'nettikasinot', 'poker',
+    'hotelli', 'hotellit', 'Hotellitarjoukset', 'hotelliKirjaudu',
+    'Rewards', 'RewardsSaat',  'RewardsTietoa', 'palkintoyön',
+    'sivuillammeMatkanvälittäjätTiedotusEhdot', ')Hotels.com™',
+    'evästeistäAsiakaspalveluVarauksesiOhjeetPalautetta',
+    'Hintaseuranta',
     'alennuskoodi', 'alennuskoodit', 'alennuskoodeja', 'alekoodi', 'alekoodit',
-    'lahjakortit', 'tarjouskoodi', 'hinta'
+    'lahjakortit', 'tarjouskoodi', 'hinta', 'free', 'price'
 ]
 spam_re = re.compile(
     '|'.join(r'\b' + re.escape(w) + r'\b' for w in spam_words),
@@ -71,13 +77,17 @@ def is_clean_finnish(text):
     # Skip if digits occur too frequently.
     tokens = text.split()
     num_tokens = len(tokens)
-    num_digit_tokens = sum(1 for t in tokens if re.match(r'^[0-9][0-9.:]+$', t))
+    num_digit_tokens = sum(1 for t in tokens if re.match(r'^\(?[0-9][0-9.:]+\)?$', t))
     if num_digit_tokens / num_tokens > 0.25:
         return False
 
     # Skip if too many single characters tokens.
     num_single_character_tokens = sum(1 for t in tokens if len(t) == 1)
     if num_single_character_tokens / num_tokens > 0.25:
+        return False
+
+    num_braces = sum(1 for t in tokens if t == '{' or t == '}')
+    if num_braces / num_tokens > 0.05:
         return False
 
     # Very long words might indicate that this is some kind of programming language
@@ -88,6 +98,9 @@ def is_clean_finnish(text):
     # Simple spam filter
     num_spam_tokens = sum(1 for _ in spam_re.finditer(text))
     if num_spam_tokens / num_tokens > 0.1:
+        return False
+
+    if 'auton...ostostavaihdostakoeajostalisätiedoistaVaihdossa' in tokens:
         return False
 
     # MC4 has already done language detection, but it's not perfect. Let's
