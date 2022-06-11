@@ -1,6 +1,7 @@
 import langid
 import re
 import typer
+import unicodedata
 from itertools import islice
 from pathlib import Path
 from datasets import load_dataset
@@ -56,7 +57,7 @@ def main(
 
 def lines(dataset):
     for x in iter(dataset):
-        text = x['text'].strip()
+        text = unicodedata.normalize('NFC', x['text'].strip())
         if text:
             yield text
 
