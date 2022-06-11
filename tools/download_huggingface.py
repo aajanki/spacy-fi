@@ -105,8 +105,9 @@ def is_clean_finnish(text):
 
 
 def cleanup_punctuation(text):
-    text = re.sub(r'[\u0000-\u001F\u007F-\u009F\u00AD\u2000-\u200D\u2060\uFE0F\uFEFF]', '', text)
+    text = re.sub(r'[\u0000-\u001F\u007F-\u009F\u00AD\u200B-\u200D\u2060\uFEFF\uFFF0-\uFFFF]', '', text)
     text = re.sub(r'[\s\u2800]+', ' ', text)
+    text = re.sub(r'[\u0530-\u1DBF\u2C00-\uA6FF\uA800-\uAB2F\uAB70-\uD7FF]+', ' ', text)
     text = re.sub(r'\s\.(?=[{a}]{{4}})'.format(a=ALPHA), '. ', text)
     return text
 
