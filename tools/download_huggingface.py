@@ -16,16 +16,19 @@ spam_words = [
     'suomiporno', 'suomipornovideot', 'seksivideot', 'seksiväline',
     'webcam',
     'kasino', 'kasinot', 'nettikasino', 'nettikasinot', 'poker',
+    'casino', 'slots', 'blackjack', 'roulette', 'holdem',
     'hotelli', 'hotellit', 'Hotellitarjoukset', 'hotelliKirjaudu',
-    'Rewards', 'RewardsSaat', 'RewardsTietoa', 'palkintoyön',
-    'sivuillammeMatkanvälittäjätTiedotusEhdot', ')Hotels.com™',
+    '\w+?Hotellit', 'Hotels\.comSee',
+    'Rewards', 'RewardsSaat', 'RewardsTietoa', 'palkintoyö\w*?',
+    'sivuillammeMatkanvälittäjätTiedotusEhdot', '\)Hotels\.com™',
     'evästeistäAsiakaspalveluVarauksesiOhjeetPalautetta',
-    'Hintaseuranta',
-    'alennuskoodi', 'alennuskoodit', 'alennuskoodeja', 'alekoodi', 'alekoodit',
-    'lahjakortit', 'tarjouskoodi', 'hinta', 'free', 'price'
+    'Hintaseuranta', 'alennuskood\w+?', 'alekood\w+?'
+    'lahjakortit', 'tarjouskoodi', 'hinta', 'free', 'price', 'discount',
+    'pikavippi', 'pikavipit', 'pikavippiä', 'pikalain\w+?', 'luottopäätös',
+    'vakuuksia',
 ]
 spam_re = re.compile(
-    '|'.join(r'\b' + re.escape(w) + r'\b' for w in spam_words),
+    '|'.join(r'\b' + w + r'\b' for w in spam_words),
     re.IGNORECASE
 )
 
@@ -100,7 +103,7 @@ def is_clean_finnish(text):
 
     # Simple spam filter
     num_spam_tokens = sum(1 for _ in spam_re.finditer(text))
-    if num_spam_tokens / num_tokens > 0.1:
+    if num_spam_tokens / num_tokens > 0.05:
         return False
 
     if 'auton...ostostavaihdostakoeajostalisätiedoistaVaihdossa' in tokens:
