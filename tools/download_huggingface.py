@@ -8,7 +8,7 @@ from datasets import load_dataset
 from more_itertools import ichunked
 from tqdm import tqdm
 from typing import Optional
-from spacy.lang.char_classes import ALPHA
+from spacy.lang.char_classes import ALPHA, ALPHA_UPPER
 from .io import open_output
 
 spam_words = [
@@ -17,7 +17,7 @@ spam_words = [
     'webcam',
     'kasino', 'kasinot', 'nettikasino', 'nettikasinot', 'poker',
     'hotelli', 'hotellit', 'Hotellitarjoukset', 'hotelliKirjaudu',
-    'Rewards', 'RewardsSaat',  'RewardsTietoa', 'palkintoyön',
+    'Rewards', 'RewardsSaat', 'RewardsTietoa', 'palkintoyön',
     'sivuillammeMatkanvälittäjätTiedotusEhdot', ')Hotels.com™',
     'evästeistäAsiakaspalveluVarauksesiOhjeetPalautetta',
     'Hintaseuranta',
@@ -28,6 +28,9 @@ spam_re = re.compile(
     '|'.join(r'\b' + re.escape(w) + r'\b' for w in spam_words),
     re.IGNORECASE
 )
+
+number_and_word_re = re.compile(r'(?<=\d{{2}})(?=[{au}][{a}]{{3}})'.format(a=ALPHA, au=ALPHA_UPPER))
+time_inside_word_re = re.compile(r'(?<=[{a}]{{2}})(\d{{2}}[.:]\d{{2}})(?=[{a}])'.format(a=ALPHA))
 
 word_and_url_re = re.compile(r'(?<=\w{3})https?://[-:/a-zA-Z0-9_.+%/?=#]+')
 
@@ -47,7 +50,7 @@ def main(
     dataset = load_dataset(dataset_name, subset, split="train", streaming=True)
     selected_lines = lines(dataset)
     if cleanup:
-        selected_lines = (cleanup_double_encoded_umlauts(cleanup_links(x)) for x in selected_lines)
+        selected_lines = (cleanup_text(x) for x in selected_lines)
         selected_lines = (x for x in selected_lines if is_clean_finnish(x))
     selected_lines = (cleanup_punctuation(x) for x in selected_lines)
     selected_lines = islice(selected_lines, max_texts)
@@ -120,23 +123,28 @@ def is_clean_finnish(text):
 def cleanup_punctuation(text):
     text = re.sub(r'[\u0000-\u001F\u007F-\u009F\u00AD\u200B-\u200D\u2060\uFEFF\uFFF0-\uFFFF]', '', text)
     text = re.sub(r'[\s\u2800]+', ' ', text)
-    text = re.sub(r'[\u0530-\u1DBF\u2C00-\uA6FF\uA800-\uAB2F\uAB70-\uD7FF]+', ' ', text)
+    text = re.sub(r'[\u0530-\u1DBF\u2C00-\uA6FF\uA800-\uAB2F\uAB70-\uD7FF\uE000-\uFAFF\uFB50-\uFDFF]+', ' ', text)
     text = re.sub(r'\s\.(?=[{a}]{{4}})'.format(a=ALPHA), '. ', text)
     return text
 
 
-def cleanup_links(text):
+def cleanup_text(text):
     # Cleanup "Riku Rantalahttp://www.hs.fi/haku/?query=riku+rantala"
-    return word_and_url_re.sub('', text)
+    text = word_and_url_re.sub('', text)
 
-
-def cleanup_double_encoded_umlauts(text):
-    return text.replace('\u00C3\u00A4', 'ä') \
+    # Double encoded UTF-8 umlauts
+    text = text.replace('\u00C3\u00A4', 'ä') \
         .replace('\u00C3\u00A5', 'å') \
         .replace('\u00C3\u00B6', 'ö') \
         .replace('\u00C3\u0084', 'Ä') \
         .replace('\u00C3\u0085', 'Å') \
         .replace('\u00C3\u0096', 'Ö')
+
+    # Add space around a number in certain cases
+    text = time_inside_word_re.sub(r' \1 ', text)
+    text = number_and_word_re.sub(' ', text)
+
+    return text
 
 
 if __name__ == '__main__':
