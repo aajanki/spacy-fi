@@ -34,7 +34,6 @@ spam_re = re.compile(
 
 number_and_word_re = re.compile(r'(?<=\d{{2}})(?=[{au}][{a}]{{3}})'.format(a=ALPHA, au=ALPHA_UPPER))
 time_inside_word_re = re.compile(r'(?<=[{a}]{{2}})(\d{{2}}[.:]\d{{2}})(?=[{a}])'.format(a=ALPHA))
-
 word_and_url_re = re.compile(r'(?<=\w{3})https?://[-:/a-zA-Z0-9_.+%/?=#]+')
 
 
@@ -128,6 +127,7 @@ def cleanup_punctuation(text):
     text = re.sub(r'[\s\u2800]+', ' ', text)
     text = re.sub(r'[\u0530-\u1DBF\u2C00-\uA6FF\uA800-\uAB2F\uAB70-\uD7FF\uE000-\uFAFF\uFB50-\uFDFF]+', ' ', text)
     text = re.sub(r'\s\.(?=[{a}]{{4}})'.format(a=ALPHA), '. ', text)
+    text = re.sub(r'\.\.\.(?=[-+*/!?%(),:;<>€$£"\'])', '... ', text)
     return text
 
 
