@@ -131,6 +131,21 @@ def cleanup_punctuation(text):
 
 
 def cleanup_text(text):
+    # Remove duplicated title
+    # Many sites have the same text and the page title (first line) and the main
+    # header (second line). Try to remove the duplication.
+    #
+    # Example:
+    #
+    # Ei suuruudenhullua, vaan reilua ja oikein | Näkökulma | Yleisradio | yle.fi
+    # Ei suuruudenhullua, vaan reilua ja oikein
+
+    lines = text.split('\n')
+    if len(lines) > 1:
+        title_re = re.compile(re.escape(lines[1]) + r' [-–|«]', re.IGNORECASE)
+        if title_re.match(lines[0]):
+            text = '\n'.join(lines[1:])
+
     # Cleanup "Riku Rantalahttp://www.hs.fi/haku/?query=riku+rantala"
     text = word_and_url_re.sub('', text)
 
