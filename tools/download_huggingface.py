@@ -145,9 +145,27 @@ def cleanup_text(text):
 
     lines = text.split('\n')
     if len(lines) > 1:
+        lines_to_remove = []
         title_re = re.compile(re.escape(lines[1]) + r' [-–|«]', re.IGNORECASE)
         if title_re.match(lines[0]):
-            text = '\n'.join(lines[1:])
+            lines_to_remove.append(0)
+
+        # Many webstores have a JSON metadata row near the top. Remove it when
+        # detected.
+        for i, line in enumerate(lines[:5]):
+            # FIXME: proper JSON detection
+            if (
+                    line.startswith('[') and
+                    not line.startswith('[[') and
+                    line.endswith(']') and
+                    '{' in line and
+                    '}' in line
+            ):
+                lines_to_remove.append(i)
+
+        if lines_to_remove:
+            lines = [lines[i] for i in range(len(lines)) if i not in lines_to_remove]
+            text = '\n'.join(lines)
 
     # Cleanup "Riku Rantalahttp://www.hs.fi/haku/?query=riku+rantala"
     text = word_and_url_re.sub('', text)
