@@ -110,6 +110,10 @@ def is_clean_finnish(text):
     if re.search(r'[-/|] Tietokonekauppa\.fi|Auto1\.fi|tekstitykset suomi', start):
         return False
 
+    # Skip page with lots of Wiki markup
+    if maybe_wiki_markup(text):
+        return False
+
     # MC4 has already done language detection, but it's not perfect. Let's
     # reduce false positives but doing a second pass of language detection
     # with langid.
@@ -182,6 +186,18 @@ def cleanup_text(text):
     text = time_inside_word_re.sub(r' \1 ', text)
 
     return text
+
+
+def maybe_wiki_markup(text):
+    """Heuristics for detecting wiki markup."""
+    num_link_boundaries = sum(1 for _ in re.finditer(r'\[\[|]]', text))
+    if num_link_boundaries > 0:
+        num_h2 = sum(1 for _ in re.finditer(r'==', text))
+        num_pipes = text.count('|')
+        wiki_token_freq = (num_link_boundaries + num_h2 + num_pipes) / len(text)
+        return wiki_token_freq > 0.02
+    else:
+        return False
 
 
 if __name__ == '__main__':
