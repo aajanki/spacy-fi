@@ -32,7 +32,6 @@ spam_re = re.compile(
     re.IGNORECASE
 )
 
-number_and_word_re = re.compile(r'(?<=\d{{2}})(?=[{au}][{a}]{{3}})'.format(a=ALPHA, au=ALPHA_UPPER))
 time_inside_word_re = re.compile(r'(?<=[{a}]{{2}})(\d{{2}}[.:]\d{{2}})(?=[{a}])'.format(a=ALPHA))
 word_and_url_re = re.compile(r'(?<=\w{3})https?://[-:/a-zA-Z0-9_.+%/?=#]+')
 
@@ -123,8 +122,8 @@ def is_clean_finnish(text):
 
 
 def cleanup_punctuation(text):
-    text = re.sub(r'[\u0000-\u001F\u007F-\u009F\u00AD\u200B-\u200D\u2060\uFEFF\uFFF0-\uFFFF]', '', text)
     text = re.sub(r'[\s\u2800]+', ' ', text)
+    text = re.sub(r'[\u0000-\u0008\u000E-\u001F\u007F-\u0084\u0086-\u009F\u00AD\u200B-\u200D\u2060\uFEFF\uFFF0-\uFFFF]', '', text)
     text = re.sub(r'[\u0530-\u1DBF\u2C00-\uA6FF\uA800-\uAB2F\uAB70-\uD7FF\uE000-\uFAFF\uFB50-\uFDFF]+', ' ', text)
     text = re.sub(r'\s\.(?=[{a}]{{4}})'.format(a=ALPHA), '. ', text)
     text = re.sub(r'\.\.\.(?=[-+*/!?%(),:;<>€$£"\'])', '... ', text)
@@ -145,7 +144,6 @@ def cleanup_text(text):
 
     # Add space around a number in certain cases
     text = time_inside_word_re.sub(r' \1 ', text)
-    text = number_and_word_re.sub(' ', text)
 
     return text
 
