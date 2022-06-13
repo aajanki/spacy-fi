@@ -8,15 +8,15 @@ from datasets import load_dataset
 from more_itertools import ichunked
 from tqdm import tqdm
 from typing import Optional
-from spacy.lang.char_classes import ALPHA, ALPHA_UPPER
+from spacy.lang.char_classes import ALPHA
 from .io import open_output
 
 spam_words = [
     'seksitreffit', 'sextreffit', 'seksiseuraa', 'seksideitti', 'sex',
     'suomiporno', 'suomipornovideot', 'seksivideot', 'seksiväline',
     'webcam',
-    'kasino', 'kasinot', 'nettikasino', 'nettikasinot', 'poker',
-    'casino', 'slots', 'blackjack', 'roulette', 'holdem',
+    'kasino', 'kasinot', 'netti[ck]asino\w*', 'poker', 'slot',
+    'casino', 'slots', 'blackjack', 'roulette', 'holdem', 'lotto',
     'hotelli', 'hotellit', 'Hotellitarjoukset', 'hotelliKirjaudu',
     '\w+?Hotellit', 'Hotels\.comSee',
     'Rewards', 'RewardsSaat', 'RewardsTietoa', 'palkintoyö\w*?',
@@ -81,7 +81,7 @@ def is_clean_finnish(text):
     # Skip if digits occur too frequently.
     tokens = text.split()
     num_tokens = len(tokens)
-    num_digit_tokens = sum(1 for t in tokens if re.match(r'^\(?[0-9][0-9.:]+\)?$', t))
+    num_digit_tokens = sum(1 for t in tokens if re.match(r'^\(?[0-9][0-9.,:;]+\)?$', t))
     if num_digit_tokens / num_tokens > 0.25:
         return False
 
@@ -100,11 +100,14 @@ def is_clean_finnish(text):
         return False
 
     # Simple spam filter
+    # Spam = pages that don't contain proper sentences (lists, machine
+    # generated fake Finnish, etc.) or long repeated text segments.
     num_spam_tokens = sum(1 for _ in spam_re.finditer(text))
     if num_spam_tokens / num_tokens > 0.05:
         return False
 
-    if 'auton...ostostavaihdostakoeajostalisätiedoistaVaihdossa' in tokens:
+    start = text[:300]
+    if re.search(r'[-/|] Tietokonekauppa\.fi|Auto1\.fi|tekstitykset suomi', start):
         return False
 
     # MC4 has already done language detection, but it's not perfect. Let's
