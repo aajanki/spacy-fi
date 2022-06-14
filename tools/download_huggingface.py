@@ -81,6 +81,9 @@ def is_clean_finnish(text):
     # Skip if digits occur too frequently.
     tokens = text.split()
     num_tokens = len(tokens)
+    if num_tokens == 0:
+        return False
+
     num_digit_tokens = sum(1 for t in tokens if re.match(r'^\(?[0-9][0-9.,:;]+\)?$', t))
     if num_digit_tokens / num_tokens > 0.25:
         return False
@@ -190,6 +193,9 @@ def cleanup_text(text):
 
 def maybe_wiki_markup(text):
     """Heuristics for detecting wiki markup."""
+    if len(text) == 0:
+        return False
+
     num_link_boundaries = sum(1 for _ in re.finditer(r'\[\[|]]', text))
     if num_link_boundaries > 0:
         num_h2 = sum(1 for _ in re.finditer(r'==', text))
