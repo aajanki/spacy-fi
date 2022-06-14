@@ -183,6 +183,7 @@ def cleanup_text(text):
             text = '\n'.join(lines)
 
     text = remove_bbcode(text)
+    text = remove_sort_entry(text)
 
     # Cleanup "Riku Rantalahttp://www.hs.fi/haku/?query=riku+rantala"
     text = word_and_url_re.sub('', text)
@@ -228,6 +229,11 @@ def remove_bbcode(text):
     text = re.sub(tags, ' ', text, flags=re.IGNORECASE)
     text = re.sub(r'\[IMG][-a-zA-Z0-9.,:/$_@&+!*()%#]+\[/IMG]', ' ', text, flags=re.IGNORECASE)
     return text
+
+
+def remove_sort_entry(text):
+    """Remove SortEntry code block appearing in many e-commerce sites."""
+    return re.sub(r'loc_fi_FI, sid_[A-Z0-9]+, prod, sort_\[SortEntry\(order=[A-Z_]+, direction=[A-Z_]+\)]', ' ', text)
 
 
 if __name__ == '__main__':
