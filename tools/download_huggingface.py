@@ -182,6 +182,8 @@ def cleanup_text(text):
             lines = [lines[i] for i in range(len(lines)) if i not in lines_to_remove]
             text = '\n'.join(lines)
 
+    text = remove_bbcode(text)
+
     # Cleanup "Riku Rantalahttp://www.hs.fi/haku/?query=riku+rantala"
     text = word_and_url_re.sub('', text)
 
@@ -212,6 +214,20 @@ def maybe_wiki_markup(text):
         return wiki_token_freq > 0.02
     else:
         return False
+
+
+def remove_bbcode(text):
+    """Remove the most common BBCode tags."""
+    tags = r'|'.join([
+        r'(?:\[URL="?[-a-zA-Z0-9.,:/$_@&+!*()%#]+"?])',
+        r'(?:\[/URL])',
+        r'(?:\[/?B])',
+        r'(?:\[/?LEFT])',
+    ])
+
+    text = re.sub(tags, ' ', text, flags=re.IGNORECASE)
+    text = re.sub(r'\[IMG][-a-zA-Z0-9.,:/$_@&+!*()%#]+\[/IMG]', ' ', text, flags=re.IGNORECASE)
+    return text
 
 
 if __name__ == '__main__':
