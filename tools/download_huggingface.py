@@ -166,17 +166,9 @@ def cleanup_text(text):
         if title_re.match(lines[0]):
             lines_to_remove.append(0)
 
-        # Many webstores have a JSON metadata row near the top. Remove it when
-        # detected.
-        for i, line in enumerate(lines[:5]):
-            # FIXME: proper JSON detection
-            if (
-                    line.startswith('[') and
-                    not line.startswith('[[') and
-                    line.endswith(']') and
-                    '{' in line and
-                    '}' in line
-            ):
+        # Remove Javascript and JSON
+        for i, line in enumerate(lines):
+            if maybe_js_or_json(line):
                 lines_to_remove.append(i)
 
         if lines_to_remove:
@@ -216,6 +208,37 @@ def maybe_wiki_markup(text):
         return wiki_token_freq > 0.02
     else:
         return False
+
+
+def maybe_js_or_json(text):
+    """Heuristics for detecting JSON or JavaScript."""
+
+    # Possible false positives: "undefined" and "function" might occur in
+    # English text and "var" might occur in Swedish text. Those do not
+    # matter much because we are anyway interested in keeping Finnish text only.
+    #
+    # Sometimes in MC4 a line consists of a text title followed by javascript
+    # code. This will incorrectly detect the whole line as javascript.
+    #
+    # FIXME: proper JavaScript detection
+    common_js_keywords1 = [
+        r'\bvar\s', r'\bnull\b', r'\bundefined\b', r'\bfunction\b',
+        r'\b\|\|\b', r'\b\(\)\b', r'\b={2,3}\b',
+    ]
+    common_js_keywords2 = [r'{', r'}', r'\[', r']']
+    js_re1 = re.compile('|'.join(common_js_keywords1), re.IGNORECASE)
+    js_re2 = re.compile('|'.join(common_js_keywords2))
+
+    num_js_tokens1 = sum(1 for _ in js_re1.finditer(text))
+    num_js_tokens2 = sum(1 for _ in js_re2.finditer(text))
+    num_js_tokens3 = text.count(';')
+    looks_like_js = num_js_tokens1 >= 1 and \
+                    num_js_tokens2 >= 2 and \
+                    (num_js_tokens3 >= 1 or num_js_tokens2 >= 10)
+    looks_like_json = re.match(r'\[\s*\{', text) is not None and \
+                      re.search(r'}\s*]$', text) is not None
+
+    return looks_like_js or looks_like_json
 
 
 def remove_bbcode(text):
