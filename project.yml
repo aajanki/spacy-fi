@@ -91,22 +91,22 @@ commands:
   - name: "convert-mc4-jsonl"
     help: "Convert the MC4 corpus to JSONL format"
     script:
-      - "tools/raw_text_to_jsonl.sh corpus/mc4/raw corpus/mc4/mc4_fi_cleaned_${vars.pretrain_max_texts}.jsonl ${vars.pretrain_max_texts}"
+      - "tools/raw_text_to_jsonl.sh corpus/mc4/raw corpus/mc4/mc4_${vars.pretrain_max_texts}.jsonl ${vars.pretrain_max_texts}"
     deps:
       - "corpus/mc4/raw"
     outputs:
-      - "corpus/mc4/mc4_fi_cleaned_${vars.pretrain_max_texts}.jsonl"
+      - "corpus/mc4/mc4_${vars.pretrain_max_texts}.jsonl"
 
   - name: "pretrain-mc4"
     help: "Pretrain the tok2vec component"
     script:
       - "rm -rf training/pretrain"
       - "mkdir -p training/pretrain"
-      - "python -m spacy pretrain configs/fi.cfg training/pretrain --code fi/fi.py --paths.pretrain corpus/mc4/mc4_fi_cleaned_${vars.pretrain_max_texts}.jsonl --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --pretraining.max_epochs ${vars.pretrain_max_steps} --gpu-id ${vars.gpu_id}"
+      - "python -m spacy pretrain configs/fi.cfg training/pretrain --code fi/fi.py --paths.pretrain corpus/mc4/mc4_${vars.pretrain_max_texts}.jsonl --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --pretraining.max_epochs ${vars.pretrain_max_steps} --gpu-id ${vars.gpu_id}"
       - "cp training/pretrain/models${vars.pretrain_max_steps}.bin pretrain/weights.bin"
     deps:
       - "configs/fi.cfg"
-      - "corpus/mc4/mc4_fi_cleaned_${vars.pretrain_max_texts}.jsonl"
+      - "corpus/mc4/mc4_${vars.pretrain_max_texts}.jsonl"
       - "data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret"
     outputs:
       - "pretrain/weights.bin"

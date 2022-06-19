@@ -14,7 +14,7 @@ from .io import open_output
 spam_words = [
     'seksitreffit', 'sextreffit', 'seksiseuraa', 'seksideitti', 'sex',
     'suomiporno', 'suomipornovideot', 'seksivideot', 'seksiväline',
-    'massage', 'erotic', 'escort', 'milf', 'webcam',
+    'cumshot', 'escort', 'webcam',
     'kasino', 'kasinot', r'netti[ck]asino\w*?', 'poker', 'slot',
     'casino', 'slots', 'blackjack', 'roulette', 'holdem', 'lotto',
     r'spelautomat\w*', 'spela', 'gratis',
@@ -27,16 +27,23 @@ spam_words = [
     'Hintaseuranta', r'alennuskood\w+?', r'alekood\w+?'
     'lahjakortit', 'tarjouskoodi', 'hinta', 'free', 'price', 'discount',
     'pikavippi', 'pikavipit', 'pikavippiä', r'pikalain\w+?', 'luottopäätös',
-    'vakuuksia', 'prescriptions?', 'viagra', 'cialis', 'subutex',
-    'sildenafil', 'sildenafiili', 'tadalafil', 'provigil', 'modafinil',
-    'modalert', 'nuvigil', 'citrate', 'adderall', 'side effects', 'dosage',
-    'recreational', 'ilman reseptiä', 'reseptivapaa', 'substitute',
+    'vakuuksia', 'prescriptions?', 'citrate', 'adderall', 'side effects',
+    'dosage', 'recreational', 'ilman reseptiä', 'reseptivapaa', 'substitute',
     'pharmacy', 'generic', 'apteekki', 'apteekissa', 'pills',
     'täsmäsää', 'täsmätutka', 'ON24',
     r'\w{35}\w*?(?=\s)',
 ]
+really_spammy_words = [
+    'sildenafil', 'sildenafiili', 'tadalafil', 'provigil', 'modafinil',
+    'modalert', 'nuvigil', 'viagra', 'cialis', 'subutex', 'erotic',
+    'massage', 'milfs?',
+]
 spam_re = re.compile(
     '|'.join(r'\b' + w + r'\b' for w in spam_words),
+    re.IGNORECASE
+)
+spam2_re = re.compile(
+    '|'.join(r'\b' + w + r'\b' for w in really_spammy_words),
     re.IGNORECASE
 )
 
@@ -113,8 +120,9 @@ def is_clean_finnish(text):
     # Simple spam filter
     # Spam = pages that don't contain proper sentences (lists, machine
     # generated fake Finnish, etc.) or long repeated text segments.
-    num_spam_tokens = sum(1 for _ in spam_re.finditer(text))
-    if num_spam_tokens / num_tokens > 0.05:
+    spam_score = sum(1 for _ in spam_re.finditer(text)) + \
+                 4 * sum(1 for _ in spam2_re.finditer(text))
+    if spam_score / num_tokens > 0.05:
         return False
 
     start = text[:300]
