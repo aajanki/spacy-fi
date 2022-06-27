@@ -2,4 +2,4 @@
 
 set -euo pipefail
 
-find "$1" -name '*.txt.bz2' | sort | xargs bzcat > "$2"
+find "$1" -name '*.txt' | sort | xargs cat > "$2"

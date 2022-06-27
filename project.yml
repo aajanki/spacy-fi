@@ -38,13 +38,16 @@ assets:
 workflows:
   floret-vectors:
     - download-mc4-fi
-    - tokenize-mc4
     - train-floret-mc4
   pretrain:
+    - download-mc4-fi
+    - count-word-frequencies
+    - init-lexdata
     - init-floret-vectors
     - convert-mc4-jsonl
     - pretrain-mc4
   train-pipeline:
+    - download-mc4-fi
     - count-word-frequencies
     - init-lexdata
     - init-floret-vectors
@@ -65,26 +68,18 @@ commands:
     outputs:
       - "corpus/mc4/raw"
 
-  - name: "tokenize-mc4"
-    help: "Tokenize the MC4 corpus"
+  - name: "train-floret-mc4"
+    help: "Train floret vectors on the MC4 corpus"
     script:
       - "rm -rf corpus/mc4/tokenized/"
       - "mkdir -p corpus/mc4/tokenized"
       - "python -m tools.tokenize_fi --threads ${vars.n_threads} corpus/mc4/raw/ corpus/mc4/tokenized"
-    deps:
-      - "corpus/mc4/raw"
-    outputs:
-      - "corpus/mc4/tokenized"
-
-  - name: "train-floret-mc4"
-    help: "Train floret vectors on the MC4 corpus"
-    script:
       - "tools/merge_text_batches.sh corpus/mc4/tokenized corpus/mc4/tokenized/merged.txt"
       - "floret cbow -mode floret -hashCount 2 -bucket ${vars.vector_size} -minn ${vars.minn} -maxn ${vars.maxn} -minCount ${vars.floret_min_count} -dim ${vars.vector_dim} -neg 10 -epoch ${vars.floret_epochs} -thread ${vars.n_threads} -input corpus/mc4/tokenized/merged.txt -output vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}"
       - "gzip -f vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}.floret"
-      - "rm -f corpus/mc4/tokenized/merged.txt"
+      - "rm -rf corpus/mc4/tokenized/"
     deps:
-      - "corpus/mc4/tokenized"
+      - "corpus/mc4/raw"
     outputs:
       - "vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}.floret.gz"
 
@@ -107,6 +102,7 @@ commands:
     deps:
       - "configs/fi.cfg"
       - "corpus/mc4/mc4_${vars.pretrain_max_texts}.jsonl"
+      - "data/vocab/vocab-data.jsonl"
       - "data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret"
     outputs:
       - "pretrain/weights.bin"
@@ -114,9 +110,9 @@ commands:
   - name: "count-word-frequencies"
     script:
       - "mkdir -p data/word_frequencies"
-      - "tools/frequencies.sh corpus/mc4/tokenized data/word_frequencies/finnish_vocab.txt.gz"
+      - "tools/frequencies.sh corpus/mc4/raw data/word_frequencies/finnish_vocab.txt.gz"
     deps:
-      - "corpus/mc4/tokenized"
+      - "corpus/mc4/raw"
     outputs:
       - "data/word_frequencies/finnish_vocab.txt.gz"
 

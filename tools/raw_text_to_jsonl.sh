@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -eu
 
 find "$1" -name '*.txt.bz2' | \
   sort | \
