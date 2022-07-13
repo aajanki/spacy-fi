@@ -1,6 +1,6 @@
-spacy>=3.3.0,<3.4.0
+spacy>=3.4.0,<3.5.0
 voikko==0.5
-pytest==7.1.1
+pytest==7.1.2
 datasets[streaming]>=1.16.1
 tqdm==4.64.0
 langid==1.1.6
