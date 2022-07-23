@@ -1,5 +1,11 @@
 Finnish language model for spaCy
 
+Version 0.11.0, 2022-07-23
+
+* Ported to spaCy 3.4
+* Updated word vectors and word frequencies
+* Minor fixes to the lemmatization
+
 Version 0.10.0, 2022-05-07
 
 * Floret embedding vectors trained on MC4_fi_cleaned

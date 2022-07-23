@@ -26,7 +26,8 @@ pip install spacy_fi_experimental_web_md
 Compatibility with spaCy versions:
 
 | spacy-fi version | Compatible with spaCy versions |
-| ---------------- | ------------------------------ |
+|------------------|--------------------------------|
+| 0.11.0           | 3.4.x                          |
 | 0.10.0           | 3.3.x                          |
 | 0.9.0            | >= 3.2.1 and < 3.3.0           |
 | 0.8.x            | 3.2.x                          |
