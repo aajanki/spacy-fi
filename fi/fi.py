@@ -1,4 +1,5 @@
 import re
+import libvoikko
 import srsly
 from pathlib import Path
 from typing import Callable, Iterable, Optional, Union
@@ -15,7 +16,6 @@ from spacy.tokens import Doc, Token
 from spacy.training import Example, validate_examples
 from spacy.util import SimpleFrozenList
 from spacy.vocab import Vocab
-from voikko import libvoikko
 
 from spacy.lang.fi import FinnishDefaults
 from spacy.lang.char_classes import LIST_PUNCT, LIST_ELLIPSES, LIST_QUOTES, LIST_ICONS
