@@ -1,8 +1,8 @@
-spacy>=3.4.0,<3.5.0
+spacy>=3.5.0,<3.6.0
 libvoikko>=4.3
-pytest==7.1.2
+pytest==7.2.1
 datasets[streaming]>=1.16.1
-tqdm==4.64.0
+tqdm==4.64.1
 langid==1.1.6
-more-itertools==8.13.0
-matplotlib==3.5.2
+more-itertools==9.0.0
+matplotlib==3.6.3

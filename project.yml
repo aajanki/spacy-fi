@@ -1,6 +1,6 @@
 title: "Finnish model"
 description: "Train spaCy model for Finnish on UD Finnish TDT"
-spacy_version: ">=3.4.0,<3.5.0"
+spacy_version: ">=3.5.0,<3.6.0"
 vars:
   vector_size: 50000
   vector_dim: 300
@@ -27,7 +27,7 @@ assets:
   - dest: "assets/${vars.treebank}"
     git:
       repo: "https://github.com/UniversalDependencies/${vars.treebank}"
-      branch: "r2.9"
+      branch: "r2.11"
       path: ""
   - dest: "assets/${vars.corpus_ner}"
     git:

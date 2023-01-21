@@ -68,6 +68,7 @@ pip install -r requirements.txt
 ### Training the model
 
 ```sh
+spacy project assets
 spacy project run train-pipeline
 ```
 
