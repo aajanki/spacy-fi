@@ -410,7 +410,7 @@ class VoikkoLemmatizer(Pipe):
 @Finnish.factory(
     "voikko_lemmatizer",
     assigns=["token.lemma"],
-    requires=[],
+    requires=["token.dep", "token.pos"],
     default_score_weights={"lemma_acc": 0.0},
 )
 def make_voikko_lemmatizer(
