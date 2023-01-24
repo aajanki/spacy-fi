@@ -1,4 +1,4 @@
-"""Prepare a lexical data file for spacy train."""
+"""Prepare the lexeme probability lookup table."""
 
 import gzip
 import json
@@ -10,17 +10,22 @@ from itertools import islice
 
 def main(
     full_vocabulary_path: Path = typer.Argument(..., help='Path to the full vocabulary'),
-    output_file: Path = typer.Argument(..., help='Name of the output file'),
+    output_path: Path = typer.Argument(..., help='Name of the output directory'),
     num_tokens: int = typer.Argument(..., help='Number of tokens to include in the output file'),
 ):
     probs, oov_prob = read_freqs(full_vocabulary_path, num_tokens)
 
-    with open(output_file, 'w') as out:
-        header = {'lang': 'fi', 'settings': {'oov_prob': oov_prob}}
-        write_json_line(header, out)
-        for orth, p in probs.items():
-            word_data = {'orth': orth, 'prob': p}
-            write_json_line(word_data, out)
+    prob_lookup = {}
+    for orth, p in probs.items():
+        prob_lookup[orth] = p
+
+    settings_lookup = {'oov_prob': oov_prob}
+
+    with open(output_path / 'lexeme_prob.json', 'w') as out:
+        json.dump(prob_lookup, out, ensure_ascii=False)
+
+    with open(output_path / 'lexeme_settings.json', 'w') as out:
+        json.dump(settings_lookup, out, ensure_ascii=False)
 
 
 def read_freqs(full_loc, num_tokens, max_token_length=50):
@@ -53,11 +58,6 @@ def parse_token_line(x):
     freq, token = x.strip().split(' ', 1)
     freq = int(freq)
     return freq, token
-
-
-def write_json_line(obj, fp):
-    json.dump(obj, fp=fp, ensure_ascii=False)
-    fp.write('\n')
 
 
 if __name__ == '__main__':

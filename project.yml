@@ -97,12 +97,13 @@ commands:
     script:
       - "rm -rf training/pretrain"
       - "mkdir -p training/pretrain"
-      - "python -m spacy pretrain configs/fi.cfg training/pretrain --code fi/fi.py --paths.pretrain corpus/mc4/mc4_${vars.pretrain_max_texts}.jsonl --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --pretraining.max_epochs ${vars.pretrain_max_steps} --gpu-id ${vars.gpu_id}"
+      - "python -m spacy pretrain configs/fi.cfg training/pretrain --code fi/fi.py --paths.pretrain corpus/mc4/mc4_${vars.pretrain_max_texts}.jsonl --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --paths.vocab_lookups data/vocab/lookups --pretraining.max_epochs ${vars.pretrain_max_steps} --gpu-id ${vars.gpu_id}"
       - "cp training/pretrain/models${vars.pretrain_max_steps}.bin pretrain/weights.bin"
     deps:
       - "configs/fi.cfg"
       - "corpus/mc4/mc4_${vars.pretrain_max_texts}.jsonl"
-      - "data/vocab/vocab-data.jsonl"
+      - "data/vocab/lookups/lexeme_prob.json"
+      - "data/vocab/lookups/lexeme_settings.json"
       - "data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret"
     outputs:
       - "pretrain/weights.bin"
@@ -118,12 +119,13 @@ commands:
 
   - name: "init-lexdata"
     script:
-      - "mkdir -p data/vocab"
-      - "python -m tools.create_lexdata data/word_frequencies/finnish_vocab.txt.gz data/vocab/vocab-data.jsonl 500000"
+      - "mkdir -p data/vocab/lookups"
+      - "python -m tools.create_lexdata data/word_frequencies/finnish_vocab.txt.gz data/vocab/lookups 500000"
     deps:
       - "data/word_frequencies/finnish_vocab.txt.gz"
     outputs:
-      - "data/vocab/vocab-data.jsonl"
+      - "data/vocab/lookups/lexeme_prob.json"
+      - "data/vocab/lookups/lexeme_settings.json"
 
   - name: "init-floret-vectors"
     help: "Create floret embeddings"
@@ -158,13 +160,14 @@ commands:
   - name: "train"
     help: "Train the model"
     script:
-      - "python -m spacy train configs/fi.cfg --output training/${vars.treebank}/ --paths.train corpus/${vars.treebank}/spacy/train.spacy --paths.dev corpus/${vars.treebank}/spacy/dev.spacy --paths.init_tok2vec pretrain/weights.bin --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --code fi/fi.py --gpu-id ${vars.gpu_id} --training.max_steps ${vars.max_steps}"
+      - "python -m spacy train configs/fi.cfg --output training/${vars.treebank}/ --paths.train corpus/${vars.treebank}/spacy/train.spacy --paths.dev corpus/${vars.treebank}/spacy/dev.spacy --paths.init_tok2vec pretrain/weights.bin --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --paths.vocab_lookups data/vocab/lookups --code fi/fi.py --gpu-id ${vars.gpu_id} --training.max_steps ${vars.max_steps}"
     deps:
       - "configs/fi.cfg"
       - "corpus/${vars.treebank}/spacy/train.spacy"
       - "corpus/${vars.treebank}/spacy/dev.spacy"
       - "pretrain/weights.bin"
-      - "data/vocab/vocab-data.jsonl"
+      - "data/vocab/lookups/lexeme_prob.json"
+      - "data/vocab/lookups/lexeme_settings.json"
       - "data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret"
     outputs:
       - "training/${vars.treebank}/model-best"
@@ -186,12 +189,14 @@ commands:
   - name: "train-ner"
     help: "Train the NER model"
     script:
-      - "python -m spacy train configs/fi-ner.cfg --output training/${vars.corpus_ner}/ --paths.train corpus/${vars.corpus_ner}/spacy/train.spacy --paths.dev corpus/${vars.corpus_ner}/spacy/dev.spacy --paths.init_tok2vec pretrain/weights.bin --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --code fi/fi.py --gpu-id ${vars.gpu_id} --training.max_steps ${vars.max_steps}"
+      - "python -m spacy train configs/fi-ner.cfg --output training/${vars.corpus_ner}/ --paths.train corpus/${vars.corpus_ner}/spacy/train.spacy --paths.dev corpus/${vars.corpus_ner}/spacy/dev.spacy --paths.init_tok2vec pretrain/weights.bin --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --paths.vocab_lookups data/vocab/lookups --code fi/fi.py --gpu-id ${vars.gpu_id} --training.max_steps ${vars.max_steps}"
     deps:
       - "configs/fi-ner.cfg"
       - "corpus/${vars.corpus_ner}/spacy/train.spacy"
       - "corpus/${vars.corpus_ner}/spacy/dev.spacy"
       - "pretrain/weights.bin"
+      - "data/vocab/lookups/lexeme_prob.json"
+      - "data/vocab/lookups/lexeme_settings.json"
       - "data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret"
     outputs:
       - "training/${vars.corpus_ner}/model-best"
