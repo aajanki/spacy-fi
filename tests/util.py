@@ -1,3 +1,4 @@
+import numpy as np
 from spacy.tokens import Doc
 from spacy.attrs import POS, TAG, HEAD, DEP, LEMMA
 
@@ -26,17 +27,16 @@ def get_doc(vocab, words, pos, heads, deps):
 
     doc = Doc(vocab, words=words)
 
-    attrs = doc.to_array(headings)
+    attrs = np.zeros((len(doc), len(headings)), dtype=np.uint64)
 
-    j = 0
-    for annot in annotations:
+    for j, annot in enumerate(annotations):
         if annot is heads:
-            for i in range(len(words)):
-                attrs[i, j] = heads[i]
+            # Overflow negative values on purpose because that's how spacy
+            # expacts them.
+            attrs[:, j] = np.array(heads).astype(np.uint64)
         else:
             for i in range(len(words)):
                 attrs[i, j] = doc.vocab.strings[annot[i]]
-        j += 1
 
     doc.from_array(headings, attrs)
 
