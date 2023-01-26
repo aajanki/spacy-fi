@@ -204,7 +204,7 @@ commands:
   - name: "merge-parser-and-ner"
     help: "Merge the parser and NER models into one model"
     script:
-      - "spacy assemble configs/merged.cfg training/merged --paths.init_tok2vec pretrain/weights.bin --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --code fi/fi.py"
+      - "spacy assemble configs/merged.cfg training/merged --paths.init_tok2vec pretrain/weights.bin --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --paths.vocab_lookups data/vocab/lookups --code fi/fi.py"
     deps:
       - "training/${vars.treebank}/model-best"
       - "training/${vars.corpus_ner}/model-best"
