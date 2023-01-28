@@ -405,7 +405,7 @@ def check(cases, case_filter=None, accept_less_common=True):
     nlp = Finnish()
     lemmatizer = VoikkoLemmatizer(nlp.vocab)
     lemmatizer.initialize(lookups = create_lookups_from_json_reader(
-        Path(__file__).parent.parent / 'fi' / 'lookups' / 'lemmatizer'))
+        Path(__file__).parent.parent.parent / 'fi' / 'lookups' / 'lemmatizer'))
 
     expanded = []
     for pos, tokens in cases.items():

@@ -88,8 +88,14 @@ spacy project run pretrain
 
 ### Testing
 
+Unit tests:
 ```
-python -m pytest tests
+python -m pytest tests/unit
+```
+
+Functional tests for a trained model:
+```
+python -m pytest tests/functional
 ```
 
 Importing the trained model directly from the file system without

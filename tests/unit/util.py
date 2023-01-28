@@ -1,6 +1,6 @@
 import numpy as np
 from spacy.tokens import Doc
-from spacy.attrs import POS, TAG, HEAD, DEP, LEMMA
+from spacy.attrs import POS, HEAD, DEP
 
 
 def get_doc_from_text(text, tokenizer, pos, heads, deps):
