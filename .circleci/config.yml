@@ -9,7 +9,7 @@ workflows:
       - test:
           matrix:
             parameters:
-              pyversion: ["3.7", "3.8", "3.9", "3.10"]
+              pyversion: ["3.7", "3.8", "3.9", "3.10", "3.11"]
 
 jobs:
   test:
@@ -29,6 +29,6 @@ jobs:
           pkg-manager: pip
       - run:
           name: Run tests
-          command: python -m pytest tests --junit-xml=test-results/report.xml
+          command: python -m pytest tests/unit --junit-xml=test-results/report.xml
       - store_test_results:
           path: test-results
