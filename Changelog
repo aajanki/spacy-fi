@@ -1,9 +1,9 @@
 Finnish language model for spaCy
 
-unreleased
+Version 0.12.0, 2023-02-01
 
-* Compatibility with spaCy 3.5
-* Word probabilities (they have been broken in the past several versions)
+* Compatible with spaCy 3.5
+* Word occurrence probabilities (they have been broken in the past several versions)
 
 Version 0.11.0, 2022-07-23
 

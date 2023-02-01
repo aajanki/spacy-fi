@@ -8,8 +8,9 @@ from setuptools import setup
 long_description = \
 """Finnish language model for SpaCy.
 
-The model contains POS tagger, dependency parser, word vectors, noun
-phrase extraction, token frequencies and a lemmatizer.
+The model includes POS tagger, dependency parser, word vectors, noun phrase
+extraction, word occurrence probability estimates, morphological features,
+lemmatization and named entity recognition (NER).
 """
 
 
