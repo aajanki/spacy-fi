@@ -10,6 +10,7 @@ from tqdm import tqdm
 from typing import Optional
 from spacy.lang.char_classes import ALPHA
 from .io import open_output
+from urllib.parse import urlparse
 
 spam_words = [
     'seksitreffit', 'sextreffit', 'seksiseuraa', 'seksideitti', 'sex',
@@ -18,26 +19,64 @@ spam_words = [
     'kasino', 'kasinot', r'netti[ck]asino\w*?', 'poker', 'slot',
     'casino', 'slots', 'blackjack', 'roulette', 'holdem', 'lotto',
     r'spelautomat\w*', 'spela', 'gratis',
-    'hotelli', 'hotellit', 'Hotellitarjoukset', 'hotelliKirjaudu',
-    r'\w+?Hotellit', r'Hotels\.comSee',
-    'Rewards', 'RewardsSaat', 'RewardsTietoa', r'palkintoyö\w*?',
-    'sivuillammeMatkanvälittäjätTiedotusEhdot', r'\)Hotels\.com™',
-    'evästeistäAsiakaspalveluVarauksesiOhjeetPalautetta',
     'the hotel', 'bed', 'resort', 'inn', 'waterfront', 'bonus',
-    'Hintaseuranta', r'alennuskood\w+?', r'alekood\w+?'
+    r'alennuskood\w+?', r'alekood\w+?'
     'lahjakortit', 'tarjouskoodi', 'hinta', 'free', 'price', 'discount',
     'pikavippi', 'pikavipit', 'pikavippiä', r'pikalain\w+?', 'luottopäätös',
     'vakuuksia', 'prescriptions?', 'citrate', 'adderall', 'side effects',
     'dosage', 'recreational', 'ilman reseptiä', 'reseptivapaa', 'substitute',
     'pharmacy', 'generic', 'apteekki', 'apteekissa', 'pills',
-    'täsmäsää', 'täsmätutka', 'ON24',
-    r'\w{35}\w*?(?=\s)',
+     r'\w{35}\w*?(?=\s)',
 ]
 really_spammy_words = [
     'sildenafil', 'sildenafiili', 'tadalafil', 'provigil', 'modafinil',
     'modalert', 'nuvigil', 'viagra', 'cialis', 'subutex', 'erotic',
     'massage', 'milfs?',
 ]
+skip_domains = set([
+    'www.spreadshirt.fi', # word salad
+    'www.fi.freelancer.com', # a lot of non-Finnish content
+    'fi.hotels.com', # very long words, non-Finnish
+    'ssl-fi.hotels.com', # very long words, non-Finnish
+    'et.hotels.com', # very long words, non-Finnish
+    'nl.hotels.com', # very long words, non-Finnish
+    'sv.hotels.com', # very long words, non-Finnish
+    'www.hotels.com', # very long words, non-Finnish
+    'hintaseuranta.fi', # word salad
+    'www.karkkainen.com', # JSON
+    'www.dx.com', # word salad
+    'www.fi.kayak.com', # lots of non-Finnish content
+    'www.auto1.fi', # word salad
+    'www.prisma.fi', # JSON
+    'www.iltapulu.fi', # listing, very long words
+    'tietokonekauppa.fi', # very long words
+    'www.booking.com', # non-Finnish
+    'www.zoover.fi', # repeating text
+    'propilkki.ddns.net', # listing
+    'www.vertaa.fi', # word salad
+    'www.tripadvisor.fi', # JSON
+    'www.airbnb.fi', # non-Finnish
+    'www.opensubtitles.org', # listing, very long words
+    'www.sokos.fi', # JSON
+    'www.lightinthebox.com', # word salad
+    'www.skruvat.fi', # word salad
+    'www.shutterstock.com', # repeating text
+    'www.dwensa.info', # listing
+    'www.foreca.fi', # listing
+    'www.suomalainen.com', # JSON
+    'www.def-shop.fi', # listing
+    'www.thomann.de', # non-Finnish, incorrect encoding, tags
+    'www.fragrancenet.com', # word salad
+    'www.on24.fi', # word salad, long words
+    'tipsed.com', # word salad
+    'www.gigantti.fi', # JSON
+    'www.klingel.fi', # JSON
+    'www.kodinterra.fi', # JSON
+])
+skip_tlds = set([
+    '.nl',
+    '.be',
+])
 spam_re = re.compile(
     '|'.join(r'\b' + w + r'\b' for w in spam_words),
     re.IGNORECASE
@@ -66,13 +105,16 @@ def main(
     dataset = load_dataset(dataset_name, subset, split="train", streaming=True)
     selected_lines = lines(dataset)
     if cleanup:
-        selected_lines = (cleanup_text(x) for x in selected_lines)
-        selected_lines = (x for x in selected_lines if is_clean_finnish(x))
-    selected_lines = (cleanup_punctuation(x) for x in selected_lines)
-    selected_lines = islice(selected_lines, max_texts)
-    selected_lines = tqdm(selected_lines, total=max_texts, smoothing=0.05)
+        selected_lines = (x for x in selected_lines if not is_spam_url(x['url']))
+    texts = (x['text'] for x in selected_lines)
+    if cleanup:
+        texts = (cleanup_text(x) for x in texts)
+        texts = (x for x in texts if is_clean_finnish(x))
+    texts = (cleanup_punctuation(x) for x in texts)
+    texts = islice(texts, max_texts)
+    texts = tqdm(texts, total=max_texts, smoothing=0.05)
 
-    for i, batch in enumerate(ichunked(selected_lines, batch_size)):
+    for i, batch in enumerate(ichunked(texts, batch_size)):
         output_file = output_path / f'mc4_{i:02d}.txt.bz2'
         with open_output(output_file) as outf:
             for text in batch:
@@ -84,7 +126,7 @@ def lines(dataset):
     for x in iter(dataset):
         text = unicodedata.normalize('NFC', x['text'].strip())
         if text:
-            yield text
+            yield {'text': text, 'url': x['url']}
 
 
 def is_clean_finnish(text):
@@ -123,10 +165,6 @@ def is_clean_finnish(text):
     spam_score = sum(1 for _ in spam_re.finditer(text)) + \
                  4 * sum(1 for _ in spam2_re.finditer(text))
     if spam_score / num_tokens > 0.05:
-        return False
-
-    start = text[:300]
-    if re.search(r'[-/|] Tietokonekauppa\.fi|Auto1\.fi|tekstitykset suomi', start):
         return False
 
     # Skip page with lots of Wiki markup
@@ -266,6 +304,22 @@ def remove_bbcode(text):
 def remove_sort_entry(text):
     """Remove SortEntry code block appearing in many e-commerce sites."""
     return re.sub(r'loc_fi_FI, sid_[A-Z0-9]+, prod, sort_\[SortEntry\(order=[A-Z_]+, direction=[A-Z_]+\)]', ' ', text)
+
+
+def is_spam_url(url):
+    dom = domain(url)
+    tld = '.' + dom.split('.')[-1]
+    skip1 = dom in skip_domains
+    skip2 = tld in skip_tlds
+    return skip1 or skip2
+
+
+def domain(url: str) -> str:
+    parsed_url = urlparse(url)
+    netloc = parsed_url.netloc.lower()
+    # Remove port
+    netloc = netloc.split(':', 1)[0]
+    return netloc
 
 
 if __name__ == '__main__':
