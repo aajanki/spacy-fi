@@ -1,4 +1,4 @@
-spacy==3.5.0
+spacy==3.6.0
 libvoikko>=4.3
 pytest==7.4.0
 datasets[streaming]>=2.13.1,<3
