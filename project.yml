@@ -75,8 +75,8 @@ commands:
       - "rm -rf corpus/mc4/tokenized/"
       - "mkdir -p corpus/mc4/tokenized"
       - "python -m tools.tokenize_fi --threads ${vars.n_threads} corpus/mc4/raw/ corpus/mc4/tokenized"
-      - "tools/merge_text_batches.sh corpus/mc4/tokenized corpus/mc4/tokenized/merged.txt"
-      - "floret cbow -mode floret -hashCount 2 -bucket ${vars.vector_size} -minn ${vars.minn} -maxn ${vars.maxn} -minCount ${vars.floret_min_count} -dim ${vars.vector_dim} -neg 10 -epoch ${vars.floret_epochs} -thread ${vars.n_threads} -input corpus/mc4/tokenized/merged.txt -output vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}"
+      - "tools/merge_text_batches.sh corpus/mc4/tokenized/ corpus/mc4/tokenized/merged"
+      - "floret cbow -mode floret -hashCount 2 -bucket ${vars.vector_size} -minn ${vars.minn} -maxn ${vars.maxn} -minCount ${vars.floret_min_count} -dim ${vars.vector_dim} -neg 10 -epoch ${vars.floret_epochs} -thread ${vars.n_threads} -input corpus/mc4/tokenized/merged -output vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}"
       - "gzip -f vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}.floret"
       - "rm -rf corpus/mc4/tokenized/"
     deps:
