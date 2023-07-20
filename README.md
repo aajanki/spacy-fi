@@ -50,6 +50,8 @@ for t in doc:
     print(f'{t.lemma_}\t{t.pos_}')
 ```
 
+The [dependency, part-of-speech and named entity labels](tags.md) are documented on a separate page.
+
 ## Updating the model
 
 ### Setting up a development environment
