@@ -50,7 +50,7 @@ for t in doc:
     print(f'{t.lemma_}\t{t.pos_}')
 ```
 
-The [dependency, part-of-speech and named entity labels](tags.md) are documented on a separate page.
+The [dependency, part-of-speech and named entity labels](docs/tags.md) are documented on a separate page.
 
 ## Updating the model
 
@@ -118,7 +118,7 @@ for t in doc:
 
 ### Packaging and publishing
 
-See [packaging.md](packaging.md).
+See [docs/packaging.md](packaging.md).
 
 ## License
 
