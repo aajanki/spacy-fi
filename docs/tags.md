@@ -50,6 +50,7 @@ These are the possible values for `token.dep`:
 | csubj        | [clausal subject](https://universaldependencies.org/fi/dep/csubj.html)                                                                      |
 | csubj:cop    | [clausal copular subject](https://universaldependencies.org/fi/dep/csubj-cop.html)                                                          |
 | det          | [determiner](https://universaldependencies.org/fi/dep/det.html)                                                                             |
+| dep          | [unspecified dependency](https://universaldependencies.org/u/dep/dep.html)                                                                  |
 | discourse    | [discourse element](https://universaldependencies.org/fi/dep/discourse.html)                                                                |
 | dislocated   | [dislocated elements](https://universaldependencies.org/u/dep/dislocated.html)                                                              |
 | fixed        | [fixed multi-word expression](https://universaldependencies.org/fi/dep/fixed.html)                                                          |
