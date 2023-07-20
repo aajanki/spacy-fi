@@ -99,7 +99,7 @@ commands:
       - "rm -rf training/pretrain"
       - "mkdir -p training/pretrain"
       - "python -m spacy pretrain configs/fi.cfg training/pretrain --code fi/fi.py --paths.pretrain corpus/mc4/mc4_${vars.pretrain_max_texts}.jsonl --paths.vectors data/vectors/fi-${vars.vector_dim}-${vars.vector_size}-minn${vars.minn}-maxn${vars.maxn}-floret --paths.vocab_lookups data/vocab/lookups --pretraining.max_epochs ${vars.pretrain_max_steps} --gpu-id ${vars.gpu_id}"
-      - "cp training/pretrain/models${vars.pretrain_max_steps}.bin pretrain/weights.bin"
+      - "cp training/pretrain/model${vars.pretrain_max_steps}.bin pretrain/weights.bin"
     deps:
       - "configs/fi.cfg"
       - "corpus/mc4/mc4_${vars.pretrain_max_texts}.jsonl"
