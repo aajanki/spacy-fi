@@ -1,5 +1,9 @@
 Finnish language model for spaCy
 
+Version 0.13.0, 2023-07-21
+
+* Compatible with spaCy 3.6
+
 Version 0.12.0, 2023-02-01
 
 * Compatible with spaCy 3.5
