@@ -118,7 +118,7 @@ for t in doc:
 
 ### Packaging and publishing
 
-See [docs/packaging.md](packaging.md).
+See [packaging.md](docs/packaging.md).
 
 ## License
 
