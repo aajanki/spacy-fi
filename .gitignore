@@ -6,5 +6,6 @@ models/
 training/
 packages/
 metrics/
+notes/
 __pycache__/
 project.lock
