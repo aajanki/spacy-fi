@@ -98,7 +98,7 @@ def test_noun_chunks(nlp, text, expected_np_fragments):
     observed_np = [x.text for x in doc.noun_chunks]
 
     for np in expected_np_fragments:
-        assert any(np in x for x in observed_np)
+        assert any(np in x for x in observed_np), f'Expected noun chunk not found: {np}'
 
 
 def test_morph(nlp):
