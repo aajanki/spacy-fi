@@ -2,9 +2,10 @@ import re
 import libvoikko
 import srsly
 from pathlib import Path
-from typing import Callable, Iterable, Optional, Union
+from typing import Callable, Iterable, Iterator, Optional, Tuple, Union
 from spacy import util
-from spacy.lang.fi import Finnish
+from spacy.errors import Errors
+from spacy.lang.fi import Finnish, FinnishDefaults
 from spacy.language import Language
 from spacy.lookups import Lookups, load_lookups
 from spacy.pipeline.pipe import Pipe
@@ -12,12 +13,10 @@ from spacy.scorer import Scorer
 from spacy.symbols import ADJ, ADP, ADV, AUX, CCONJ, INTJ, NOUN, NUM, PROPN
 from spacy.symbols import PRON, PUNCT, SCONJ, SPACE, SYM, VERB, X
 from spacy.symbols import conj, obj
-from spacy.tokens import Doc, Token
+from spacy.tokens import Doc, Span, Token
 from spacy.training import Example, validate_examples
 from spacy.util import SimpleFrozenList
 from spacy.vocab import Vocab
-
-from spacy.lang.fi import FinnishDefaults
 from spacy.lang.char_classes import LIST_PUNCT, LIST_ELLIPSES, LIST_QUOTES, LIST_ICONS
 from spacy.lang.char_classes import LIST_HYPHENS, CURRENCY, UNITS
 from spacy.lang.char_classes import CONCAT_QUOTES, ALPHA, ALPHA_LOWER, ALPHA_UPPER, PUNCT
@@ -60,18 +59,6 @@ _suffixes = (
         r"(?<=[^0-9][0-9])\.",
     ]
 )
-
-
-class FinnishExDefaults(FinnishDefaults):
-    infixes = _infixes
-    suffixes = _suffixes
-
-
-@util.registry.languages("fi")
-class FinnishExtended(Language):
-    """Extends the default Finnish language class with custom tokenizer rules."""
-    lang = 'fi'
-    Defaults = FinnishExDefaults
 
 
 class VoikkoLemmatizer(Pipe):
@@ -419,6 +406,91 @@ def make_voikko_lemmatizer(
     overwrite_lemma: bool = False
 ):
     return VoikkoLemmatizer(nlp.vocab, name, overwrite_lemma=overwrite_lemma)
+
+
+def noun_chunks(doclike: Union[Doc, Span]) -> Iterator[Tuple[int, int, int]]:
+    """Detect base noun phrases from a dependency parse. Works on both Doc and Span."""
+    labels = [
+        "appos",
+        "nsubj",
+        "nsubj:cop",
+        "obj",
+        "obl",
+        "ROOT",
+    ]
+    extend_labels = [
+        "amod",
+        "compound",
+        "compound:nn",
+        "flat:name",
+        "nmod",
+        "nmod:gobj",
+        "nmod:gsubj",
+        "nmod:poss",
+        "nummod",
+    ]
+
+    def potential_np_head(word):
+        return word.pos in (NOUN, PROPN) and (
+            word.dep in np_deps or word.head.pos == PRON
+        )
+
+    doc = doclike.doc  # Ensure works on both Doc and Span.
+    if not doc.has_annotation("DEP"):
+        raise ValueError(Errors.E029)
+
+    np_deps = [doc.vocab.strings[label] for label in labels]
+    extend_deps = [doc.vocab.strings[label] for label in extend_labels]
+    np_label = doc.vocab.strings.add("NP")
+    conj_label = doc.vocab.strings.add("conj")
+
+    rbracket = 0
+    prev_end = -1
+    for i, word in enumerate(doclike):
+        if i < rbracket:
+            continue
+
+        # Is this a potential independent NP head or coordinated with
+        # a NOUN that is itself an independent NP head?
+        #
+        # e.g. "Terveyden ja hyvinvoinnin laitos"
+        if potential_np_head(word) or (
+            word.dep == conj_label and potential_np_head(word.head)
+        ):
+            # Try to extend to the left to include adjective/num
+            # modifiers, compound words etc.
+            lbracket = word.i
+            for ldep in word.lefts:
+                if ldep.dep in extend_deps:
+                    lbracket = ldep.left_edge.i
+                    break
+
+            # Prevent nested chunks from being produced
+            if lbracket <= prev_end:
+                continue
+
+            rbracket = word.i
+            # Try to extend the span to the right to capture
+            # appositions and noun modifiers
+            for rdep in word.rights:
+                if rdep.dep in extend_deps:
+                    rbracket = rdep.i
+            prev_end = rbracket
+
+            yield lbracket, rbracket + 1, np_label
+
+
+class FinnishExDefaults(FinnishDefaults):
+    infixes = _infixes
+    suffixes = _suffixes
+    syntax_iterators = {"noun_chunks": noun_chunks}
+
+
+@util.registry.languages("fi")
+class FinnishExtended(Language):
+    """Extends the default Finnish language class with custom tokenizer rules."""
+    lang = 'fi'
+    Defaults = FinnishExDefaults
 
 
 @util.registry.misc("spacyfi.read_lookups_from_json.v1")
