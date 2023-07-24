@@ -2,7 +2,7 @@ Finnish language model for spaCy
 
 <unreleased>
 
-* The noun chunker now includes also "flat" dependencies: e.g. "maaliskuun 7. päivänä"
+* The noun chunker includes chains of flats and nmods: e.g. "maaliskuun 7. päivänä"
 
 Version 0.13.0, 2023-07-21
 

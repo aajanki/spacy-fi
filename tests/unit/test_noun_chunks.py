@@ -1,8 +1,8 @@
 import pytest
-from spacy.lang.fi import Finnish
+from fi import FinnishExtended
 from util import get_doc_from_text
 
-fi_nlp = Finnish()
+fi_nlp = FinnishExtended()
 fi_tokenizer = fi_nlp.tokenizer
 
 
@@ -139,6 +139,27 @@ FI_NP_TEST_EXAMPLES = [
         ['obl', 'case', 'nsubj:cop', 'cop', 'amod', 'ROOT'],
         [5, -1, 3, 2, 1, 0],
         ['Lain', 'varhaiskasvatus', 'suunnitelmallista toimintaa'],
+    ),
+    (
+        'Asiasta päätettiin maaliskuun 7. päivänä tehdyllä sopimuksella',
+        ['NOUN', 'VERB', 'NOUN', 'ADJ', 'NOUN', 'VERB', 'NOUN'],
+        ['obl', 'ROOT', 'obl', 'flat', 'flat', 'acl', 'obl'],
+        [1, 0, 3, -1, -2, 1, -5],
+        ['Asiasta', 'maaliskuun 7. päivänä', 'sopimuksella'],
+    ),
+    (
+        'Tutkija tuli Helsingin yliopiston fysiikan laitokselta',
+        ['NOUN', 'VERB', 'PROPN', 'NOUN', 'NOUN', 'NOUN'],
+        ['nsubj', 'ROOT', 'nmod:poss', 'nmod:poss', 'nmod:poss', 'obl'],
+        [1, 0, 1, 2, 1, -4],
+        ['Tutkija', 'Helsingin yliopiston fysiikan laitokselta'],
+    ),
+    (
+        'Rakenteluun tarvitsee osia optoerottimista veneen moottoreihin',
+        ['NOUN', 'VERB', 'NOUN', 'NOUN', 'NOUN', 'NOUN'],
+        ['obl', 'ROOT', 'obj', 'nmod', 'nmod:poss', 'nmod'],
+        [1, 0, -1, -1, 1, -2],
+        ['Rakenteluun', 'osia optoerottimista veneen moottoreihin'],
     ),
 ]
 

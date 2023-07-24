@@ -437,6 +437,13 @@ def noun_chunks(doclike: Union[Doc, Span]) -> Iterator[Tuple[int, int, int]]:
             word.dep in np_deps or word.head.pos == PRON
         )
 
+    def extend_right(word):
+        res = word.i
+        for rdep in word.rights:
+            if rdep.dep in extend_deps:
+                res = extend_right(rdep)
+        return res
+
     doc = doclike.doc  # Ensure works on both Doc and Span.
     if not doc.has_annotation("DEP"):
         raise ValueError(Errors.E029)
@@ -471,12 +478,9 @@ def noun_chunks(doclike: Union[Doc, Span]) -> Iterator[Tuple[int, int, int]]:
             if lbracket <= prev_end:
                 continue
 
-            rbracket = word.i
             # Try to extend the span to the right to capture
-            # appositions and noun modifiers
-            for rdep in word.rights:
-                if rdep.dep in extend_deps:
-                    rbracket = rdep.i
+            # noun phrase extensions
+            rbracket = extend_right(word)
             prev_end = rbracket
 
             yield lbracket, rbracket + 1, np_label
