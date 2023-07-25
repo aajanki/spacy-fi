@@ -52,12 +52,10 @@ These are the possible values for `token.dep`:
 | det          | [determiner](https://universaldependencies.org/fi/dep/det.html)                                                                             |
 | dep          | [unspecified dependency](https://universaldependencies.org/u/dep/dep.html)                                                                  |
 | discourse    | [discourse element](https://universaldependencies.org/fi/dep/discourse.html)                                                                |
-| dislocated   | [dislocated elements](https://universaldependencies.org/u/dep/dislocated.html)                                                              |
 | fixed        | [fixed multi-word expression](https://universaldependencies.org/fi/dep/fixed.html)                                                          |
 | flat         | [flat phrase without a clear head](https://universaldependencies.org/fi/dep/flat.html)                                                      |
 | flat:foreign | [foreign words](https://universaldependencies.org/u/dep/flat-foreign.html)                                                                  |
 | flat:name    | [names](https://universaldependencies.org/u/dep/flat-name.html)                                                                             |
-| goeswith     | [relation that links two parts of a compound word that are erroneously separated](https://universaldependencies.org/fi/dep/goeswith.html)   |
 | mark         | [subordinating conjunction, complementizer, or comparative conjunction](https://universaldependencies.org/fi/dep/mark.html)                 |
 | nmod         | [nominal modifier](https://universaldependencies.org/fi/dep/nmod.html)                                                                      |
 | nmod:gobj    | [genitive object](https://universaldependencies.org/fi/dep/nmod-gobj.html)                                                                  |
@@ -65,7 +63,6 @@ These are the possible values for `token.dep`:
 | nmod:poss    | [genitive modifier](https://universaldependencies.org/fi/dep/nmod-poss.html)                                                                |
 | nsubj        | [nominal subject](https://universaldependencies.org/fi/dep/nsubj.html)                                                                      |
 | nsubj:cop    | [nominal copular subject](https://universaldependencies.org/fi/dep/nsubj-cop.html)                                                          |
-| nsubj:outer  | [outer clause nominal subject](https://universaldependencies.org/u/dep/nsubj-outer.html)                                                    |
 | nummod       | [numeric modifier](https://universaldependencies.org/fi/dep/nummod.html)                                                                    |
 | obj          | [direct object](https://universaldependencies.org/fi/dep/obj.html)                                                                          |
 | obl          | [oblique nominal](https://universaldependencies.org/u/dep/obl.html)                                                                         |

@@ -142,7 +142,7 @@ commands:
     help: "Convert the data to spaCy's format"
     script:
       - "mkdir -p corpus/${vars.treebank}/preprocessed corpus/${vars.treebank}/spacy"
-      - "python tools/preprocess_UD-TDT.py assets/${vars.treebank}/${vars.train_name}.conllu corpus/${vars.treebank}/preprocessed/${vars.train_name}.conllu"
+      - "python tools/preprocess_UD-TDT.py --trainset assets/${vars.treebank}/${vars.train_name}.conllu corpus/${vars.treebank}/preprocessed/${vars.train_name}.conllu"
       - "python -m spacy convert corpus/${vars.treebank}/preprocessed/${vars.train_name}.conllu corpus/${vars.treebank}/spacy --n-sents 6"
       - "mv corpus/${vars.treebank}/spacy/${vars.train_name}.spacy corpus/${vars.treebank}/spacy/train.spacy"
       - "python tools/preprocess_UD-TDT.py assets/${vars.treebank}/${vars.dev_name}.conllu corpus/${vars.treebank}/preprocessed/${vars.dev_name}.conllu"
