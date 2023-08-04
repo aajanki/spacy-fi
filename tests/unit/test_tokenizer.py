@@ -1,4 +1,5 @@
 import pytest
+from textwrap import dedent
 from fi.fi import FinnishExtended
 
 fi_nlp = FinnishExtended()
@@ -10,8 +11,8 @@ FI_TOKENIZER_TEST_EXAMPLES = [
         ['Nopeusrajoitus', 'on', '120', 'km/h', '!']
     ),
     (
-        'Jäätelö maksaa 4,30e',
-        ['Jäätelö', 'maksaa', '4,30', 'e']
+        'Jäätelö maksaa 4,30e ja kahvi 2,70€',
+        ['Jäätelö', 'maksaa', '4,30', 'e', 'ja', 'kahvi', '2,70', '€']
     ),
     (
         'Hollanti sulkee hiilivoimalan.Parlamentti äänesti asian puolesta(selvin numeroin).',
@@ -21,6 +22,10 @@ FI_TOKENIZER_TEST_EXAMPLES = [
         ]
     ),
     (
+        'maailman 1. naispääministeri aloitti vuonna 1960.',
+        ['maailman', '1.', 'naispääministeri', 'aloitti', 'vuonna', '1960', '.'],
+    ),
+    (
         'Tappelukerhon 1. sääntö: "Tappelukerhosta ei puhuta!"',
         [
             'Tappelukerhon', '1.', 'sääntö', ':', '"', 'Tappelukerhosta', 'ei',
@@ -28,20 +33,65 @@ FI_TOKENIZER_TEST_EXAMPLES = [
         ]
     ),
     (
+        'pelikoneeni on Xbox360 ja autoni Audi A5.',
+        ['pelikoneeni', 'on', 'Xbox360', 'ja', 'autoni', 'Audi', 'A5', '.']
+    ),
+    (
+        'Ministeri totesi(yrmeästi): "En kommentoi!"',
+        [
+            'Ministeri', 'totesi', '(', 'yrmeästi', '):', '"', 'En',
+            'kommentoi', '!', '"'
+        ]
+    ),
+    (
         'Noudettu kohteesta https://fi.wikipedia.org/w/index.php?title=Claudius',
         ['Noudettu', 'kohteesta', 'https://fi.wikipedia.org/w/index.php?title=Claudius']
     ),
     (
-        'LOL :D =D :-) xD',
-        ['LOL', ':D', '=D', ':-)', 'xD']
+        'vasta-aine em—dash 1-3 4—7 8−9',
+        ['vasta-aine', 'em', '—', 'dash', '1-3', '4—7', '8−9']
     ),
     (
-        # TODO: should this be tokenized as '30.3.'?
-        'Ministeri totesi(30.3.): "En kommentoi!"',
+        'LOL :D =D :-) (>_<) xD',
+        ['LOL', ':D', '=D', ':-)', '(>_<)', 'xD']
+    ),
+]
+
+FI_TOKENIZER_XFAIL_EXAMPLES = [
+    (
+        '2 euroa /hlö',
+        ['2', 'euroa', '/', 'hlö']
+    ),
+    (
+        '\\web\\ /osoite/ https://fi.wikipedia.org/ ',
+        ['\\', 'web', '\\', '/', 'osoite', '/', 'https://fi.wikipedia.org/']
+    ),
+    (
+        dedent('''\
+        •ensimmäinen
+        ›toinen
+        –kolmas
+        →neljäs
+        *viides'''),
         [
-            'Ministeri', 'totesi', '(', '30.3', '.', '):', '"', 'En',
-            'kommentoi', '!', '"'
+            '•', 'ensimmäinen', '\n', '›', 'toinen', '\n', '–', 'kolmas', '\n',
+            '→', 'neljäs', '\n', '*', 'viides'
         ]
+    ),
+    (
+        'Tänään 9.4. juhlitaan suomen kielen päivää. 24.12. on jouluaatto',
+        [
+            'Tänään', '9.4.', 'juhlitaan', 'suomen', 'kielen', 'päivää', '.',
+            '24.12.' 'on', 'jouluaatto'
+        ]
+    ),
+    (
+        'sivu 3(7) viite[5]',
+        ['sivu', '3', '(', '7', ')', 'viite', '[', '5', ']']
+    ),
+    (
+        '18+ 4-',
+        ['18', '+', '4', '-']
     ),
 ]
 
@@ -55,6 +105,16 @@ def tokenize(text):
     "text,expected_tokens", FI_TOKENIZER_TEST_EXAMPLES
 )
 def test_fi_tokenizer(text, expected_tokens):
+    tokens = tokenize(text)
+
+    assert tokens == expected_tokens
+
+
+@pytest.mark.parametrize(
+    "text,expected_tokens", FI_TOKENIZER_XFAIL_EXAMPLES
+)
+@pytest.mark.xfail
+def test_fi_tokenizer_xfail(text, expected_tokens):
     tokens = tokenize(text)
 
     assert tokens == expected_tokens
