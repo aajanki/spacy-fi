@@ -22,6 +22,10 @@ FI_TOKENIZER_TEST_EXAMPLES = [
         ]
     ),
     (
+        'esine,joka tuottaa iloa?kitara',
+        ['esine', ',', 'joka', 'tuottaa', 'iloa', '?', 'kitara']
+    ),
+    (
         'maailman 1. naispääministeri aloitti vuonna 1960.',
         ['maailman', '1.', 'naispääministeri', 'aloitti', 'vuonna', '1960', '.'],
     ),
@@ -68,6 +72,10 @@ FI_TOKENIZER_TEST_EXAMPLES = [
         ]
     ),
     (
+        'sivu 3(7) viite[5]',
+        ['sivu', '3', '(', '7', ')', 'viite', '[', '5', ']']
+    ),
+    (
         'LOL :D =D :-) (>_<) xD',
         ['LOL', ':D', '=D', ':-)', '(>_<)', 'xD']
     ),
@@ -84,10 +92,6 @@ FI_TOKENIZER_XFAIL_EXAMPLES = [
             'Tänään', '9.4.', 'juhlitaan', 'suomen', 'kielen', 'päivää', '.',
             '24.12.' 'on', 'jouluaatto'
         ]
-    ),
-    (
-        'sivu 3(7) viite[5]',
-        ['sivu', '3', '(', '7', ')', 'viite', '[', '5', ']']
     ),
     (
         '18+ 4-',

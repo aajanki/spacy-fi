@@ -33,7 +33,7 @@ _prefixes = (
     + LIST_ICONS
 )
 
-_quotes = CONCAT_QUOTES.replace("'", "")
+_quotes = CONCAT_QUOTES.replace("'", "").replace(",", "")
 DASHES = "|".join(x for x in LIST_HYPHENS if x != "-")
 _infixes = (
     LIST_ELLIPSES
@@ -41,7 +41,7 @@ _infixes = (
     + [
         r"(?<=[{al}])\.(?=[{au}])".format(al=ALPHA_LOWER, au=ALPHA_UPPER),
         r"(?<=[{a}])[,!?](?=[{a}0-9])".format(a=ALPHA),
-        r"(?<=[{a}])([{q}\)\]\(\[])(?=[{a}])".format(a=ALPHA, q=_quotes),
+        r"(?<=[{a}0-9])([{q}\)\]\(\[])(?=[{a}0-9])".format(a=ALPHA, q=_quotes),
         r"(?<=[{a}])(?:{d})(?=[{a}])".format(a=ALPHA, d=DASHES),
         r"(?<=[{a}0-9])[<>()=/](?=[{a}])".format(a=ALPHA),
         r"(?<=[{a}])[()](?=[0-9])".format(a=ALPHA),
