@@ -52,19 +52,8 @@ FI_TOKENIZER_TEST_EXAMPLES = [
         ['vasta-aine', 'em', '—', 'dash', '1-3', '4—7', '8−9']
     ),
     (
-        'LOL :D =D :-) (>_<) xD',
-        ['LOL', ':D', '=D', ':-)', '(>_<)', 'xD']
-    ),
-]
-
-FI_TOKENIZER_XFAIL_EXAMPLES = [
-    (
         '2 euroa /hlö',
         ['2', 'euroa', '/', 'hlö']
-    ),
-    (
-        '\\web\\ /osoite/ https://fi.wikipedia.org/ ',
-        ['\\', 'web', '\\', '/', 'osoite', '/', 'https://fi.wikipedia.org/']
     ),
     (
         dedent('''\
@@ -77,6 +66,17 @@ FI_TOKENIZER_XFAIL_EXAMPLES = [
             '•', 'ensimmäinen', '\n', '›', 'toinen', '\n', '–', 'kolmas', '\n',
             '→', 'neljäs', '\n', '*', 'viides'
         ]
+    ),
+    (
+        'LOL :D =D :-) (>_<) xD',
+        ['LOL', ':D', '=D', ':-)', '(>_<)', 'xD']
+    ),
+]
+
+FI_TOKENIZER_XFAIL_EXAMPLES = [
+    (
+        '\\web\\ /osoite/ https://fi.wikipedia.org/ ',
+        ['\\', 'web', '\\', '/', 'osoite', '/', 'https://fi.wikipedia.org/']
     ),
     (
         'Tänään 9.4. juhlitaan suomen kielen päivää. 24.12. on jouluaatto',

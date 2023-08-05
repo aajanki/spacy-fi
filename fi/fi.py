@@ -18,9 +18,20 @@ from spacy.training import Example, validate_examples
 from spacy.util import SimpleFrozenList
 from spacy.vocab import Vocab
 from spacy.lang.char_classes import LIST_PUNCT, LIST_ELLIPSES, LIST_QUOTES, LIST_ICONS
-from spacy.lang.char_classes import LIST_HYPHENS, CURRENCY, UNITS
+from spacy.lang.char_classes import LIST_HYPHENS, LIST_CURRENCY, CURRENCY, UNITS
 from spacy.lang.char_classes import CONCAT_QUOTES, ALPHA, ALPHA_LOWER, ALPHA_UPPER, PUNCT
 
+_prefixes = (
+    [
+        "§", "%", "=", "—", "–", r"\+(?![0-9])", "•", "›", "→",
+        r"/(?=[{a}])".format(a=ALPHA)
+    ]
+    + LIST_PUNCT
+    + LIST_ELLIPSES
+    + LIST_QUOTES
+    + LIST_CURRENCY
+    + LIST_ICONS
+)
 
 _quotes = CONCAT_QUOTES.replace("'", "")
 DASHES = "|".join(x for x in LIST_HYPHENS if x != "-")
@@ -487,6 +498,7 @@ def noun_chunks(doclike: Union[Doc, Span]) -> Iterator[Tuple[int, int, int]]:
 
 
 class FinnishExDefaults(FinnishDefaults):
+    prefixes = _prefixes
     infixes = _infixes
     suffixes = _suffixes
     syntax_iterators = {"noun_chunks": noun_chunks}
