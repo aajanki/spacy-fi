@@ -56,7 +56,7 @@ _suffixes = (
     + LIST_ICONS
     + ["—", "–"]
     + [
-        r"(?<=[0-9])\+",
+        r"(?<=[0-9])[+−]",
         r"(?<=°[FfCcKk])\.",
         r"(?<=[0-9])(?:{c})".format(c=CURRENCY2),
         r"(?<=[0-9])(?:{u})".format(u=UNITS),

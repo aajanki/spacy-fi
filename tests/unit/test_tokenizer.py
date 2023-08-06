@@ -48,8 +48,8 @@ FI_TOKENIZER_TEST_EXAMPLES = [
         ]
     ),
     (
-        'Noudettu kohteesta https://fi.wikipedia.org/w/index.php?title=Claudius',
-        ['Noudettu', 'kohteesta', 'https://fi.wikipedia.org/w/index.php?title=Claudius']
+        'Noudettu kohteesta https://fi.wikipedia.org/w/index.php?title=Claudius ja https://fi.wikipedia.org/',
+        ['Noudettu', 'kohteesta', 'https://fi.wikipedia.org/w/index.php?title=Claudius', 'ja', 'https://fi.wikipedia.org/']
     ),
     (
         'vasta-aine em—dash 1-3 4—7 8−9',
@@ -76,26 +76,26 @@ FI_TOKENIZER_TEST_EXAMPLES = [
         ['sivu', '3', '(', '7', ')', 'viite', '[', '5', ']']
     ),
     (
-        'LOL :D =D :-) (>_<) xD',
-        ['LOL', ':D', '=D', ':-)', '(>_<)', 'xD']
+        r'LOL :D =D :-) (>_<) \o/ xD',
+        ['LOL', ':D', '=D', ':-)', '(>_<)', r'\o/', 'xD']
+    ),
+    (
+        '/osoite/ https://fi.wikipedia.org/ ',
+        ['/', 'osoite/', 'https://fi.wikipedia.org/']
+    ),
+    (
+        '+2 -12 −7 18+ 3− 4-',  # hyphen and minus
+        ['+2', '-12', '−7', '18', '+', '3', '−', '4-']
     ),
 ]
 
 FI_TOKENIZER_XFAIL_EXAMPLES = [
-    (
-        '\\web\\ /osoite/ https://fi.wikipedia.org/ ',
-        ['\\', 'web', '\\', '/', 'osoite', '/', 'https://fi.wikipedia.org/']
-    ),
     (
         'Tänään 9.4. juhlitaan suomen kielen päivää. 24.12. on jouluaatto',
         [
             'Tänään', '9.4.', 'juhlitaan', 'suomen', 'kielen', 'päivää', '.',
             '24.12.' 'on', 'jouluaatto'
         ]
-    ),
-    (
-        '18+ 4-',
-        ['18', '+', '4', '-']
     ),
 ]
 
