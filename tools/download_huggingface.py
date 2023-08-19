@@ -101,23 +101,18 @@ def main(
     max_texts: int,
     batch_size: int,
     output_path: Path,
-    cleanup: Optional[bool] = None,
 ):
     output_path.mkdir(exist_ok=True, parents=True)
     for p in output_path.glob('*.txt.bz2'):
         p.unlink()
 
     dataset = load_dataset(dataset_name, subset, split="train", streaming=True)
-    selected_lines = lines(dataset)
-    if cleanup:
-        selected_lines = (x for x in selected_lines if not is_spam_url(x['url']))
-    texts = (x['text'] for x in selected_lines)
-    if cleanup:
-        texts = (cleanup_text(x) for x in texts)
-        texts = (x for x in texts if is_clean_finnish(x))
+    dataset = (x for x in dataset if not is_spam_url(x['url']))
+    texts = (cleanup_text(x['text']) for x in dataset)
+    texts = (x for x in texts if is_clean_finnish(x))
     texts = (cleanup_punctuation(x) for x in texts)
     texts = islice(texts, max_texts)
-    texts = tqdm(texts, total=max_texts, smoothing=0.05)
+    texts = tqdm(texts, total=max_texts, smoothing=0.02)
 
     for i, batch in enumerate(ichunked(texts, batch_size)):
         output_file = output_path / f'mc4_{i:02d}.txt.bz2'
@@ -125,13 +120,6 @@ def main(
             for text in batch:
                 outf.write(text)
                 outf.write('\n')
-
-
-def lines(dataset):
-    for x in iter(dataset):
-        text = unicodedata.normalize('NFC', x['text'].strip())
-        if text:
-            yield {'text': text, 'url': x['url']}
 
 
 def is_clean_finnish(text):
@@ -201,6 +189,7 @@ def cleanup_punctuation(text):
 
 
 def cleanup_text(text):
+    text = unicodedata.normalize('NFC', text.strip())
     text = fix_text(text, uncurl_quotes=False)
 
     # Remove duplicated title
