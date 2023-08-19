@@ -72,10 +72,14 @@ skip_domains = set([
     'www.gigantti.fi', # JSON
     'www.klingel.fi', # JSON
     'www.kodinterra.fi', # JSON
+    'www.emilieschindler.info', # word salad
+    'geneerinenviagra.info', # word salad, non-Finnish
 ])
 skip_tlds = set([
     '.nl',
     '.be',
+    '.one',
+    '.pw',
 ])
 spam_re = re.compile(
     '|'.join(r'\b' + w + r'\b' for w in spam_words),
