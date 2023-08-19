@@ -11,6 +11,7 @@ from typing import Optional
 from spacy.lang.char_classes import ALPHA
 from .io import open_output
 from urllib.parse import urlparse
+from ftfy import fix_text
 
 spam_words = [
     'seksitreffit', 'sextreffit', 'seksiseuraa', 'seksideitti', 'sex',
@@ -200,6 +201,8 @@ def cleanup_punctuation(text):
 
 
 def cleanup_text(text):
+    text = fix_text(text, uncurl_quotes=False)
+
     # Remove duplicated title
     # Many sites have the same text and the page title (first line) and the main
     # header (second line). Try to remove the duplication.
@@ -208,7 +211,6 @@ def cleanup_text(text):
     #
     # Ei suuruudenhullua, vaan reilua ja oikein | Näkökulma | Yleisradio | yle.fi
     # Ei suuruudenhullua, vaan reilua ja oikein
-
     lines = text.split('\n')
     if len(lines) > 1:
         lines_to_remove = []
@@ -230,14 +232,6 @@ def cleanup_text(text):
 
     # Cleanup "Riku Rantalahttp://www.hs.fi/haku/?query=riku+rantala"
     text = word_and_url_re.sub('', text)
-
-    # Double encoded UTF-8 umlauts
-    text = text.replace('\u00C3\u00A4', 'ä') \
-        .replace('\u00C3\u00A5', 'å') \
-        .replace('\u00C3\u00B6', 'ö') \
-        .replace('\u00C3\u0084', 'Ä') \
-        .replace('\u00C3\u0085', 'Å') \
-        .replace('\u00C3\u0096', 'Ö')
 
     # Add space around a number in certain cases
     text = time_inside_word_re.sub(r' \1 ', text)

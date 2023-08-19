@@ -6,3 +6,4 @@ tqdm==4.65.0
 langid==1.1.6
 more-itertools==9.1.0
 matplotlib==3.7.1
+ftfy==6.1.1
