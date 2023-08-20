@@ -24,7 +24,7 @@ from spacy.lang.char_classes import CONCAT_QUOTES, ALPHA, ALPHA_LOWER, ALPHA_UPP
 _prefixes = (
     [
         "§", "%", "=", "—", "–", r"\+(?![0-9])", "•", "›", "→",
-        r"/(?=[{a}])".format(a=ALPHA)
+        r"[/-](?=[{a}])".format(a=ALPHA)
     ]
     + LIST_PUNCT
     + LIST_ELLIPSES
@@ -65,7 +65,7 @@ _suffixes = (
         ),
         r"(?<=[{au}][{au}])\.".format(au=ALPHA_UPPER),
         r"(?<=[0-9][€e$£¥])\.",
-        r"(?<=[^{a}0-9])-".format(a=ALPHA),
+        r"(?<=[^0-9-])-",
         r"(?<=.[0-9]{2})\.",
         r"(?<=[^0-9][0-9])\.",
     ]

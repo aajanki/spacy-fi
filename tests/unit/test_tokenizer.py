@@ -48,6 +48,10 @@ FI_TOKENIZER_TEST_EXAMPLES = [
         ]
     ),
     (
+        'maa- ja metsätalousministeriön Suosi suomalaista -kampanja',
+        ['maa', '-', 'ja', 'metsätalousministeriön', 'Suosi', 'suomalaista', '-', 'kampanja']
+    ),
+    (
         'Noudettu kohteesta https://fi.wikipedia.org/w/index.php?title=Claudius ja https://fi.wikipedia.org/',
         ['Noudettu', 'kohteesta', 'https://fi.wikipedia.org/w/index.php?title=Claudius', 'ja', 'https://fi.wikipedia.org/']
     ),
@@ -65,10 +69,11 @@ FI_TOKENIZER_TEST_EXAMPLES = [
         ›toinen
         –kolmas
         →neljäs
-        *viides'''),
+        *viides
+        -kuudes'''),
         [
             '•', 'ensimmäinen', '\n', '›', 'toinen', '\n', '–', 'kolmas', '\n',
-            '→', 'neljäs', '\n', '*', 'viides'
+            '→', 'neljäs', '\n', '*', 'viides', '\n', '-', 'kuudes'
         ]
     ),
     (
