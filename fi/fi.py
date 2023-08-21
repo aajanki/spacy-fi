@@ -193,7 +193,7 @@ class VoikkoLemmatizer(Pipe):
 
     def _analyze(self, token):
         orth = token.orth_
-        if '-' in orth:
+        if '-' in orth and orth[-1] != '-':
             # Analyze only the head token on hyphenated compound
             # words.
             parts = [x for x in orth.rsplit('-', 1) if x]
