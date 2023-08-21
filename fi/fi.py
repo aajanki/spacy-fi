@@ -352,7 +352,7 @@ class VoikkoLemmatizer(Pipe):
 
         Example: "kanssamme" -> "kanssa"
         """
-        suffixes = self.possessive_suffixes[analysis["POSSESSIVE"]]
+        suffixes = self.possessive_suffixes.get(analysis.get("POSSESSIVE", ""), [])
         suffix = next((s for s in suffixes if word.endswith(s)), None)
         if not suffix:
             return word
@@ -364,7 +364,7 @@ class VoikkoLemmatizer(Pipe):
         elif analysis.get("SIJAMUOTO") == "sisatulento":
             # lapsee+ni -> lapseen
             word = word + "n"
-        elif suffix.startswith('n') and analysis.get("BASEFORM").endswith("n"):
+        elif suffix.startswith('n') and analysis.get("BASEFORM", "").endswith("n"):
             # mukaa+ni -> mukaan
             word = word + "n"
 
