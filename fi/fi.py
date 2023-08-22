@@ -26,9 +26,12 @@ LIST_QUOTES = [x for x in LIST_QUOTES if x not in ['', ',', '\\\'']]
 LIST_QUOTES = LIST_QUOTES + ["‹", "›"]
 CONCAT_QUOTES = ''.join(LIST_QUOTES)
 
+LIST_PUNCT = LIST_PUNCT + ["•"]
+CONCAT_PUNCT = ''.join(LIST_PUNCT)
+
 _prefixes = (
     [
-        "§", "%", "=", "—", "–", r"\+(?![0-9])", "•", "→",
+        "§", "%", "=", "—", "–", r"\+(?![0-9])", "→",
         r"[/-](?=[{a}])".format(a=ALPHA)
     ]
     + LIST_PUNCT
@@ -54,7 +57,6 @@ _infixes = (
 )
 
 CURRENCY2 = CURRENCY + "|e"
-CONCAT_PUNCT = '|'.join(LIST_PUNCT)
 _suffixes = (
     LIST_PUNCT
     + LIST_ELLIPSES

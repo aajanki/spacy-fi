@@ -8,7 +8,7 @@ Finnish language model for spaCy
 * Tokenize "-kampanja" as ["-", "kampanja"]
 * Tokenize "maa-" as ["maa", "-"]
 * Tokenize "/kk" as ["/", "kk"]
-* Tokenizer separates common bullet points character prefixes
+* Other tokenizer improvements
 
 Version 0.13.0, 2023-07-21
 
