@@ -19,11 +19,16 @@ from spacy.util import SimpleFrozenList
 from spacy.vocab import Vocab
 from spacy.lang.char_classes import LIST_PUNCT, LIST_ELLIPSES, LIST_QUOTES, LIST_ICONS
 from spacy.lang.char_classes import LIST_HYPHENS, LIST_CURRENCY, CURRENCY, UNITS
-from spacy.lang.char_classes import CONCAT_QUOTES, ALPHA, ALPHA_LOWER, ALPHA_UPPER, PUNCT
+from spacy.lang.char_classes import ALPHA, ALPHA_LOWER, ALPHA_UPPER, PUNCT
+
+
+LIST_QUOTES = [x for x in LIST_QUOTES if x not in ['', ',', '\\\'']]
+LIST_QUOTES = LIST_QUOTES + ["‹", "›"]
+CONCAT_QUOTES = ''.join(LIST_QUOTES)
 
 _prefixes = (
     [
-        "§", "%", "=", "—", "–", r"\+(?![0-9])", "•", "›", "→",
+        "§", "%", "=", "—", "–", r"\+(?![0-9])", "•", "→",
         r"[/-](?=[{a}])".format(a=ALPHA)
     ]
     + LIST_PUNCT
@@ -33,7 +38,7 @@ _prefixes = (
     + LIST_ICONS
 )
 
-_quotes = CONCAT_QUOTES.replace("'", "").replace(",", "")
+#_quotes = CONCAT_QUOTES.replace("'", "").replace(",", "")
 DASHES = "|".join(x for x in LIST_HYPHENS if x != "-")
 _infixes = (
     LIST_ELLIPSES
@@ -41,7 +46,7 @@ _infixes = (
     + [
         r"(?<=[{al}])\.(?=[{au}])".format(al=ALPHA_LOWER, au=ALPHA_UPPER),
         r"(?<=[{a}])[,!?](?=[{a}0-9])".format(a=ALPHA),
-        r"(?<=[{a}0-9])([{q}\)\]\(\[])(?=[{a}0-9])".format(a=ALPHA, q=_quotes),
+        r"(?<=[{a}0-9])([{q}\)\]\(\[])(?=[{a}0-9])".format(a=ALPHA, q=CONCAT_QUOTES),
         r"(?<=[{a}])(?:{d})(?=[{a}])".format(a=ALPHA, d=DASHES),
         r"(?<=[{a}0-9])[<>()=/](?=[{a}])".format(a=ALPHA),
         r"(?<=[{a}])[()](?=[0-9])".format(a=ALPHA),

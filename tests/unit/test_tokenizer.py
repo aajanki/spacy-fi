@@ -52,6 +52,10 @@ FI_TOKENIZER_TEST_EXAMPLES = [
         ['maa', '-', 'ja', 'metsätalousministeriön', 'Suosi', 'suomalaista', '-', 'kampanja']
     ),
     (
+        "D'Andrea astui vaa'an päälle",
+        ["D'Andrea", 'astui', "vaa'an", 'päälle']
+    ),
+    (
         'Noudettu kohteesta https://fi.wikipedia.org/w/index.php?title=Claudius ja https://fi.wikipedia.org/',
         ['Noudettu', 'kohteesta', 'https://fi.wikipedia.org/w/index.php?title=Claudius', 'ja', 'https://fi.wikipedia.org/']
     ),
@@ -81,8 +85,8 @@ FI_TOKENIZER_TEST_EXAMPLES = [
         ['sivu', '3', '(', '7', ')', 'viite', '[', '5', ']']
     ),
     (
-        r'LOL :D =D :-) (>_<) \o/ xD',
-        ['LOL', ':D', '=D', ':-)', '(>_<)', r'\o/', 'xD']
+        r'LOL :D =D :-) (>_<) \o/ <3 xD',
+        ['LOL', ':D', '=D', ':-)', '(>_<)', r'\o/', '<3', 'xD']
     ),
     (
         '/osoite/ https://fi.wikipedia.org/ ',
