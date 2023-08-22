@@ -19,7 +19,7 @@ from spacy.util import SimpleFrozenList
 from spacy.vocab import Vocab
 from spacy.lang.char_classes import LIST_PUNCT, LIST_ELLIPSES, LIST_QUOTES, LIST_ICONS
 from spacy.lang.char_classes import LIST_HYPHENS, LIST_CURRENCY, CURRENCY, UNITS
-from spacy.lang.char_classes import ALPHA, ALPHA_LOWER, ALPHA_UPPER, PUNCT
+from spacy.lang.char_classes import ALPHA, ALPHA_LOWER, ALPHA_UPPER
 
 
 LIST_QUOTES = [x for x in LIST_QUOTES if x not in ['', ',', '\\\'']]
@@ -54,6 +54,7 @@ _infixes = (
 )
 
 CURRENCY2 = CURRENCY + "|e"
+CONCAT_PUNCT = '|'.join(LIST_PUNCT)
 _suffixes = (
     LIST_PUNCT
     + LIST_ELLIPSES
@@ -66,7 +67,7 @@ _suffixes = (
         r"(?<=[0-9])(?:{c})".format(c=CURRENCY2),
         r"(?<=[0-9])(?:{u})".format(u=UNITS),
         r"(?<=[{al}{e}{p}{q}])\.".format(
-            al=ALPHA_LOWER, e=r"%²\-\+", q=CONCAT_QUOTES, p=PUNCT
+            al=ALPHA_LOWER, e=r"%²\-\+", q=CONCAT_QUOTES, p=CONCAT_PUNCT
         ),
         r"(?<=[{au}][{au}])\.".format(au=ALPHA_UPPER),
         r"(?<=[0-9][€e$£¥])\.",
