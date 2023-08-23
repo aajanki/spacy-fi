@@ -41,10 +41,10 @@ FI_TOKENIZER_TEST_EXAMPLES = [
         ['pelikoneeni', 'on', 'Xbox360', 'ja', 'autoni', 'Audi', 'A5', '.']
     ),
     (
-        'Ministeri totesi(yrmeästi): "En kommentoi!"',
+        "Ministeri totesi(yrmeästi): 'En kommentoi!'",
         [
-            'Ministeri', 'totesi', '(', 'yrmeästi', '):', '"', 'En',
-            'kommentoi', '!', '"'
+            'Ministeri', 'totesi', '(', 'yrmeästi', '):', "'", 'En',
+            'kommentoi', '!', "'"
         ]
     ),
     (

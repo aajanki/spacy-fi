@@ -22,7 +22,7 @@ from spacy.lang.char_classes import LIST_HYPHENS, LIST_CURRENCY, CURRENCY, UNITS
 from spacy.lang.char_classes import ALPHA, ALPHA_LOWER, ALPHA_UPPER
 
 
-LIST_QUOTES = [x for x in LIST_QUOTES if x not in ['', ',', '\\\'']]
+LIST_QUOTES = [x for x in LIST_QUOTES if x not in ['', ',']]
 LIST_QUOTES = LIST_QUOTES + ["‹", "›"]
 CONCAT_QUOTES = ''.join(LIST_QUOTES)
 
@@ -41,7 +41,7 @@ _prefixes = (
     + LIST_ICONS
 )
 
-#_quotes = CONCAT_QUOTES.replace("'", "").replace(",", "")
+infix_quotes = CONCAT_QUOTES.replace("'", "")
 DASHES = "|".join(x for x in LIST_HYPHENS if x != "-")
 _infixes = (
     LIST_ELLIPSES
@@ -49,7 +49,7 @@ _infixes = (
     + [
         r"(?<=[{al}])\.(?=[{au}])".format(al=ALPHA_LOWER, au=ALPHA_UPPER),
         r"(?<=[{a}])[,!?](?=[{a}0-9])".format(a=ALPHA),
-        r"(?<=[{a}0-9])([{q}\)\]\(\[])(?=[{a}0-9])".format(a=ALPHA, q=CONCAT_QUOTES),
+        r"(?<=[{a}0-9])([{q}\)\]\(\[])(?=[{a}0-9])".format(a=ALPHA, q=infix_quotes),
         r"(?<=[{a}])(?:{d})(?=[{a}])".format(a=ALPHA, d=DASHES),
         r"(?<=[{a}0-9])[<>()=/](?=[{a}])".format(a=ALPHA),
         r"(?<=[{a}])[()](?=[0-9])".format(a=ALPHA),
