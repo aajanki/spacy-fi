@@ -21,7 +21,6 @@ from spacy.lang.char_classes import LIST_PUNCT, LIST_ELLIPSES, LIST_QUOTES, LIST
 from spacy.lang.char_classes import LIST_HYPHENS, LIST_CURRENCY, CURRENCY, UNITS
 from spacy.lang.char_classes import ALPHA, ALPHA_LOWER, ALPHA_UPPER
 
-
 LIST_QUOTES = [x for x in LIST_QUOTES if x not in ['', ',']]
 LIST_QUOTES = LIST_QUOTES + ["‹", "›"]
 CONCAT_QUOTES = ''.join(LIST_QUOTES)
@@ -29,9 +28,11 @@ CONCAT_QUOTES = ''.join(LIST_QUOTES)
 LIST_PUNCT = LIST_PUNCT + ["•"]
 CONCAT_PUNCT = ''.join(LIST_PUNCT)
 
+LIST_ICONS = LIST_ICONS + ["←", "↑", "→", "↓"]
+
 _prefixes = (
     [
-        "§", "%", "=", "—", "–", r"\+(?![0-9])", "→",
+        "§", "%", "=", "—", "–", r"\+(?![0-9])",
         r"[/-](?=[{a}])".format(a=ALPHA)
     ]
     + LIST_PUNCT
