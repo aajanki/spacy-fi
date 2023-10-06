@@ -5,5 +5,5 @@ datasets[streaming]>=2.13.1,<3
 tqdm==4.66.1
 langid==1.1.6
 more-itertools==10.1.0
-matplotlib==3.8.0
+matplotlib>=3.7.0,<3.8.0
 ftfy==6.1.1
