@@ -1,7 +1,7 @@
 {
     "lang": "fi",
     "name": "experimental_web_md",
-    "version": "0.13.0",
+    "version": "0.14.0",
     "requirements": ["libvoikko"],
     "description": "Finnish language model: POS tagger, dependency parser, word vectors, noun phrase extraction, word probabilities, lemmatizer, morphological features, NER",
     "author": "Antti Ajanki",
