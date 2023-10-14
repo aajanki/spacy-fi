@@ -1,7 +1,8 @@
 Finnish language model for spaCy
 
-<unreleased>
+Version 0.14.0, 2023-10-14
 
+* Compatible with spaCy 3.7
 * The noun chunker includes chains of flats and nmods: e.g. "maaliskuun 7. päivänä"
 * The parser doesn't try to detect nsubj:outer, dislocated and goeswith
   dependencies anymore. There's not enough training data to learn those.
