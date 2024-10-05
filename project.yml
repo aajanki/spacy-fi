@@ -64,7 +64,7 @@ commands:
     script:
       - "rm -rf corpus/mc4/raw/"
       - "mkdir -p corpus/mc4/raw"
-      - "python -m tools.download_huggingface mc4 fi ${vars.max_texts} ${vars.texts_per_batch} corpus/mc4/raw"
+      - "python -m tools.download_huggingface allenai/c4 fi ${vars.max_texts} ${vars.texts_per_batch} corpus/mc4/raw"
     outputs:
       - "corpus/mc4/raw"
 
