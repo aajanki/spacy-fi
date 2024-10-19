@@ -14,6 +14,8 @@ Need the highest possible accuracy especially for lemmatization? Install this mo
 
 I'm planning to continue to experiment with new ideas on this repository and push the useful features to the spaCy core after testing them here.
 
+The training data is web pages collected during 2014 - 2020, before the rise of the AI slop surge. The data does contain some regular spam and poorly machine-translated pages. I have made some effort to filter out the most conspicuous spam pages.
+
 ## Install the Finnish language model
 
 First, install [the libvoikko native library and the Finnish morphology data files](https://voikko.puimula.org/python.html).
@@ -27,6 +29,7 @@ Compatibility with spaCy versions:
 
 | spacy-fi version | Compatible with spaCy versions |
 |------------------|--------------------------------|
+| 0.15.0           | 3.8.x                          |
 | 0.14.0           | 3.7.x                          |
 | 0.13.0           | 3.6.x                          |
 | 0.12.0           | 3.5.x                          |
