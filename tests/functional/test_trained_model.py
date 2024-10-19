@@ -66,7 +66,7 @@ def test_lemma(nlp, text, expected_lemma):
 
 NER_TEST_CASES= [
     (
-        'Mervi ja Matleena matkustavat Kööpenhaminaan perjantaina',
+        'Mervi ja Milla matkustavat Kööpenhaminaan perjantaina',
         ['B-PERSON', 'O', 'B-PERSON', 'O', 'B-GPE', 'B-DATE']
     ),
 ]
