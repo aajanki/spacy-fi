@@ -1,11 +1,11 @@
 import copy
-import langid
 import re
 import typer
 import unicodedata
 from itertools import islice
 from pathlib import Path
 from datasets import load_dataset
+from lingua import Language, LanguageDetectorBuilder
 from more_itertools import ichunked
 from tqdm import tqdm
 from typing import Optional
@@ -25,6 +25,22 @@ skip_tlds = set([
 time_inside_word_re = re.compile(r'(?<=[{a}]{{2}})(\d{{2}}[.:]\d{{2}})(?=[{a}])'.format(a=ALPHA))
 word_and_url_re = re.compile(r'(?<=\w{3})https?://[-:/a-zA-Z0-9_.+%/?=#]+')
 
+detect_languages = [
+    Language.FINNISH,
+    Language.ENGLISH,
+    Language.FRENCH,
+    Language.GERMAN,
+    Language.SPANISH,
+    Language.BOKMAL,
+    Language.DANISH,
+    Language.DUTCH,
+    Language.ESTONIAN,
+    Language.LATVIAN,
+    Language.LITHUANIAN,
+    Language.NYNORSK,
+    Language.RUSSIAN,
+    Language.SWEDISH
+]
 
 def main(
     dataset_name: str,
@@ -38,6 +54,8 @@ def main(
     spam_classifier = SpamClassifier('tools/spammodels/spam_classifier_weights.json')
     code_classifier = CodeClassifier('tools/spammodels/code_classifier_weights.json')
 
+    langdetector = LanguageDetectorBuilder.from_languages(*languages).build()
+
     output_path.mkdir(exist_ok=True, parents=True)
     for p in output_path.glob('*.txt.bz2'):
         p.unlink()
@@ -49,7 +67,7 @@ def main(
         if not (is_spam(x, spam_classifier) or is_code(x, code_classifier))
     )
     texts = (x['text'] for x in dataset if is_body_text(x['text']))
-    texts = (x for x in texts if is_finnish(x))
+    texts = (x for x in texts if is_finnish(langdetector, x))
     texts = (cleanup_punctuation(x) for x in texts)
     texts = islice(texts, max_texts)
     texts = tqdm(texts, total=max_texts, smoothing=0.02)
@@ -136,18 +154,26 @@ def is_body_text(text):
 
 
 # MC4 has already done language detection, but it's not perfect. Let's
-# reduce false positives but doing a second pass of language detection
-# with langid.
+# reduce false positives by doing a second pass of language detection
+# with lingua.
 #
-# We don't care even if some small fraction of lines gets skipped even
-# though they really are in Finnish. Since we are anyway taking only a
-# portion of lines, skipping some lines unnecessarily doesn't matter.
-#
-# The langid filtering has the additional benefit that it discards lines
-# with incorrect encodings.
-def is_finnish(text):
-    langcode, _ = langid.classify(text)
-    return langcode == 'fi'
+# A document is considered Finnish if more than 80% of text is in Finnish.
+# The threshold allows some embedded text on other languages. The threshold
+# is selected to lean on excluding documents on unclear cases.
+def is_finnish(langdetector, text):
+    return finnish_proportion(langdetector, text) >= 0.8
+
+
+def finnish_proportion(detector, text):
+    languages = detector.detect_multiple_languages_of(text)
+    fi_span_lengths = [
+        lang.end_index - lang.start_index
+        for lang in languages
+        if lang.language == Language.FINNISH
+    ]
+    fi_total = sum(fi_span_lengths)
+
+    return fi_total / len(text)
 
 
 def cleanup_punctuation(text):

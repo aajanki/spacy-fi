@@ -3,8 +3,8 @@ libvoikko>=4.3
 pytest==8.3.3
 datasets[streaming]>=3.0.1,<4
 tqdm==4.66.5
-langid==1.1.6
 more-itertools==10.5.0
 matplotlib>=3.9.0,<3.10.0
-ftfy==6.2.3
+ftfy==6.3.0
 build>=1.0,<2
+lingua-language-detector==2.0.2
