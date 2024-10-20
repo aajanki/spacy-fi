@@ -33,7 +33,6 @@ detect_languages = [
     Language.SPANISH,
     Language.BOKMAL,
     Language.DANISH,
-    Language.DUTCH,
     Language.ESTONIAN,
     Language.LATVIAN,
     Language.LITHUANIAN,
