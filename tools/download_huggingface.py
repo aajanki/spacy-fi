@@ -54,7 +54,7 @@ def main(
     spam_classifier = SpamClassifier('tools/spammodels/spam_classifier_weights.json')
     code_classifier = CodeClassifier('tools/spammodels/code_classifier_weights.json')
 
-    langdetector = LanguageDetectorBuilder.from_languages(*languages).build()
+    langdetector = LanguageDetectorBuilder.from_languages(*detect_languages).build()
 
     output_path.mkdir(exist_ok=True, parents=True)
     for p in output_path.glob('*.txt.bz2'):
