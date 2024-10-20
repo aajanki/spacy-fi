@@ -67,8 +67,8 @@ def main(
         if not (is_spam(x, spam_classifier) or is_code(x, code_classifier))
     )
     texts = (x['text'] for x in dataset if is_body_text(x['text']))
-    texts = (x for x in texts if is_finnish(langdetector, x))
     texts = (cleanup_punctuation(x) for x in texts)
+    texts = (x for x in texts if is_finnish(langdetector, x))
     texts = islice(texts, max_texts)
     texts = tqdm(texts, total=max_texts, smoothing=0.02)
 
