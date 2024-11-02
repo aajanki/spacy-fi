@@ -176,6 +176,8 @@ def cleanup_punctuation(text):
     text = re.sub(r'(?<=\s)[\ufe00-\ufe0f]+', '', text)
     text = re.sub(r'\s\.(?=[{a}]{{4}})'.format(a=ALPHA), '. ', text)
     text = re.sub(r'\.\.\.(?=[-+*/!?%(),:;<>€$£"\'])', '... ', text)
+    text = re.sub(r'\s[.|@-]{10,}\s', ' ', text)
+    text = re.sub(r'([.,|@-]){10,}', r'\1\1\1\1\1\1\1\1\1\1', text)
     return text
 
 
