@@ -126,7 +126,7 @@ def is_body_text(text):
 
     # Skip if digits occur too frequently.
     num_digit_tokens = sum(1 for t in tokens if re.match(r'^\(?[0-9][0-9.,:;]+\)?$', t))
-    if num_digit_tokens / num_tokens > 0.25:
+    if num_digit_tokens / num_tokens > 0.33:
         return False
 
     # Skip if too many single characters tokens.
@@ -134,9 +134,12 @@ def is_body_text(text):
     if num_single_character_tokens / num_tokens > 0.25:
         return False
 
-    # Very long words might indicate that this is some kind of programming language
-    num_long_words = sum(1 for t in tokens if len(t) >= 50 and not t.startswith('http'))
-    if num_long_words / num_tokens > 0.05:
+    # Very long words might indicate that this is programming language or data
+    num_long_words = sum(
+        1 for t in tokens
+        if len(t) >= 40 and not t.startswith('http') and not t.startswith('www') and not ',' in t
+    )
+    if num_long_words / num_tokens > 0.01:
         return False
 
     # Skip page with lots of Wiki markup
@@ -224,7 +227,7 @@ def is_code(x, code_classifier):
 def is_spam_url(url):
     dom = domain(url)
     tld = '.' + dom.split('.')[-1]
-    return tld in skip_tlds
+    return (dom == 'propilkki.ddns.net') or (tld in skip_tlds)
 
 
 def domain(url: str) -> str:
