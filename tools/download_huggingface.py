@@ -88,14 +88,11 @@ def cleanup_text(x):
     # Ei suuruudenhullua, vaan reilua ja oikein
     lines = text.split('\n')
     if len(lines) > 1:
-        lines_to_remove = []
         title_re = re.compile(re.escape(lines[1]) + r' [-–|«]', re.IGNORECASE)
-        if title_re.match(lines[0]):
-            lines_to_remove.append(0)
+        remove_first_line = title_re.match(lines[0])
 
-        if lines_to_remove:
-            lines = [lines[i] for i in range(len(lines)) if i not in lines_to_remove]
-            text = '\n'.join(lines)
+        if remove_first_line:
+            text = '\n'.join(lines[1:])
 
     text = remove_bbcode(text)
     text = remove_sort_entry(text)
