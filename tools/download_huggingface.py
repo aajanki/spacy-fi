@@ -216,7 +216,11 @@ def remove_sort_entry(text):
 
 
 def is_spam(x, spam_classifier):
-    return is_spam_url(x['url']) or spam_classifier.predict(x['text'])
+    return (
+        is_spam_url(x['url']) or
+        spam_classifier.predict(x['text']) or
+        'Hotels.comSee this page in English' in x['text']
+    )
 
 
 def is_code(x, code_classifier):
