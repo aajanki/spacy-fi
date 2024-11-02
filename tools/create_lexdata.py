@@ -3,9 +3,19 @@
 import gzip
 import json
 import math
+import re
 import typer
 from pathlib import Path
 from itertools import islice
+
+sensitive_email_pattern = re.compile(
+    r'\.[A-Za-z0-9_%+-]+@[A-Za-z0-9.-]+\.[A-Za-z0-9-]|.@gmail\.[A-Za-z0-9_%+.-]+|.@yahoo\.[A-Za-z0-9_%+.-]+|.@hotmail\.[A-Za-z0-9_%+.-]+',
+    re.IGNORECASE
+)
+etunimi_sukunimi_email_pattern = re.compile(
+    r'^(?:etunimi\.sukunimi|etu\.sukunimi|sukunimi\.etunimi|firstname\.lastname)@',
+    re.IGNORECASE
+)
 
 
 def main(
@@ -28,7 +38,7 @@ def main(
         json.dump(settings_lookup, out, ensure_ascii=False)
 
 
-def read_freqs(full_loc, num_tokens, max_token_length=50):
+def read_freqs(full_loc, num_tokens):
     total = 0
     n = 0
     with gzip.open(full_loc, 'rt', encoding='utf-8') as f:
@@ -42,7 +52,7 @@ def read_freqs(full_loc, num_tokens, max_token_length=50):
     remaining_freq = total
     with gzip.open(full_loc, 'rt', encoding='utf-8') as f:
         parsed = (parse_token_line(x) for x in f)
-        valid_tokens = (x for x in parsed if len(x[1]) <= max_token_length)
+        valid_tokens = (x for x in parsed if is_valid_token(x[1]))
         for freq, token in islice(valid_tokens, num_tokens):
             probs[token] = math.log(freq) - log_total
             remaining_freq -= freq
@@ -54,10 +64,22 @@ def read_freqs(full_loc, num_tokens, max_token_length=50):
     return probs, oov_prob
 
 
-def parse_token_line(x):
-    freq, token = x.strip().split(' ', 1)
-    freq = int(freq)
-    return freq, token
+def is_valid_token(token, max_token_length=50):
+    # Skip too long tokens
+    is_not_too_long = len(token) <= max_token_length
+
+    # Redact email addresses that potentially contain person names
+    is_sensitive_email = (
+        sensitive_email_pattern.search(token) and
+        not etunimi_sukunimi_email_pattern.search(token)
+    )
+
+    return is_not_too_long and not is_sensitive_email
+
+
+def parse_token_line(line):
+    freq, token = line.strip().split(' ', 1)
+    return int(freq), token
 
 
 if __name__ == '__main__':
