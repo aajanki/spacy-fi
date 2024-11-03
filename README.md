@@ -93,6 +93,11 @@ Pretrain tok2vec weights:
 spacy project run pretrain
 ```
 
+Plot the pretraining loss:
+```sh
+python tools/plot_pretrain_loss.py training/pretrain/log.jsonl
+```
+
 ### Testing
 
 Unit tests:

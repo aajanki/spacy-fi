@@ -8,3 +8,4 @@ matplotlib>=3.9.0,<3.10.0
 ftfy==6.3.0
 build>=1.0,<2
 lingua-language-detector==2.0.2
+seaborn==0.13.2
