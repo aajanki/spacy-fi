@@ -6,7 +6,7 @@
 #
 # Compare two models:
 #
-# python3 tools/plot_pretrain_loss.py --xwords model1/log.jsonl model2/log.jsonl
+# python3 tools/plot_pretrain_loss.py --xwords --yperword model1/log.jsonl model2/log.jsonl
 
 import json
 import sys
@@ -21,25 +21,31 @@ from typing_extensions import Annotated
 
 def main(
   paths: Annotated[Optional[List[Path]], typer.Argument()] = None,
-  xwords: Annotated[bool, typer.Option(help="number of words on x-axis (instead of epoch)")] = False
+  xwords: Annotated[bool, typer.Option(help="number of words on x-axis (instead of epoch)")] = False,
+  yperword: Annotated[bool, typer.Option(help="loss per word on y-axis (instead of epoch_loss)")] = False
 ):
   xvariable = 'nr_word' if xwords else 'epoch'
-  data = []
+  yvariable = 'loss_per_word' if yperword else 'epoch_loss'
+  dfs = []
   if paths is not None and len(paths) > 0:
     for i, path in enumerate(paths):
-      for line in path.open():
-        linedata = json.loads(line)
-        linedata['model'] = path
-        data.append(linedata)
+      data = [json.loads(line) for line in path.open()]
+      df = pd.DataFrame(data)
+      df['model'] = path
+      words_per_epoch = df.iloc[0]['nr_word']
+      df['loss_per_word'] = df['epoch_loss']/words_per_epoch
+      dfs.append(df)
   else:
-    for line in sys.stdin:
-        linedata = json.loads(line)
-        linedata['model'] = 'pretraining'
-        data.append(linedata)
+    data = [json.loads(line) for line in sys.stdin]
+    df = pd.DataFrame(data)
+    df['model'] = 'pretraining'
+    words_per_epoch = df.iloc[0]['nr_word']
+    df['loss_per_word'] = df['epoch_loss']/words_per_epoch
+    dfs.append(df)
 
-  df = pd.DataFrame(data)
+  df = pd.concat(dfs)
   legend = 'auto' if paths and len(paths) > 1 else False
-  sns.lineplot(data=df, x=xvariable, y='epoch_loss', hue='model', legend=legend)
+  sns.lineplot(data=df, x=xvariable, y=yvariable, hue='model', legend=legend)
   loc = mticker.MaxNLocator(nbins='auto', integer=True)
   plt.gca().xaxis.set_major_locator(loc)
   plt.show()
