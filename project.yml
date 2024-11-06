@@ -8,8 +8,8 @@ vars:
   minn: 4
   maxn: 5
   max_steps: 20000
-  pretrain_max_steps: 60
-  pretrain_max_texts: 100000
+  pretrain_max_steps: 30
+  pretrain_max_texts: 200000
   treebank: "UD_Finnish-TDT"
   corpus_ner: "turku-one"
   train_name: "fi_tdt-ud-train"
