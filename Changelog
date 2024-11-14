@@ -1,5 +1,10 @@
 Finnish language model for spaCy
 
+Version 0.15.1, 2024-11-14
+
+* Better cleaning of training data
+* Redacted person names in email addresses in the word frequency data
+
 Version 0.15.0, 2024-10-19
 
 * Compatible with spaCy 3.8

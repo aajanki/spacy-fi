@@ -29,7 +29,7 @@ Compatibility with spaCy versions:
 
 | spacy-fi version | Compatible with spaCy versions |
 |------------------|--------------------------------|
-| 0.15.0           | 3.8.x                          |
+| 0.15.x           | 3.8.x                          |
 | 0.14.0           | 3.7.x                          |
 | 0.13.0           | 3.6.x                          |
 | 0.12.0           | 3.5.x                          |
